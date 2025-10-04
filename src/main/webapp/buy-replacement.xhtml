@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns:pt="http://xmlns.jcp.org/jsf/passthrough"
+                template="/WEB-INF/template.xhtml">
+    <f:metadata>
+        <f:viewAction action="#{purchaseView.prepareReplacement}" />
+    </f:metadata>
+    <ui:define name="title">Replacement PINs – Veristore</ui:define>
+    <ui:define name="content">
+        <div class="row g-4 g-lg-5 align-items-start">
+            <div class="col-12 col-lg-7">
+                <h:form id="purchaseForm" prependId="true">
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-body">
+                            <h2 class="h5 fw-semibold mb-3">Step 1: Choose your category</h2>
+                            <div class="mb-3">
+                                <label for="purchaseForm:citizenship" class="form-label">Citizenship</label>
+                                <h:selectOneMenu id="citizenship" value="#{purchaseView.citizenship}" styleClass="form-select">
+                                    <f:selectItem itemLabel="Select citizenship" itemValue="" noSelectionOption="true" />
+                                    <f:selectItems value="#{purchaseView.citizenshipsForApp}"
+                                                   var="cit"
+                                                   itemValue="#{cit}"
+                                                   itemLabel="#{purchaseView.labelForCitizenship(cit)}" />
+                                    <f:ajax render="tierSection updateSection variantSection totalCard" />
+                                </h:selectOneMenu>
+                                <h:message for="citizenship" styleClass="text-danger small mt-1 d-block" />
+                            </div>
+                            <h:panelGroup id="tierSection" layout="block" rendered="#{purchaseView.isTierRequired()}">
+                                <div class="mb-3">
+                                    <span class="form-label d-block">Tier</span>
+                                    <h:selectOneRadio id="tier"
+                                                      value="#{purchaseView.citizenTier}"
+                                                      layout="pageDirection"
+                                                      styleClass="d-flex flex-column gap-2">
+                                        <f:selectItems value="#{purchaseView.tiersForCitizen}"
+                                                       var="tierOpt"
+                                                       itemValue="#{tierOpt}"
+                                                       itemLabel="#{purchaseView.labelForTier(tierOpt)}" />
+                                        <f:ajax render="variantSection totalCard" />
+                                    </h:selectOneRadio>
+                                    <h:message for="tier" styleClass="text-danger small mt-1 d-block" />
+                                </div>
+                            </h:panelGroup>
+                            <h:panelGroup id="updateSection" layout="block" rendered="false" />
+                            <h:panelGroup id="variantSection" layout="block" rendered="#{not empty purchaseView.variants}">
+                                <div class="mb-0">
+                                    <label for="purchaseForm:variant" class="form-label">Replacement option</label>
+                                    <h:selectOneMenu id="variant"
+                                                     value="#{purchaseView.selectedSku}"
+                                                     styleClass="form-select">
+                                        <f:selectItems value="#{purchaseView.variants}"
+                                                       var="variant"
+                                                       itemValue="#{variant.sku}"
+                                                       itemLabel="#{variant.displayName}" />
+                                        <f:ajax render="totalCard" />
+                                    </h:selectOneMenu>
+                                    <h:message for="variant" styleClass="text-danger small mt-1 d-block" />
+                                </div>
+                            </h:panelGroup>
+                        </div>
+                    </div>
+
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-body">
+                            <h2 class="h5 fw-semibold mb-3">Step 2: Delivery and payment</h2>
+                            <div class="row g-3">
+                                <div class="col-12 col-sm-6">
+                                    <label for="purchaseForm:quantity" class="form-label">Quantity</label>
+                                    <h:inputText id="quantity"
+                                                 value="#{purchaseView.qty}"
+                                                 styleClass="form-control"
+                                                 pt:type="number"
+                                                 pt:min="1"
+                                                 pt:max="10">
+                                        <f:ajax render="totalCard" />
+                                    </h:inputText>
+                                    <h:message for="quantity" styleClass="text-danger small mt-1 d-block" />
+                                </div>
+                                <div class="col-12 col-sm-6">
+                                    <label for="purchaseForm:paymentMode" class="form-label">Payment mode</label>
+                                    <h:selectOneRadio id="paymentMode"
+                                                      value="#{purchaseView.mode}"
+                                                      layout="pageDirection"
+                                                      styleClass="d-flex flex-column gap-2">
+                                        <f:selectItem itemValue="#{T(com.theplutushome.veristore.domain.PaymentMode).PAY_NOW}" itemLabel="Pay now (instant delivery)" />
+                                        <f:selectItem itemValue="#{T(com.theplutushome.veristore.domain.PaymentMode).PAY_LATER}" itemLabel="Pay later (invoice)" />
+                                        <f:ajax render="totalCard" />
+                                    </h:selectOneRadio>
+                                </div>
+                                <div class="col-12">
+                                    <h:panelGroup id="deliveryOptions" layout="block">
+                                        <span class="form-label d-block">Delivery channels</span>
+                                        <div class="form-check">
+                                            <h:selectBooleanCheckbox id="emailDelivery"
+                                                                     value="#{purchaseView.deliverEmail}"
+                                                                     styleClass="form-check-input">
+                                                <f:ajax render="totalCard" />
+                                            </h:selectBooleanCheckbox>
+                                            <label class="form-check-label" for="purchaseForm:emailDelivery">Email</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <h:selectBooleanCheckbox id="smsDelivery"
+                                                                     value="#{purchaseView.deliverSms}"
+                                                                     styleClass="form-check-input">
+                                                <f:ajax render="totalCard" />
+                                            </h:selectBooleanCheckbox>
+                                            <label class="form-check-label" for="purchaseForm:smsDelivery">SMS</label>
+                                        </div>
+                                    </h:panelGroup>
+                                    <h:message for="deliveryOptions" styleClass="text-danger small mt-1 d-block" />
+                                </div>
+                                <div class="col-12 col-md-6">
+                                    <label for="purchaseForm:email" class="form-label">Email address</label>
+                                    <h:inputText id="email"
+                                                 value="#{purchaseView.email}"
+                                                 styleClass="form-control"
+                                                 pt:type="email"
+                                                 pt:placeholder="name@example.com" />
+                                    <h:message for="email" styleClass="text-danger small mt-1 d-block" />
+                                </div>
+                                <div class="col-12 col-md-6">
+                                    <label for="purchaseForm:msisdn" class="form-label">Phone number</label>
+                                    <h:inputText id="msisdn"
+                                                 value="#{purchaseView.msisdn}"
+                                                 styleClass="form-control"
+                                                 pt:placeholder="+233XXXXXXXXX" />
+                                    <h:message for="msisdn" styleClass="text-danger small mt-1 d-block" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-column flex-sm-row gap-3">
+                        <h:commandButton value="Continue"
+                                         action="#{purchaseView.submitEnrollment}"
+                                         styleClass="btn btn-primary btn-lg" />
+                    </div>
+                </h:form>
+            </div>
+            <div class="col-12 col-lg-5">
+                <div class="position-sticky top-0">
+                    <h:panelGroup id="totalCard" layout="block" pt:aria-live="polite" pt:aria-atomic="true">
+                        <div class="card shadow-sm">
+                            <div class="card-body">
+                                <h2 class="h6 text-uppercase text-muted mb-3">Order summary</h2>
+                                <dl class="row mb-0">
+                                    <dt class="col-5">Variant</dt>
+                                    <dd class="col-7 fw-semibold">#{empty purchaseView.unitLabel ? 'Select a variant' : purchaseView.unitLabel}</dd>
+                                    <dt class="col-5">Unit price</dt>
+                                    <dd class="col-7">#{empty purchaseView.unitPriceFormatted ? '—' : purchaseView.unitPriceFormatted}</dd>
+                                    <dt class="col-5">Quantity</dt>
+                                    <dd class="col-7">#{purchaseView.qty}</dd>
+                                    <dt class="col-5">Total</dt>
+                                    <dd class="col-7 fw-bold">#{empty purchaseView.totalFormatted ? '—' : purchaseView.totalFormatted}</dd>
+                                </dl>
+                            </div>
+                        </div>
+                    </h:panelGroup>
+                </div>
+            </div>
+        </div>
+    </ui:define>
+</ui:composition>
