@@ -112,10 +112,10 @@ public class SuccessView implements Serializable {
 
     public String getServiceLabel() {
         if (order != null) {
-            return VariantDescriptions.describe(order.getKey().family(), order.getKey().sku());
+            return VariantDescriptions.describe(order.getKey().category(), order.getKey().variant());
         }
         if (invoice != null) {
-            return VariantDescriptions.describe(invoice.getKey().family(), invoice.getKey().sku());
+            return VariantDescriptions.describe(invoice.getKey().category(), invoice.getKey().variant());
         }
         return "";
     }

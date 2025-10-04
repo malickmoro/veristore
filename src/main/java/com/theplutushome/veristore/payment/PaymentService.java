@@ -1,10 +1,10 @@
 package com.theplutushome.veristore.payment;
 
-import com.theplutushome.veristore.catalog.ProductKey;
 import com.theplutushome.veristore.domain.Contact;
 import com.theplutushome.veristore.domain.DeliveryPrefs;
 import com.theplutushome.veristore.domain.InvoiceStatus;
 import com.theplutushome.veristore.domain.Price;
+import com.theplutushome.veristore.domain.ServiceKey;
 import com.theplutushome.veristore.service.DeliveryService;
 import com.theplutushome.veristore.service.OrderStore;
 import com.theplutushome.veristore.service.PricingService;
@@ -46,7 +46,7 @@ public class PaymentService implements Serializable {
     @Inject
     private PaymentGateway paymentGateway;
 
-    public String payNow(ProductKey key, int quantity, Contact contact, DeliveryPrefs deliveryPrefs) {
+    public String payNow(ServiceKey key, int quantity, Contact contact, DeliveryPrefs deliveryPrefs) {
         Objects.requireNonNull(key, "key");
         Objects.requireNonNull(contact, "contact");
         Objects.requireNonNull(deliveryPrefs, "deliveryPrefs");
@@ -60,7 +60,7 @@ public class PaymentService implements Serializable {
         return orderId;
     }
 
-    public String payLater(ProductKey key, int quantity, Contact contact, DeliveryPrefs deliveryPrefs) {
+    public String payLater(ServiceKey key, int quantity, Contact contact, DeliveryPrefs deliveryPrefs) {
         Objects.requireNonNull(key, "key");
         Objects.requireNonNull(contact, "contact");
         Objects.requireNonNull(deliveryPrefs, "deliveryPrefs");

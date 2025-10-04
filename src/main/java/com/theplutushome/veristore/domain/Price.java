@@ -3,14 +3,9 @@ package com.theplutushome.veristore.domain;
 import java.io.Serializable;
 import java.util.Objects;
 
-public record Price(Currency currency, long amountMinor) implements Serializable {
+public record Price(String currency, long amountMinor) implements Serializable {
 
     public Price {
         Objects.requireNonNull(currency, "currency");
-    }
-
-    public static Price ofMajor(Currency currency, int majorUnits) {
-        Objects.requireNonNull(currency, "currency");
-        return new Price(currency, majorUnits * 100L);
     }
 }

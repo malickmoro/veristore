@@ -1,19 +1,17 @@
 package com.theplutushome.veristore.service;
 
-import com.theplutushome.veristore.catalog.EnrollmentSku;
-import com.theplutushome.veristore.catalog.ProductFamily;
-import com.theplutushome.veristore.catalog.ProductKey;
-import com.theplutushome.veristore.catalog.VerificationSku;
+import com.theplutushome.veristore.domain.EnrollmentType;
+import com.theplutushome.veristore.domain.PinCategory;
+import com.theplutushome.veristore.domain.ServiceKey;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
-
-import java.io.Serial;
 import java.io.Serializable;
 import java.security.SecureRandom;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -21,33 +19,28 @@ import java.util.concurrent.ConcurrentHashMap;
 @ApplicationScoped
 public class PinVault implements Serializable {
 
-    @Serial
-    private static final long serialVersionUID = 1L;
-
     private static final int SEED_QUANTITY = 10;
     private static final char[] ALLOWED = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789".toCharArray();
 
-    private final Map<ProductKey, Deque<String>> stock = new ConcurrentHashMap<>();
+    private final Map<ServiceKey, Deque<String>> stock = new ConcurrentHashMap<>();
     private final SecureRandom random = new SecureRandom();
 
     @PostConstruct
     void init() {
-        for (VerificationSku sku : VerificationSku.values()) {
-            ProductKey key = new ProductKey(ProductFamily.VERIFICATION, sku.sku);
-            stock.putIfAbsent(key, new ArrayDeque<>());
+        stock.putIfAbsent(new ServiceKey(PinCategory.VERIFICATION, "Y1"), new ArrayDeque<>());
+        stock.putIfAbsent(new ServiceKey(PinCategory.VERIFICATION, "Y2"), new ArrayDeque<>());
+        stock.putIfAbsent(new ServiceKey(PinCategory.VERIFICATION, "Y3"), new ArrayDeque<>());
+        for (ServiceKey key : stock.keySet()) {
             ensure(key, SEED_QUANTITY);
         }
-        for (EnrollmentSku sku : EnrollmentSku.values()) {
-            if (!sku.active) {
-                continue;
-            }
-            ProductKey key = new ProductKey(ProductFamily.ENROLLMENT, sku.sku);
+        for (EnrollmentType type : EnumSet.allOf(EnrollmentType.class)) {
+            ServiceKey key = new ServiceKey(PinCategory.ENROLLMENT, type.name());
             stock.putIfAbsent(key, new ArrayDeque<>());
             ensure(key, SEED_QUANTITY);
         }
     }
 
-    public synchronized List<String> take(ProductKey key, int quantity) {
+    public synchronized List<String> take(ServiceKey key, int quantity) {
         if (quantity <= 0) {
             throw new IllegalArgumentException("quantity must be positive");
         }
@@ -62,7 +55,7 @@ public class PinVault implements Serializable {
         return pins;
     }
 
-    public void ensure(ProductKey key, int minimum) {
+    public void ensure(ServiceKey key, int minimum) {
         if (minimum <= 0) {
             return;
         }

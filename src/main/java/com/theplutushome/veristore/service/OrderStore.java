@@ -1,12 +1,9 @@
 package com.theplutushome.veristore.service;
 
-import com.theplutushome.veristore.catalog.ProductKey;
 import com.theplutushome.veristore.domain.Contact;
-import com.theplutushome.veristore.domain.Currency;
 import com.theplutushome.veristore.domain.DeliveryPrefs;
 import com.theplutushome.veristore.domain.InvoiceStatus;
-
-import jakarta.enterprise.context.ApplicationScoped;
+import com.theplutushome.veristore.domain.ServiceKey;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -32,12 +29,12 @@ public class OrderStore implements Serializable {
     private final AtomicInteger orderSequence = new AtomicInteger();
     private final AtomicInteger invoiceSequence = new AtomicInteger();
 
-    public String createOrder(ProductKey key,
+    public String createOrder(ServiceKey key,
                               int quantity,
                               Contact contact,
                               DeliveryPrefs deliveryPrefs,
                               long totalMinor,
-                              Currency currency,
+                              String currency,
                               List<String> codes) {
         Objects.requireNonNull(key, "key");
         Objects.requireNonNull(contact, "contact");
@@ -52,12 +49,12 @@ public class OrderStore implements Serializable {
         return id;
     }
 
-    public String createInvoice(ProductKey key,
+    public String createInvoice(ServiceKey key,
                                 int quantity,
                                 Contact contact,
                                 DeliveryPrefs deliveryPrefs,
                                 long totalMinor,
-                                Currency currency) {
+                                String currency) {
         Objects.requireNonNull(key, "key");
         Objects.requireNonNull(contact, "contact");
         Objects.requireNonNull(deliveryPrefs, "deliveryPrefs");
@@ -75,13 +72,6 @@ public class OrderStore implements Serializable {
             return Optional.empty();
         }
         return Optional.ofNullable(invoicesByNo.get(invoiceNo));
-    }
-
-    public Optional<Order> findOrder(String orderId) {
-        if (orderId == null) {
-            return Optional.empty();
-        }
-        return Optional.ofNullable(ordersById.get(orderId));
     }
 
     public List<Order> findOrdersByContact(Contact contact) {
@@ -102,7 +92,7 @@ public class OrderStore implements Serializable {
             synchronized (invoice) {
                 if (invoice.getStatus() != InvoiceStatus.PAID) {
                     invoice.setStatus(InvoiceStatus.PAID);
-                    invoice.setCodesIfDelivered(List.copyOf(deliveredCodes));
+                    invoice.setCodesIfDelivered(deliveredCodes);
                 }
             }
             return invoice;
@@ -116,6 +106,13 @@ public class OrderStore implements Serializable {
             }
             return invoice;
         });
+    }
+
+    public Optional<Order> findOrder(String orderId) {
+        if (orderId == null) {
+            return Optional.empty();
+        }
+        return Optional.ofNullable(ordersById.get(orderId));
     }
 
     private boolean matches(Contact query, Contact stored) {
@@ -154,22 +151,22 @@ public class OrderStore implements Serializable {
         private static final long serialVersionUID = 1L;
 
         private final String id;
-        private final ProductKey key;
+        private final ServiceKey key;
         private final int qty;
         private final Contact contact;
         private final DeliveryPrefs deliveryPrefs;
         private final long totalMinor;
-        private final Currency currency;
+        private final String currency;
         private final Instant created;
         private final List<String> codes;
 
         Order(String id,
-              ProductKey key,
+              ServiceKey key,
               int qty,
               Contact contact,
               DeliveryPrefs deliveryPrefs,
               long totalMinor,
-              Currency currency,
+              String currency,
               Instant created,
               List<String> codes) {
             this.id = Objects.requireNonNull(id, "id");
@@ -187,7 +184,7 @@ public class OrderStore implements Serializable {
             return id;
         }
 
-        public ProductKey getKey() {
+        public ServiceKey getKey() {
             return key;
         }
 
@@ -207,7 +204,7 @@ public class OrderStore implements Serializable {
             return totalMinor;
         }
 
-        public Currency getCurrency() {
+        public String getCurrency() {
             return currency;
         }
 
@@ -226,23 +223,23 @@ public class OrderStore implements Serializable {
         private static final long serialVersionUID = 1L;
 
         private final String invoiceNo;
-        private final ProductKey key;
+        private final ServiceKey key;
         private final int qty;
         private final Contact contact;
         private final DeliveryPrefs deliveryPrefs;
         private final long totalMinor;
-        private final Currency currency;
-        private InvoiceStatus status;
+        private final String currency;
         private final Instant created;
-        private List<String> codesIfDelivered;
+        private volatile InvoiceStatus status;
+        private volatile List<String> codesIfDelivered;
 
         Invoice(String invoiceNo,
-                ProductKey key,
+                ServiceKey key,
                 int qty,
                 Contact contact,
                 DeliveryPrefs deliveryPrefs,
                 long totalMinor,
-                Currency currency,
+                String currency,
                 InvoiceStatus status,
                 Instant created,
                 List<String> codesIfDelivered) {
@@ -262,7 +259,7 @@ public class OrderStore implements Serializable {
             return invoiceNo;
         }
 
-        public ProductKey getKey() {
+        public ServiceKey getKey() {
             return key;
         }
 
@@ -282,7 +279,7 @@ public class OrderStore implements Serializable {
             return totalMinor;
         }
 
-        public Currency getCurrency() {
+        public String getCurrency() {
             return currency;
         }
 
@@ -302,8 +299,8 @@ public class OrderStore implements Serializable {
             return codesIfDelivered;
         }
 
-        void setCodesIfDelivered(List<String> codesIfDelivered) {
-            this.codesIfDelivered = List.copyOf(Objects.requireNonNull(codesIfDelivered, "codesIfDelivered"));
+        void setCodesIfDelivered(List<String> codes) {
+            this.codesIfDelivered = List.copyOf(Objects.requireNonNull(codes, "codes"));
         }
     }
 }

@@ -1,38 +1,49 @@
 package com.theplutushome.veristore.util;
 
-import com.theplutushome.veristore.catalog.EnrollmentSku;
-import com.theplutushome.veristore.catalog.ProductFamily;
-import com.theplutushome.veristore.catalog.VerificationSku;
+import com.theplutushome.veristore.domain.EnrollmentType;
+import com.theplutushome.veristore.domain.PinCategory;
 
 import java.util.Locale;
 import java.util.Objects;
-import java.util.Optional;
 
 public final class VariantDescriptions {
 
     private VariantDescriptions() {
     }
 
-    public static String describe(ProductFamily family, String sku) {
-        if (family == null || sku == null) {
+    public static String describe(PinCategory category, String variant) {
+        if (category == null || variant == null) {
             return "";
         }
-        return switch (family) {
-            case VERIFICATION -> describeVerification(sku);
-            case ENROLLMENT -> describeEnrollment(sku);
+        return switch (category) {
+            case VERIFICATION -> describeVerification(variant);
+            case ENROLLMENT -> describeEnrollment(variant);
         };
     }
 
-    private static String describeVerification(String sku) {
-        return VerificationSku.bySku(sku)
-            .map(v -> v.displayName)
-            .orElse(Objects.toString(sku, ""));
+    public static String describe(EnrollmentType type) {
+        if (type == null) {
+            return "";
+        }
+        return prettify(type.name());
     }
 
-    private static String describeEnrollment(String sku) {
-        Optional<EnrollmentSku> match = EnrollmentSku.bySku(sku);
-        return match.map(value -> value.displayName)
-            .orElse(prettify(sku));
+    private static String describeVerification(String variant) {
+        return switch (variant) {
+            case "Y1" -> "Verification PIN (1 year)";
+            case "Y2" -> "Verification PIN (2 years)";
+            case "Y3" -> "Verification PIN (3 years)";
+            default -> Objects.toString(variant, "");
+        };
+    }
+
+    private static String describeEnrollment(String variant) {
+        try {
+            EnrollmentType type = EnrollmentType.valueOf(variant);
+            return describe(type);
+        } catch (IllegalArgumentException ex) {
+            return prettify(variant);
+        }
     }
 
     private static String prettify(String value) {

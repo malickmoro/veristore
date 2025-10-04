@@ -6,24 +6,24 @@
                 xmlns:pt="http://xmlns.jcp.org/jsf/passthrough"
                 template="/WEB-INF/template.xhtml">
     <f:metadata>
-        <f:viewAction action="#{purchaseView.prepareVerification}" />
+        <f:viewAction action="#{purchaseView.prepareEnrollment}" />
     </f:metadata>
-    <ui:define name="title">Buy Verification PINs</ui:define>
+    <ui:define name="title">Buy Enrollment PINs</ui:define>
     <ui:define name="content">
-        <section class="mb-5" aria-labelledby="verificationHeading">
+        <section class="mb-5" aria-labelledby="enrollmentHeading">
             <div class="row g-5 align-items-center">
                 <div class="col-12 col-lg-7">
-                    <h1 id="verificationHeading" class="display-6 fw-bold mb-3">Purchase verification PINs</h1>
-                    <p class="lead text-muted">Select the duration that matches your verification window. Receive masked PINs instantly or request an invoice to pay later.</p>
+                    <h1 id="enrollmentHeading" class="display-6 fw-bold mb-3">Purchase enrollment PINs</h1>
+                    <p class="lead text-muted">Choose the applicant type and issuance stage. Get masked codes instantly or generate an invoice for later payment.</p>
                 </div>
                 <div class="col-12 col-lg-5">
                     <div class="card border-0 shadow-sm h-100">
                         <div class="card-body">
-                            <h2 class="h5 mb-3">Included with every order</h2>
+                            <h2 class="h5 mb-3">Why Veristore</h2>
                             <ul class="list-unstyled text-muted small mb-0">
-                                <li class="mb-2">Codes dispensed from the in-memory vault with automatic replenishment.</li>
-                                <li class="mb-2">Masked display on screen plus optional email or SMS delivery.</li>
-                                <li class="mb-0">Support for instant mock Hubtel payment or bank invoice settlement.</li>
+                                <li class="mb-2">Pre-seeded vault ensures PIN availability across all enrollment variants.</li>
+                                <li class="mb-2">Contact preferences let you send deliveries to email, SMS, or both.</li>
+                                <li class="mb-0">Invoices integrate with the mock Hubtel gateway for easy payment simulation.</li>
                             </ul>
                         </div>
                     </div>
@@ -31,13 +31,13 @@
             </div>
         </section>
 
-        <section aria-labelledby="verificationFormHeading">
+        <section aria-labelledby="enrollmentFormHeading">
             <div class="row g-4">
                 <div class="col-12 col-lg-7">
                     <div class="card border-0 shadow-sm">
                         <div class="card-body">
-                            <h2 id="verificationFormHeading" class="h4 mb-4">Order details</h2>
-                            <h:form id="verificationForm">
+                            <h2 id="enrollmentFormHeading" class="h4 mb-4">Order details</h2>
+                            <h:form id="enrollmentForm">
                                 <div class="row g-3">
                                     <div class="col-12 col-md-6">
                                         <h:outputLabel for="email" value="Email" styleClass="form-label" />
@@ -58,8 +58,8 @@
                                                      styleClass="form-control form-control-lg" />
                                         <h:message for="msisdn" styleClass="text-danger small" />
                                     </div>
-                                    <div class="col-12 col-md-6">
-                                        <h:outputLabel for="variant" value="Verification duration" styleClass="form-label" />
+                                    <div class="col-12">
+                                        <h:outputLabel for="variant" value="Enrollment variant" styleClass="form-label" />
                                         <h:selectOneMenu id="variant"
                                                          value="#{purchaseView.variant}"
                                                          styleClass="form-select form-select-lg">
@@ -120,7 +120,7 @@
                                 <dt class="col-6 text-muted">Estimated total</dt>
                                 <dd class="col-6 text-end fw-semibold">#{purchaseView.total}</dd>
                             </dl>
-                            <p class="text-muted small mt-3 mb-0">PINs are always masked on-screen. Use the history page to review past deliveries by email or phone.</p>
+                            <p class="text-muted small mt-3 mb-0">We only display masked codes. Full delivery occurs via the secure channel you select above.</p>
                         </div>
                     </div>
                 </div>

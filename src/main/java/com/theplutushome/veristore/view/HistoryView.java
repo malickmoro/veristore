@@ -90,7 +90,7 @@ public class HistoryView implements Serializable {
     }
 
     public String describeService(OrderStore.Order order) {
-        return VariantDescriptions.describe(order.getKey().family(), order.getKey().sku());
+        return VariantDescriptions.describe(order.getKey().category(), order.getKey().variant());
     }
 
     private String normalize(String value) {

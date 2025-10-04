@@ -76,7 +76,7 @@ public class InvoiceView implements Serializable {
         if (invoice == null) {
             return "";
         }
-        return VariantDescriptions.describe(invoice.getKey().family(), invoice.getKey().sku());
+        return VariantDescriptions.describe(invoice.getKey().category(), invoice.getKey().variant());
     }
 
     public String getUnitPrice() {
