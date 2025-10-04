@@ -1,81 +1,77 @@
 package com.theplutushome.veristore.service;
 
-import com.theplutushome.veristore.domain.ServiceDefinition;
+import com.theplutushome.veristore.domain.EnrollmentType;
+import com.theplutushome.veristore.domain.PinCategory;
 import com.theplutushome.veristore.domain.ServiceKey;
-import com.theplutushome.veristore.util.Masker;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
 import java.io.Serializable;
 import java.security.SecureRandom;
-import java.time.LocalDateTime;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Logger;
 
 @ApplicationScoped
 public class PinVault implements Serializable {
 
-    private static final Logger LOGGER = Logger.getLogger(PinVault.class.getName());
+    private static final int SEED_QUANTITY = 10;
+    private static final char[] ALLOWED = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789".toCharArray();
 
-    @Inject
-    private ServiceCatalog serviceCatalog;
-
-    private final Map<ServiceKey, Deque<String>> cache = new ConcurrentHashMap<>();
+    private final Map<ServiceKey, Deque<String>> stock = new ConcurrentHashMap<>();
     private final SecureRandom random = new SecureRandom();
 
     @PostConstruct
     void init() {
-        for (ServiceDefinition definition : serviceCatalog.getVerificationServices()) {
-            cache.putIfAbsent(definition.getKey(), new ArrayDeque<>());
-            topUp(definition.getKey(), 10);
+        stock.putIfAbsent(new ServiceKey(PinCategory.VERIFICATION, "Y1"), new ArrayDeque<>());
+        stock.putIfAbsent(new ServiceKey(PinCategory.VERIFICATION, "Y2"), new ArrayDeque<>());
+        stock.putIfAbsent(new ServiceKey(PinCategory.VERIFICATION, "Y3"), new ArrayDeque<>());
+        for (ServiceKey key : stock.keySet()) {
+            ensure(key, SEED_QUANTITY);
         }
-        for (ServiceDefinition definition : serviceCatalog.getEnrollmentServices()) {
-            cache.putIfAbsent(definition.getKey(), new ArrayDeque<>());
-            topUp(definition.getKey(), 10);
+        for (EnrollmentType type : EnumSet.allOf(EnrollmentType.class)) {
+            ServiceKey key = new ServiceKey(PinCategory.ENROLLMENT, type.name());
+            stock.putIfAbsent(key, new ArrayDeque<>());
+            ensure(key, SEED_QUANTITY);
         }
     }
 
-    public synchronized List<String> dispense(ServiceKey key, int quantity) {
+    public synchronized List<String> take(ServiceKey key, int quantity) {
         if (quantity <= 0) {
-            throw new IllegalArgumentException("Quantity must be positive");
+            throw new IllegalArgumentException("quantity must be positive");
         }
-        Deque<String> deque = cache.computeIfAbsent(key, k -> new ArrayDeque<>());
-        if (deque.size() < quantity) {
-            topUp(key, quantity - deque.size() + 5);
+        Deque<String> deque = stock.computeIfAbsent(key, k -> new ArrayDeque<>());
+        while (deque.size() < quantity) {
+            deque.addLast(generateCode());
         }
         List<String> pins = new ArrayList<>(quantity);
         for (int i = 0; i < quantity; i++) {
             pins.add(deque.removeFirst());
         }
-        LOGGER.info(() -> String.format("Dispensed %d PIN(s) for %s at %s", quantity, key.code(), LocalDateTime.now()));
         return pins;
     }
 
-    private void topUp(ServiceKey key, int additional) {
-        Deque<String> deque = cache.computeIfAbsent(key, k -> new ArrayDeque<>());
-        for (int i = 0; i < additional; i++) {
-            deque.addLast(generatePin(key));
+    public void ensure(ServiceKey key, int minimum) {
+        if (minimum <= 0) {
+            return;
         }
-        LOGGER.fine(() -> String.format("Vault topped up with %d PIN(s) for %s", additional, key.code()));
+        synchronized (this) {
+            Deque<String> deque = stock.computeIfAbsent(key, k -> new ArrayDeque<>());
+            while (deque.size() < minimum) {
+                deque.addLast(generateCode());
+            }
+        }
     }
 
-    private String generatePin(ServiceKey key) {
-        int segment1 = random.nextInt(9000) + 1000;
-        int segment2 = random.nextInt(9000) + 1000;
-        return String.format("%s-%04d-%04d", key.code(), segment1, segment2);
-    }
-
-    public List<String> maskPins(List<String> pins) {
-        List<String> masked = new ArrayList<>(pins.size());
-        for (String pin : pins) {
-            masked.add(Masker.mask(pin));
+    private String generateCode() {
+        char[] buffer = new char[14];
+        for (int i = 0; i < buffer.length; i++) {
+            buffer[i] = ALLOWED[random.nextInt(ALLOWED.length)];
         }
-        return masked;
+        return new String(buffer);
     }
 }

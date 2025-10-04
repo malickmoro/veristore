@@ -48,7 +48,7 @@ public class OrderService implements Serializable {
         ServiceDefinition definition = serviceCatalog.getDefinition(key);
         BigDecimal unitPrice = definition.getUnitPrice();
         BigDecimal total = unitPrice.multiply(BigDecimal.valueOf(quantity));
-        List<String> pins = pinVault.dispense(key, quantity);
+        List<String> pins = pinVault.take(key, quantity);
         LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
         OrderRecord order = new OrderRecord(generateOrderId(), customer, definition, quantity, unitPrice, total, now, PaymentStatus.PAID, pins);
         orders.put(order.getOrderId(), order);
@@ -79,7 +79,7 @@ public class OrderService implements Serializable {
             return Optional.ofNullable(invoice.getOrderId()).map(orders::get);
         }
         ServiceDefinition definition = invoice.getServiceDefinition();
-        List<String> pins = pinVault.dispense(definition.getKey(), invoice.getQuantity());
+        List<String> pins = pinVault.take(definition.getKey(), invoice.getQuantity());
         LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
         OrderRecord order = new OrderRecord(generateOrderId(), invoice.getCustomer(), definition, invoice.getQuantity(), invoice.getUnitPrice(), invoice.getTotalAmount(), now, PaymentStatus.PAID, pins);
         orders.put(order.getOrderId(), order);
