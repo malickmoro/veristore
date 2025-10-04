@@ -1,9 +1,10 @@
 package com.theplutushome.veristore.view;
 
 import com.theplutushome.veristore.domain.CustomerProfile;
-import com.theplutushome.veristore.domain.EnrollmentAction;
 import com.theplutushome.veristore.domain.EnrollmentType;
 import com.theplutushome.veristore.domain.OrderRecord;
+import com.theplutushome.veristore.domain.PaymentMode;
+import com.theplutushome.veristore.domain.PinCategory;
 import com.theplutushome.veristore.domain.ServiceDefinition;
 import com.theplutushome.veristore.domain.ServiceKey;
 import com.theplutushome.veristore.service.OrderService;
@@ -29,10 +30,9 @@ public class BuyEnrollmentView implements Serializable {
     private String fullName;
     private String email;
     private String phone;
-    private EnrollmentType selectedType = EnrollmentType.CITIZEN;
-    private EnrollmentAction selectedAction = EnrollmentAction.FIRST_ISSUANCE;
+    private EnrollmentType selectedType = EnrollmentType.CITIZEN_FIRST_ISSUANCE;
     private int quantity = 1;
-    private PaymentOption paymentOption = PaymentOption.PAY_NOW;
+    private PaymentMode paymentMode = PaymentMode.PAY_NOW;
 
     @Inject
     private OrderService orderService;
@@ -44,23 +44,19 @@ public class BuyEnrollmentView implements Serializable {
         return List.copyOf(EnumSet.allOf(EnrollmentType.class));
     }
 
-    public List<EnrollmentAction> getActions() {
-        return List.copyOf(EnumSet.allOf(EnrollmentAction.class));
+    public PaymentMode[] getPaymentModes() {
+        return PaymentMode.values();
     }
 
-    public PaymentOption[] getPaymentOptions() {
-        return PaymentOption.values();
-    }
-
-    public String describe(PaymentOption option) {
-        if (option == PaymentOption.PAY_LATER) {
+    public String describe(PaymentMode option) {
+        if (option == PaymentMode.PAY_LATER) {
             return "Pay later – receive an invoice to pay at the bank";
         }
         return "Pay now – instant confirmation and delivery";
     }
 
     public ServiceDefinition getSelectedDefinition() {
-        return serviceCatalog.getDefinition(ServiceKey.enrollment(selectedType, selectedAction));
+        return serviceCatalog.getDefinition(new ServiceKey(PinCategory.ENROLLMENT, selectedType.name()));
     }
 
     public BigDecimal getEstimatedTotal() {
@@ -74,8 +70,8 @@ public class BuyEnrollmentView implements Serializable {
             return;
         }
         CustomerProfile customer = new CustomerProfile(fullName.trim(), email.trim(), phone.trim());
-        ServiceKey key = ServiceKey.enrollment(selectedType, selectedAction);
-        if (paymentOption == PaymentOption.PAY_NOW) {
+        ServiceKey key = new ServiceKey(PinCategory.ENROLLMENT, selectedType.name());
+        if (paymentMode == PaymentMode.PAY_NOW) {
             OrderRecord order = orderService.completePurchase(key, customer, quantity);
             redirectWithOrder(order);
         } else {
@@ -159,14 +155,6 @@ public class BuyEnrollmentView implements Serializable {
         this.selectedType = selectedType;
     }
 
-    public EnrollmentAction getSelectedAction() {
-        return selectedAction;
-    }
-
-    public void setSelectedAction(EnrollmentAction selectedAction) {
-        this.selectedAction = selectedAction;
-    }
-
     public int getQuantity() {
         return quantity;
     }
@@ -175,11 +163,11 @@ public class BuyEnrollmentView implements Serializable {
         this.quantity = quantity;
     }
 
-    public PaymentOption getPaymentOption() {
-        return paymentOption;
+    public PaymentMode getPaymentMode() {
+        return paymentMode;
     }
 
-    public void setPaymentOption(PaymentOption paymentOption) {
-        this.paymentOption = paymentOption;
+    public void setPaymentMode(PaymentMode paymentMode) {
+        this.paymentMode = paymentMode;
     }
 }

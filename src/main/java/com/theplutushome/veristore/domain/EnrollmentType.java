@@ -1,21 +1,34 @@
 package com.theplutushome.veristore.domain;
 
-import java.io.Serializable;
+public enum EnrollmentType {
+    CITIZEN_FIRST_ISSUANCE("Citizen", "First Issuance"),
+    CITIZEN_UPDATE("Citizen", "Update"),
+    FOREIGNER_FIRST_ISSUANCE("Foreigner", "First Issuance"),
+    FOREIGNER_UPDATE("Foreigner", "Update"),
+    REFUGEE_FIRST_ISSUANCE("Refugee", "First Issuance"),
+    REFUGEE_UPDATE("Refugee", "Update");
 
-public enum EnrollmentType implements Serializable {
-    CITIZEN,
-    FOREIGNER,
-    REFUGEE;
+    private final String groupLabel;
+    private final String actionLabel;
+
+    EnrollmentType(String groupLabel, String actionLabel) {
+        this.groupLabel = groupLabel;
+        this.actionLabel = actionLabel;
+    }
+
+    public String getGroupLabel() {
+        return groupLabel;
+    }
+
+    public String getActionLabel() {
+        return actionLabel;
+    }
 
     public String getLabel() {
-        switch (this) {
-            case CITIZEN:
-                return "Citizen";
-            case FOREIGNER:
-                return "Foreigner";
-            case REFUGEE:
-            default:
-                return "Refugee";
-        }
+        return groupLabel + " - " + actionLabel;
+    }
+
+    public boolean isUpdate() {
+        return "Update".equals(actionLabel);
     }
 }

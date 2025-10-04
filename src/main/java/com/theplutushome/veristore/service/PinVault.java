@@ -2,7 +2,7 @@ package com.theplutushome.veristore.service;
 
 import com.theplutushome.veristore.domain.ServiceDefinition;
 import com.theplutushome.veristore.domain.ServiceKey;
-import com.theplutushome.veristore.util.PinMasker;
+import com.theplutushome.veristore.util.Masker;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
@@ -53,7 +53,7 @@ public class PinVault implements Serializable {
         for (int i = 0; i < quantity; i++) {
             pins.add(deque.removeFirst());
         }
-        LOGGER.info(() -> String.format("Dispensed %d PIN(s) for %s at %s", quantity, key.getCode(), LocalDateTime.now()));
+        LOGGER.info(() -> String.format("Dispensed %d PIN(s) for %s at %s", quantity, key.code(), LocalDateTime.now()));
         return pins;
     }
 
@@ -62,19 +62,19 @@ public class PinVault implements Serializable {
         for (int i = 0; i < additional; i++) {
             deque.addLast(generatePin(key));
         }
-        LOGGER.fine(() -> String.format("Vault topped up with %d PIN(s) for %s", additional, key.getCode()));
+        LOGGER.fine(() -> String.format("Vault topped up with %d PIN(s) for %s", additional, key.code()));
     }
 
     private String generatePin(ServiceKey key) {
         int segment1 = random.nextInt(9000) + 1000;
         int segment2 = random.nextInt(9000) + 1000;
-        return String.format("%s-%04d-%04d", key.getCode(), segment1, segment2);
+        return String.format("%s-%04d-%04d", key.code(), segment1, segment2);
     }
 
     public List<String> maskPins(List<String> pins) {
         List<String> masked = new ArrayList<>(pins.size());
         for (String pin : pins) {
-            masked.add(PinMasker.mask(pin));
+            masked.add(Masker.mask(pin));
         }
         return masked;
     }

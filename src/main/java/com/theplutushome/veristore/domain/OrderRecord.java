@@ -1,6 +1,6 @@
 package com.theplutushome.veristore.domain;
 
-import com.theplutushome.veristore.util.PinMasker;
+import com.theplutushome.veristore.util.Masker;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -42,7 +42,7 @@ public final class OrderRecord implements Serializable {
         this.paymentStatus = Objects.requireNonNull(paymentStatus, "paymentStatus");
         List<String> safePins = List.copyOf(Objects.requireNonNull(pins, "pins"));
         this.pins = Collections.unmodifiableList(safePins);
-        this.maskedPins = Collections.unmodifiableList(safePins.stream().map(PinMasker::mask).collect(Collectors.toList()));
+        this.maskedPins = Collections.unmodifiableList(safePins.stream().map(Masker::mask).collect(Collectors.toList()));
     }
 
     public String getOrderId() {

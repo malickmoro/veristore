@@ -2,21 +2,26 @@ package com.theplutushome.veristore.util;
 
 public final class Masker {
 
+    private static final char MASK_CHAR = '\u2022';
+
     private Masker() {
     }
 
-    public static String mask(String value) {
-        if (value == null || value.isBlank()) {
+    public static String mask(String code) {
+        if (code == null) {
             return "";
         }
-        String trimmed = value.trim();
+        String trimmed = code.trim();
         int length = trimmed.length();
-        if (length <= 4) {
-            return "*".repeat(length);
+        if (length == 0) {
+            return "";
         }
-        int visible = Math.min(4, length);
-        String visiblePart = trimmed.substring(length - visible);
-        String masked = "*".repeat(length - visible);
-        return masked + visiblePart;
+        if (length <= 4) {
+            return String.valueOf(MASK_CHAR).repeat(length);
+        }
+        String prefix = trimmed.substring(0, 2);
+        String suffix = trimmed.substring(length - 2);
+        String middle = String.valueOf(MASK_CHAR).repeat(length - 4);
+        return prefix + middle + suffix;
     }
 }

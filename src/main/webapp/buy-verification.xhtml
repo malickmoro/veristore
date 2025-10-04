@@ -79,13 +79,13 @@
                                                      styleClass="form-control form-control-lg" />
                                     </div>
                                     <div class="col-12">
-                                        <h:outputLabel for="paymentOption" value="Payment preference" styleClass="form-label" />
-                                        <h:selectOneRadio id="paymentOption"
-                                                          value="#{buyVerificationView.paymentOption}"
+                                        <h:outputLabel for="paymentMode" value="Payment preference" styleClass="form-label" />
+                                        <h:selectOneRadio id="paymentMode"
+                                                          value="#{buyVerificationView.paymentMode}"
                                                           layout="pageDirection"
                                                           styleClass="d-flex flex-column gap-2">
-                                            <f:selectItems value="#{buyVerificationView.paymentOptions}" var="option"
-                                                           itemValue="#{option}" itemLabel="#{buyVerificationView.describe(option)}" />
+                                            <f:selectItems value="#{buyVerificationView.paymentModes}" var="mode"
+                                                           itemValue="#{mode}" itemLabel="#{buyVerificationView.describe(mode)}" />
                                         </h:selectOneRadio>
                                     </div>
                                 </div>
@@ -93,12 +93,12 @@
                                     <h:commandButton value="Pay now"
                                                      styleClass="btn btn-primary btn-lg"
                                                      action="#{buyVerificationView.submit}">
-                                        <f:setPropertyActionListener target="#{buyVerificationView.paymentOption}" value="PAY_NOW" />
+                                        <f:setPropertyActionListener target="#{buyVerificationView.paymentMode}" value="PAY_NOW" />
                                     </h:commandButton>
                                     <h:commandButton value="Generate invoice"
                                                      styleClass="btn btn-outline-primary btn-lg"
                                                      action="#{buyVerificationView.submit}">
-                                        <f:setPropertyActionListener target="#{buyVerificationView.paymentOption}" value="PAY_LATER" />
+                                        <f:setPropertyActionListener target="#{buyVerificationView.paymentMode}" value="PAY_LATER" />
                                     </h:commandButton>
                                 </div>
                             </h:form>

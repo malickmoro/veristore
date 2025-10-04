@@ -2,6 +2,8 @@ package com.theplutushome.veristore.view;
 
 import com.theplutushome.veristore.domain.CustomerProfile;
 import com.theplutushome.veristore.domain.OrderRecord;
+import com.theplutushome.veristore.domain.PaymentMode;
+import com.theplutushome.veristore.domain.PinCategory;
 import com.theplutushome.veristore.domain.ServiceDefinition;
 import com.theplutushome.veristore.domain.ServiceKey;
 import com.theplutushome.veristore.domain.VerificationDuration;
@@ -30,7 +32,7 @@ public class BuyVerificationView implements Serializable {
     private String phone;
     private VerificationDuration selectedDuration = VerificationDuration.Y1;
     private int quantity = 1;
-    private PaymentOption paymentOption = PaymentOption.PAY_NOW;
+    private PaymentMode paymentMode = PaymentMode.PAY_NOW;
 
     @Inject
     private OrderService orderService;
@@ -42,19 +44,19 @@ public class BuyVerificationView implements Serializable {
         return List.copyOf(EnumSet.allOf(VerificationDuration.class));
     }
 
-    public PaymentOption[] getPaymentOptions() {
-        return PaymentOption.values();
+    public PaymentMode[] getPaymentModes() {
+        return PaymentMode.values();
     }
 
-    public String describe(PaymentOption option) {
-        if (option == PaymentOption.PAY_LATER) {
+    public String describe(PaymentMode option) {
+        if (option == PaymentMode.PAY_LATER) {
             return "Pay later – receive an invoice to pay at the bank";
         }
         return "Pay now – instant confirmation and delivery";
     }
 
     public ServiceDefinition getSelectedDefinition() {
-        return serviceCatalog.getDefinition(ServiceKey.verification(selectedDuration));
+        return serviceCatalog.getDefinition(new ServiceKey(PinCategory.VERIFICATION, selectedDuration.name()));
     }
 
     public BigDecimal getEstimatedTotal() {
@@ -68,8 +70,8 @@ public class BuyVerificationView implements Serializable {
             return;
         }
         CustomerProfile customer = new CustomerProfile(fullName.trim(), email.trim(), phone.trim());
-        ServiceKey key = ServiceKey.verification(selectedDuration);
-        if (paymentOption == PaymentOption.PAY_NOW) {
+        ServiceKey key = new ServiceKey(PinCategory.VERIFICATION, selectedDuration.name());
+        if (paymentMode == PaymentMode.PAY_NOW) {
             OrderRecord order = orderService.completePurchase(key, customer, quantity);
             redirectWithOrder(order);
         } else {
@@ -161,11 +163,11 @@ public class BuyVerificationView implements Serializable {
         this.quantity = quantity;
     }
 
-    public PaymentOption getPaymentOption() {
-        return paymentOption;
+    public PaymentMode getPaymentMode() {
+        return paymentMode;
     }
 
-    public void setPaymentOption(PaymentOption paymentOption) {
-        this.paymentOption = paymentOption;
+    public void setPaymentMode(PaymentMode paymentMode) {
+        this.paymentMode = paymentMode;
     }
 }

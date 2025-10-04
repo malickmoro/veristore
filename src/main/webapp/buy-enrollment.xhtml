@@ -18,7 +18,7 @@
                         <div class="card-body">
                             <h2 class="h5 mb-3">Enrollment guidance</h2>
                             <ul class="list-unstyled text-muted small mb-0">
-                                <li class="mb-2">Select the applicant category and whether it is a first issuance or an update.</li>
+                                <li class="mb-2">Select the applicant category and issuance stage from the combined list.</li>
                                 <li class="mb-2">Provide contact details so we can confirm delivery and support history lookup.</li>
                                 <li class="mb-0">Masked PINs are displayed immediately on payment confirmation or after invoice redemption.</li>
                             </ul>
@@ -61,22 +61,13 @@
                                                      requiredMessage="Phone number is required"
                                                      styleClass="form-control form-control-lg" />
                                     </div>
-                                    <div class="col-12 col-md-6">
-                                        <h:outputLabel for="type" value="Applicant type" styleClass="form-label" />
+                                    <div class="col-12">
+                                        <h:outputLabel for="type" value="Applicant and issuance" styleClass="form-label" />
                                         <h:selectOneMenu id="type"
                                                          value="#{buyEnrollmentView.selectedType}"
                                                          styleClass="form-select form-select-lg">
                                             <f:selectItems value="#{buyEnrollmentView.types}" var="type"
                                                            itemValue="#{type}" itemLabel="#{type.label}" />
-                                        </h:selectOneMenu>
-                                    </div>
-                                    <div class="col-12 col-md-6">
-                                        <h:outputLabel for="action" value="Issuance" styleClass="form-label" />
-                                        <h:selectOneMenu id="action"
-                                                         value="#{buyEnrollmentView.selectedAction}"
-                                                         styleClass="form-select form-select-lg">
-                                            <f:selectItems value="#{buyEnrollmentView.actions}" var="action"
-                                                           itemValue="#{action}" itemLabel="#{action.label}" />
                                         </h:selectOneMenu>
                                     </div>
                                     <div class="col-12 col-md-6">
@@ -88,13 +79,13 @@
                                                      styleClass="form-control form-control-lg" />
                                     </div>
                                     <div class="col-12">
-                                        <h:outputLabel for="paymentOption" value="Payment preference" styleClass="form-label" />
-                                        <h:selectOneRadio id="paymentOption"
-                                                          value="#{buyEnrollmentView.paymentOption}"
+                                        <h:outputLabel for="paymentMode" value="Payment preference" styleClass="form-label" />
+                                        <h:selectOneRadio id="paymentMode"
+                                                          value="#{buyEnrollmentView.paymentMode}"
                                                           layout="pageDirection"
                                                           styleClass="d-flex flex-column gap-2">
-                                            <f:selectItems value="#{buyEnrollmentView.paymentOptions}" var="option"
-                                                           itemValue="#{option}" itemLabel="#{buyEnrollmentView.describe(option)}" />
+                                            <f:selectItems value="#{buyEnrollmentView.paymentModes}" var="mode"
+                                                           itemValue="#{mode}" itemLabel="#{buyEnrollmentView.describe(mode)}" />
                                         </h:selectOneRadio>
                                     </div>
                                 </div>
@@ -102,12 +93,12 @@
                                     <h:commandButton value="Pay now"
                                                      styleClass="btn btn-primary btn-lg"
                                                      action="#{buyEnrollmentView.submit}">
-                                        <f:setPropertyActionListener target="#{buyEnrollmentView.paymentOption}" value="PAY_NOW" />
+                                        <f:setPropertyActionListener target="#{buyEnrollmentView.paymentMode}" value="PAY_NOW" />
                                     </h:commandButton>
                                     <h:commandButton value="Generate invoice"
                                                      styleClass="btn btn-outline-primary btn-lg"
                                                      action="#{buyEnrollmentView.submit}">
-                                        <f:setPropertyActionListener target="#{buyEnrollmentView.paymentOption}" value="PAY_LATER" />
+                                        <f:setPropertyActionListener target="#{buyEnrollmentView.paymentMode}" value="PAY_LATER" />
                                     </h:commandButton>
                                 </div>
                             </h:form>

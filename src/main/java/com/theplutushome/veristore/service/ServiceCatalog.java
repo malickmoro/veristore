@@ -1,7 +1,7 @@
 package com.theplutushome.veristore.service;
 
-import com.theplutushome.veristore.domain.EnrollmentAction;
 import com.theplutushome.veristore.domain.EnrollmentType;
+import com.theplutushome.veristore.domain.PinCategory;
 import com.theplutushome.veristore.domain.ServiceDefinition;
 import com.theplutushome.veristore.domain.ServiceKey;
 import com.theplutushome.veristore.domain.VerificationDuration;
@@ -26,42 +26,30 @@ public class ServiceCatalog implements Serializable {
     @PostConstruct
     void init() {
         for (VerificationDuration duration : VerificationDuration.values()) {
-            ServiceKey key = ServiceKey.verification(duration);
+            ServiceKey key = new ServiceKey(PinCategory.VERIFICATION, duration.name());
             String name = String.format("Verification PIN - %s", duration.getLabel());
             String description = String.format("Digital verification PIN valid for %s.", duration.getLabel().toLowerCase());
             BigDecimal price = new BigDecimal(20 + duration.ordinal() * 5);
             definitions.put(key, new ServiceDefinition(key, name, description, price));
         }
 
-        for (EnrollmentType type : EnrollmentType.values()) {
-            for (EnrollmentAction action : EnumSet.allOf(EnrollmentAction.class)) {
-                ServiceKey key = ServiceKey.enrollment(type, action);
-                String name = String.format("Enrollment PIN - %s %s", type.getLabel(), action.getLabel());
-                String description = String.format("Enrollment PIN for %s - %s applicants.", type.getLabel(), action.getLabel().toLowerCase());
-                BigDecimal base;
-                switch (type) {
-                    case CITIZEN:
-                        base = new BigDecimal("40");
-                        break;
-                    case FOREIGNER:
-                        base = new BigDecimal("55");
-                        break;
-                    case REFUGEE:
-                    default:
-                        base = new BigDecimal("30");
-                        break;
-                }
-                BigDecimal adjustment = action == EnrollmentAction.UPDATE ? new BigDecimal("-5") : BigDecimal.ZERO;
-                BigDecimal price = base.add(adjustment);
-                definitions.put(key, new ServiceDefinition(key, name, description, price));
-            }
+        for (EnrollmentType type : EnumSet.allOf(EnrollmentType.class)) {
+            ServiceKey key = new ServiceKey(PinCategory.ENROLLMENT, type.name());
+            String groupLabel = type.getGroupLabel();
+            String actionLabel = type.getActionLabel();
+            String name = String.format("Enrollment PIN - %s %s", groupLabel, actionLabel);
+            String description = String.format("Enrollment PIN for %s applicants (%s).", groupLabel.toLowerCase(), actionLabel.toLowerCase());
+            BigDecimal base = basePrice(type);
+            BigDecimal adjustment = type.isUpdate() ? new BigDecimal("-5") : BigDecimal.ZERO;
+            BigDecimal price = base.add(adjustment);
+            definitions.put(key, new ServiceDefinition(key, name, description, price));
         }
     }
 
     public List<ServiceDefinition> getVerificationServices() {
         List<ServiceDefinition> services = new ArrayList<>();
         for (VerificationDuration duration : VerificationDuration.values()) {
-            services.add(definitions.get(ServiceKey.verification(duration)));
+            services.add(definitions.get(new ServiceKey(PinCategory.VERIFICATION, duration.name())));
         }
         return Collections.unmodifiableList(services);
     }
@@ -69,9 +57,7 @@ public class ServiceCatalog implements Serializable {
     public List<ServiceDefinition> getEnrollmentServices() {
         List<ServiceDefinition> services = new ArrayList<>();
         for (EnrollmentType type : EnrollmentType.values()) {
-            for (EnrollmentAction action : EnumSet.allOf(EnrollmentAction.class)) {
-                services.add(definitions.get(ServiceKey.enrollment(type, action)));
-            }
+            services.add(definitions.get(new ServiceKey(PinCategory.ENROLLMENT, type.name())));
         }
         return Collections.unmodifiableList(services);
     }
@@ -79,5 +65,13 @@ public class ServiceCatalog implements Serializable {
     public ServiceDefinition getDefinition(ServiceKey key) {
         return Optional.ofNullable(definitions.get(key))
             .orElseThrow(() -> new IllegalArgumentException("Service not found: " + key));
+    }
+
+    private BigDecimal basePrice(EnrollmentType type) {
+        return switch (type) {
+            case CITIZEN_FIRST_ISSUANCE, CITIZEN_UPDATE -> new BigDecimal("40");
+            case FOREIGNER_FIRST_ISSUANCE, FOREIGNER_UPDATE -> new BigDecimal("55");
+            case REFUGEE_FIRST_ISSUANCE, REFUGEE_UPDATE -> new BigDecimal("30");
+        };
     }
 }
