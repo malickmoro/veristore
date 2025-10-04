@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns:pt="http://xmlns.jcp.org/jsf/passthrough"
+                template="/WEB-INF/template.xhtml">
+    <ui:define name="title">Buy Enrollment PINs</ui:define>
+    <ui:define name="content">
+        <section class="mb-5" aria-labelledby="enrollmentHeading">
+            <div class="row g-5 align-items-center">
+                <div class="col-12 col-lg-7">
+                    <h1 id="enrollmentHeading" class="display-6 fw-bold mb-3">Purchase Enrollment PINs</h1>
+                    <p class="lead text-muted">Support citizen, foreigner, and refugee enrollments with secure PINs for first issuance or updates. Choose instant delivery or generate an invoice for offline payment.</p>
+                </div>
+                <div class="col-12 col-lg-5">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body">
+                            <h2 class="h5 mb-3">Enrollment guidance</h2>
+                            <ul class="list-unstyled text-muted small mb-0">
+                                <li class="mb-2">Select the applicant category and whether it is a first issuance or an update.</li>
+                                <li class="mb-2">Provide contact details so we can confirm delivery and support history lookup.</li>
+                                <li class="mb-0">Masked PINs are displayed immediately on payment confirmation or after invoice redemption.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section aria-labelledby="enrollmentFormHeading">
+            <div class="row g-4">
+                <div class="col-12 col-lg-7">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body">
+                            <h2 id="enrollmentFormHeading" class="h4 mb-4">Order details</h2>
+                            <h:form id="enrollmentForm">
+                                <div class="row g-3">
+                                    <div class="col-12">
+                                        <h:outputLabel for="fullName" value="Full name" styleClass="form-label" />
+                                        <h:inputText id="fullName"
+                                                     value="#{buyEnrollmentView.fullName}"
+                                                     required="true"
+                                                     requiredMessage="Full name is required"
+                                                     styleClass="form-control form-control-lg" />
+                                    </div>
+                                    <div class="col-12 col-md-6">
+                                        <h:outputLabel for="email" value="Email" styleClass="form-label" />
+                                        <h:inputText id="email"
+                                                     value="#{buyEnrollmentView.email}"
+                                                     required="true"
+                                                     requiredMessage="Email is required"
+                                                     pt:type="email"
+                                                     styleClass="form-control form-control-lg" />
+                                    </div>
+                                    <div class="col-12 col-md-6">
+                                        <h:outputLabel for="phone" value="Phone" styleClass="form-label" />
+                                        <h:inputText id="phone"
+                                                     value="#{buyEnrollmentView.phone}"
+                                                     required="true"
+                                                     requiredMessage="Phone number is required"
+                                                     styleClass="form-control form-control-lg" />
+                                    </div>
+                                    <div class="col-12 col-md-6">
+                                        <h:outputLabel for="type" value="Applicant type" styleClass="form-label" />
+                                        <h:selectOneMenu id="type"
+                                                         value="#{buyEnrollmentView.selectedType}"
+                                                         styleClass="form-select form-select-lg">
+                                            <f:selectItems value="#{buyEnrollmentView.types}" var="type"
+                                                           itemValue="#{type}" itemLabel="#{type.label}" />
+                                        </h:selectOneMenu>
+                                    </div>
+                                    <div class="col-12 col-md-6">
+                                        <h:outputLabel for="action" value="Issuance" styleClass="form-label" />
+                                        <h:selectOneMenu id="action"
+                                                         value="#{buyEnrollmentView.selectedAction}"
+                                                         styleClass="form-select form-select-lg">
+                                            <f:selectItems value="#{buyEnrollmentView.actions}" var="action"
+                                                           itemValue="#{action}" itemLabel="#{action.label}" />
+                                        </h:selectOneMenu>
+                                    </div>
+                                    <div class="col-12 col-md-6">
+                                        <h:outputLabel for="quantity" value="Quantity" styleClass="form-label" />
+                                        <h:inputText id="quantity"
+                                                     value="#{buyEnrollmentView.quantity}"
+                                                     pt:type="number"
+                                                     pt:min="1"
+                                                     styleClass="form-control form-control-lg" />
+                                    </div>
+                                    <div class="col-12">
+                                        <h:outputLabel for="paymentOption" value="Payment preference" styleClass="form-label" />
+                                        <h:selectOneRadio id="paymentOption"
+                                                          value="#{buyEnrollmentView.paymentOption}"
+                                                          layout="pageDirection"
+                                                          styleClass="d-flex flex-column gap-2">
+                                            <f:selectItems value="#{buyEnrollmentView.paymentOptions}" var="option"
+                                                           itemValue="#{option}" itemLabel="#{buyEnrollmentView.describe(option)}" />
+                                        </h:selectOneRadio>
+                                    </div>
+                                </div>
+                                <div class="d-flex flex-column flex-sm-row gap-3 mt-4">
+                                    <h:commandButton value="Pay now"
+                                                     styleClass="btn btn-primary btn-lg"
+                                                     action="#{buyEnrollmentView.submit}">
+                                        <f:setPropertyActionListener target="#{buyEnrollmentView.paymentOption}" value="PAY_NOW" />
+                                    </h:commandButton>
+                                    <h:commandButton value="Generate invoice"
+                                                     styleClass="btn btn-outline-primary btn-lg"
+                                                     action="#{buyEnrollmentView.submit}">
+                                        <f:setPropertyActionListener target="#{buyEnrollmentView.paymentOption}" value="PAY_LATER" />
+                                    </h:commandButton>
+                                </div>
+                            </h:form>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-lg-5">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body">
+                            <h2 class="h5 mb-3">Order summary</h2>
+                            <dl class="row mb-0 small">
+                                <dt class="col-6 text-muted">Service</dt>
+                                <dd class="col-6 text-end">#{buyEnrollmentView.selectedDefinition.name}</dd>
+                                <dt class="col-6 text-muted">Unit price</dt>
+                                <dd class="col-6 text-end">#{buyEnrollmentView.selectedDefinition.unitPrice}</dd>
+                                <dt class="col-6 text-muted">Quantity</dt>
+                                <dd class="col-6 text-end">#{buyEnrollmentView.quantity}</dd>
+                                <dt class="col-6 text-muted">Estimated total</dt>
+                                <dd class="col-6 text-end fw-semibold">#{buyEnrollmentView.estimatedTotal}</dd>
+                            </dl>
+                            <p class="text-muted small mt-3 mb-0">Masked PINs appear in the delivery confirmation and the history view. Keep the invoice number handy if you choose to pay later.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </ui:define>
+</ui:composition>

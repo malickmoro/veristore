@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns:pt="http://xmlns.jcp.org/jsf/passthrough"
+                template="/WEB-INF/template.xhtml">
+    <ui:define name="title">Buy Verification PINs</ui:define>
+    <ui:define name="content">
+        <section class="mb-5" aria-labelledby="verificationHeading">
+            <div class="row g-5 align-items-center">
+                <div class="col-12 col-lg-7">
+                    <h1 id="verificationHeading" class="display-6 fw-bold mb-3">Purchase Verification PINs</h1>
+                    <p class="lead text-muted">Select the verification duration that matches your credential lifecycle. Pay instantly for immediate delivery or request an invoice to settle later.</p>
+                </div>
+                <div class="col-12 col-lg-5">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body">
+                            <h2 class="h5 mb-3">What you get</h2>
+                            <ul class="list-unstyled text-muted small mb-0">
+                                <li class="mb-2">Secure PINs dispensed from the in-memory vault on demand.</li>
+                                <li class="mb-2">Masked delivery presented on-screen and logged for auditing.</li>
+                                <li class="mb-0">Support for instant payment via mock Hubtel or pay-later invoicing.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section aria-labelledby="verificationFormHeading">
+            <div class="row g-4">
+                <div class="col-12 col-lg-7">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body">
+                            <h2 id="verificationFormHeading" class="h4 mb-4">Order details</h2>
+                            <h:form id="verificationForm">
+                                <div class="row g-3">
+                                    <div class="col-12">
+                                        <h:outputLabel for="fullName" value="Full name" styleClass="form-label" />
+                                        <h:inputText id="fullName"
+                                                     value="#{buyVerificationView.fullName}"
+                                                     required="true"
+                                                     requiredMessage="Full name is required"
+                                                     styleClass="form-control form-control-lg" />
+                                    </div>
+                                    <div class="col-12 col-md-6">
+                                        <h:outputLabel for="email" value="Email" styleClass="form-label" />
+                                        <h:inputText id="email"
+                                                     value="#{buyVerificationView.email}"
+                                                     required="true"
+                                                     requiredMessage="Email is required"
+                                                     pt:type="email"
+                                                     styleClass="form-control form-control-lg" />
+                                    </div>
+                                    <div class="col-12 col-md-6">
+                                        <h:outputLabel for="phone" value="Phone" styleClass="form-label" />
+                                        <h:inputText id="phone"
+                                                     value="#{buyVerificationView.phone}"
+                                                     required="true"
+                                                     requiredMessage="Phone number is required"
+                                                     styleClass="form-control form-control-lg" />
+                                    </div>
+                                    <div class="col-12 col-md-6">
+                                        <h:outputLabel for="duration" value="Verification duration" styleClass="form-label" />
+                                        <h:selectOneMenu id="duration"
+                                                         value="#{buyVerificationView.selectedDuration}"
+                                                         styleClass="form-select form-select-lg">
+                                            <f:selectItems value="#{buyVerificationView.durations}" var="duration"
+                                                           itemValue="#{duration}" itemLabel="#{duration.label}" />
+                                        </h:selectOneMenu>
+                                    </div>
+                                    <div class="col-12 col-md-6">
+                                        <h:outputLabel for="quantity" value="Quantity" styleClass="form-label" />
+                                        <h:inputText id="quantity"
+                                                     value="#{buyVerificationView.quantity}"
+                                                     pt:type="number"
+                                                     pt:min="1"
+                                                     styleClass="form-control form-control-lg" />
+                                    </div>
+                                    <div class="col-12">
+                                        <h:outputLabel for="paymentOption" value="Payment preference" styleClass="form-label" />
+                                        <h:selectOneRadio id="paymentOption"
+                                                          value="#{buyVerificationView.paymentOption}"
+                                                          layout="pageDirection"
+                                                          styleClass="d-flex flex-column gap-2">
+                                            <f:selectItems value="#{buyVerificationView.paymentOptions}" var="option"
+                                                           itemValue="#{option}" itemLabel="#{buyVerificationView.describe(option)}" />
+                                        </h:selectOneRadio>
+                                    </div>
+                                </div>
+                                <div class="d-flex flex-column flex-sm-row gap-3 mt-4">
+                                    <h:commandButton value="Pay now"
+                                                     styleClass="btn btn-primary btn-lg"
+                                                     action="#{buyVerificationView.submit}">
+                                        <f:setPropertyActionListener target="#{buyVerificationView.paymentOption}" value="PAY_NOW" />
+                                    </h:commandButton>
+                                    <h:commandButton value="Generate invoice"
+                                                     styleClass="btn btn-outline-primary btn-lg"
+                                                     action="#{buyVerificationView.submit}">
+                                        <f:setPropertyActionListener target="#{buyVerificationView.paymentOption}" value="PAY_LATER" />
+                                    </h:commandButton>
+                                </div>
+                            </h:form>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-lg-5">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body">
+                            <h2 class="h5 mb-3">Order summary</h2>
+                            <dl class="row mb-0 small">
+                                <dt class="col-6 text-muted">Service</dt>
+                                <dd class="col-6 text-end">#{buyVerificationView.selectedDefinition.name}</dd>
+                                <dt class="col-6 text-muted">Unit price</dt>
+                                <dd class="col-6 text-end">#{buyVerificationView.selectedDefinition.unitPrice}</dd>
+                                <dt class="col-6 text-muted">Quantity</dt>
+                                <dd class="col-6 text-end">#{buyVerificationView.quantity}</dd>
+                                <dt class="col-6 text-muted">Estimated total</dt>
+                                <dd class="col-6 text-end fw-semibold">#{buyVerificationView.estimatedTotal}</dd>
+                            </dl>
+                            <p class="text-muted small mt-3 mb-0">PINs are masked as soon as they are issued. Track past deliveries in the history section using your email or phone.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </ui:define>
+</ui:composition>

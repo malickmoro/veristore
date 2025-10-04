@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns:pt="http://xmlns.jcp.org/jsf/passthrough"
+                template="/WEB-INF/template.xhtml">
+    <ui:define name="title">Redeem Invoice</ui:define>
+    <ui:define name="content">
+        <section class="mb-5" aria-labelledby="redeemHeading">
+            <div class="row g-5 align-items-center">
+                <div class="col-12 col-lg-7">
+                    <h1 id="redeemHeading" class="display-6 fw-bold mb-3">Redeem your invoice</h1>
+                    <p class="lead text-muted">After paying at the bank, enter your invoice number to verify the payment and deliver your masked PINs instantly.</p>
+                </div>
+                <div class="col-12 col-lg-5">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body">
+                            <h2 class="h5 mb-3">Need help?</h2>
+                            <ul class="list-unstyled text-muted small mb-0">
+                                <li class="mb-2">Use the invoice number exactly as printed (e.g. INV-12345).</li>
+                                <li class="mb-2">Keep your contact email and phone handy for history lookups.</li>
+                                <li class="mb-0">PINs are always masked on-screen. A secure channel would deliver the full code offline.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section aria-labelledby="redeemFormHeading">
+            <div class="row g-4">
+                <div class="col-12 col-lg-6">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body">
+                            <h2 id="redeemFormHeading" class="h4 mb-4">Verify payment</h2>
+                            <h:form id="redeemForm">
+                                <div class="mb-3">
+                                    <h:outputLabel for="invoiceNumber" value="Invoice number" styleClass="form-label" />
+                                    <h:inputText id="invoiceNumber"
+                                                 value="#{redeemView.invoiceNumber}"
+                                                 required="true"
+                                                 requiredMessage="Invoice number is required"
+                                                 styleClass="form-control form-control-lg"
+                                                 pt:placeholder="INV-12345" />
+                                </div>
+                                <h:commandButton value="Redeem now" styleClass="btn btn-primary btn-lg" action="#{redeemView.redeem}" />
+                            </h:form>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12 col-lg-6">
+                    <h:panelGroup rendered="#{not empty redeemView.redeemedOrder}" layout="block">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body">
+                                <h2 class="h5 mb-3">Delivery summary</h2>
+                                <p class="text-muted small mb-3">The following masked PINs have been dispatched. They remain available in your order history.</p>
+                                <dl class="row small mb-0">
+                                    <dt class="col-5 text-muted">Order reference</dt>
+                                    <dd class="col-7">#{redeemView.redeemedOrder.orderId}</dd>
+                                    <dt class="col-5 text-muted">Service</dt>
+                                    <dd class="col-7">#{redeemView.redeemedOrder.serviceDefinition.name}</dd>
+                                    <dt class="col-5 text-muted">Quantity</dt>
+                                    <dd class="col-7">#{redeemView.redeemedOrder.quantity}</dd>
+                                </dl>
+                                <ul class="list-group list-group-flush mt-3">
+                                    <ui:repeat value="#{redeemView.redeemedOrder.maskedPins}" var="pin">
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            <span class="fw-semibold">#{pin}</span>
+                                            <span class="badge bg-success">Delivered</span>
+                                        </li>
+                                    </ui:repeat>
+                                </ul>
+                                <div class="mt-3 d-flex flex-column gap-2">
+                                    <h:link outcome="/history" styleClass="btn btn-outline-primary">View history</h:link>
+                                    <h:link outcome="/buy-verification" styleClass="btn btn-outline-secondary">Purchase more PINs</h:link>
+                                </div>
+                            </div>
+                        </div>
+                        <h:panelGroup rendered="#{redeemView.alreadyRedeemed}" layout="block" styleClass="alert alert-info mt-3">
+                            <p class="mb-0">This invoice was already redeemed earlier. We have re-listed the masked PINs for your reference.</p>
+                        </h:panelGroup>
+                    </h:panelGroup>
+                </div>
+            </div>
+        </section>
+    </ui:define>
+</ui:composition>
