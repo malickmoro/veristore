@@ -2,7 +2,7 @@ package com.theplutushome.veristore.payment;
 
 import com.theplutushome.veristore.domain.InvoiceStatus;
 
-import javax.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.ApplicationScoped;
 import java.io.Serial;
 import java.io.Serializable;
 import java.net.URI;

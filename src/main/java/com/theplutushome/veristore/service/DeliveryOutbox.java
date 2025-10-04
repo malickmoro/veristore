@@ -2,7 +2,7 @@ package com.theplutushome.veristore.service;
 
 import com.theplutushome.veristore.domain.DeliveryRecord;
 
-import javax.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.ApplicationScoped;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.ArrayList;

@@ -8,8 +8,8 @@ import com.theplutushome.veristore.domain.PaymentStatus;
 import com.theplutushome.veristore.domain.ServiceDefinition;
 import com.theplutushome.veristore.domain.ServiceKey;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

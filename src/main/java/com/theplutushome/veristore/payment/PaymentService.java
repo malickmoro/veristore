@@ -11,8 +11,8 @@ import com.theplutushome.veristore.service.PricingService;
 import com.theplutushome.veristore.service.PinVault;
 import com.theplutushome.veristore.util.Masker;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;

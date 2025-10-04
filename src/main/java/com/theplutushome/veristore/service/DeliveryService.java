@@ -1,6 +1,6 @@
 package com.theplutushome.veristore.service;
 
-import javax.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.ApplicationScoped;
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.Instant;

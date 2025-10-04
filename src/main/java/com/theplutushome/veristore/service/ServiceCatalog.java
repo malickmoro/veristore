@@ -6,8 +6,8 @@ import com.theplutushome.veristore.domain.ServiceDefinition;
 import com.theplutushome.veristore.domain.ServiceKey;
 import com.theplutushome.veristore.domain.VerificationDuration;
 
-import javax.annotation.PostConstruct;
-import javax.enterprise.context.ApplicationScoped;
+import jakarta.annotation.PostConstruct;
+import jakarta.enterprise.context.ApplicationScoped;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.ArrayList;

@@ -5,7 +5,7 @@ import com.theplutushome.veristore.domain.PinCategory;
 import com.theplutushome.veristore.domain.Price;
 import com.theplutushome.veristore.domain.ServiceKey;
 
-import javax.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.ApplicationScoped;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.text.NumberFormat;

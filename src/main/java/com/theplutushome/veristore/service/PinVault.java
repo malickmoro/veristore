@@ -4,8 +4,8 @@ import com.theplutushome.veristore.domain.EnrollmentType;
 import com.theplutushome.veristore.domain.PinCategory;
 import com.theplutushome.veristore.domain.ServiceKey;
 
-import javax.annotation.PostConstruct;
-import javax.enterprise.context.ApplicationScoped;
+import jakarta.annotation.PostConstruct;
+import jakarta.enterprise.context.ApplicationScoped;
 import java.io.Serializable;
 import java.security.SecureRandom;
 import java.util.ArrayDeque;

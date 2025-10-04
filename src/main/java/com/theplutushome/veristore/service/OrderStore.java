@@ -5,7 +5,6 @@ import com.theplutushome.veristore.domain.DeliveryPrefs;
 import com.theplutushome.veristore.domain.InvoiceStatus;
 import com.theplutushome.veristore.domain.ServiceKey;
 
-import javax.enterprise.context.ApplicationScoped;
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.Instant;
