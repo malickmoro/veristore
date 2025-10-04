@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:pt="http://xmlns.jcp.org/jsf/passthrough"
+                template="/WEB-INF/template.xhtml">
+    <ui:define name="title">Products – Veristore catalog</ui:define>
+    <ui:define name="content">
+        <header class="mb-4" aria-labelledby="catalogHeading">
+            <h1 id="catalogHeading" class="h2 mb-2">Product catalog</h1>
+            <p class="text-muted mb-0">Filter by origin, category, and spend limits to match your fulfillment strategy.</p>
+        </header>
+        <div class="row g-4">
+            <aside class="col-12 col-lg-3">
+                <h:form id="filters" class="card shadow-sm border-0" role="search">
+                    <div class="card-body">
+                        <fieldset class="vstack gap-3" aria-describedby="filterHint">
+                            <legend class="h5">Filters</legend>
+                            <p id="filterHint" class="text-muted small">Refine results without leaving the blueprint layout.</p>
+                            <div>
+                                <h:outputLabel for="country" value="Country of origin" styleClass="form-label" />
+                                <h:selectOneMenu id="country" styleClass="form-select" value="#{productView.country}">
+                                    <f:selectItem itemLabel="All" itemValue="" />
+                                    <f:selectItem itemLabel="United States" itemValue="US" />
+                                    <f:selectItem itemLabel="Germany" itemValue="DE" />
+                                    <f:selectItem itemLabel="Japan" itemValue="JP" />
+                                </h:selectOneMenu>
+                            </div>
+                            <div>
+                                <h:outputLabel for="category" value="Category" styleClass="form-label" />
+                                <h:selectOneMenu id="category" styleClass="form-select" value="#{productView.category}">
+                                    <f:selectItem itemLabel="All" itemValue="" />
+                                    <f:selectItem itemLabel="Digital" itemValue="digital" />
+                                    <f:selectItem itemLabel="Physical" itemValue="physical" />
+                                    <f:selectItem itemLabel="Services" itemValue="services" />
+                                </h:selectOneMenu>
+                            </div>
+                            <div>
+                                <h:outputLabel for="maxPrice" value="Max price" styleClass="form-label" />
+                                <div class="input-group">
+                                    <span class="input-group-text" id="currencyLabel">$</span>
+                                    <h:inputText id="maxPrice" styleClass="form-control" value="#{productView.maxPrice}"
+                                                 pt:type="number" pt:min="0" pt:step="0.01"
+                                                 pt:aria-describedby="currencyLabel" />
+                                </div>
+                            </div>
+                            <h:commandButton value="Apply filters" styleClass="btn btn-primary w-100" action="#{productView.applyFilters}" />
+                        </fieldset>
+                    </div>
+                </h:form>
+            </aside>
+            <section class="col-12 col-lg-9" aria-label="Product results">
+                <h:panelGroup layout="block" rendered="#{empty productView.items}" styleClass="alert alert-info" pt:ole="status">
+                    No products match your filters yet. Adjust the filters and try again.
+                </h:panelGroup>
+                <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4" role="list">
+                    <ui:repeat value="#{productView.items}" var="product" varStatus="status">
+                        <div class="col" role="listitem">
+                            <article class="card h-100 shadow-sm border-0" aria-labelledby="productTitle#{status.index}">
+                                <ui:fragment rendered="#{not empty product.thumbnailUrl}">
+                                    <img src="#{product.thumbnailUrl}" alt="#{product.name}" class="card-img-top" />
+                                </ui:fragment>
+                                <ui:fragment rendered="#{empty product.thumbnailUrl}">
+                                    <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="min-height: 160px;">
+                                        <span class="text-muted">No image available</span>
+                                    </div>
+                                </ui:fragment>
+                                <div class="card-body d-flex flex-column">
+                                    <h2 id="productTitle#{status.index}" class="h5">#{product.name}</h2>
+                                    <p class="text-muted flex-grow-1">#{product.shortDesc}</p>
+                                    <dl class="row small mb-3">
+                                        <dt class="col-5">Country</dt>
+                                        <dd class="col-7">#{product.country}</dd>
+                                        <dt class="col-5">Category</dt>
+                                        <dd class="col-7">#{product.category}</dd>
+                                    </dl>
+                                    <div class="d-flex justify-content-between align-items-center mt-auto">
+                                        <span class="h5 mb-0">#{product.priceFormatted}</span>
+                                        <h:link outcome="/product" styleClass="btn btn-outline-primary btn-sm">
+                                            <f:param name="sku" value="#{product.sku}" />
+                                            View
+                                        </h:link>
+                                    </div>
+                                </div>
+                            </article>
+                        </div>
+                    </ui:repeat>
+                </div>
+                <h:form id="paginationForm" rendered="#{productView.pages gt 1}" styleClass="mt-4">
+                    <nav role="navigation" aria-label="Pagination">
+                        <ul class="pagination justify-content-center mb-0">
+                            <li class="#{productView.hasPrev ? 'page-item' : 'page-item disabled'}" aria-disabled="#{productView.hasPrev ? 'false' : 'true'}">
+                                <ui:fragment rendered="#{productView.hasPrev}">
+                                    <h:commandLink value="Previous" styleClass="page-link" action="#{productView.prev}" />
+                                </ui:fragment>
+                                <ui:fragment rendered="#{not productView.hasPrev}">
+                                    <span class="page-link">Previous</span>
+                                </ui:fragment>
+                            </li>
+                            <li class="page-item active" aria-current="page">
+                                <span class="page-link">#{productView.page + 1} <span class="visually-hidden">of #{productView.pages}</span></span>
+                            </li>
+                            <li class="#{productView.hasNext ? 'page-item' : 'page-item disabled'}" aria-disabled="#{productView.hasNext ? 'false' : 'true'}">
+                                <ui:fragment rendered="#{productView.hasNext}">
+                                    <h:commandLink value="Next" styleClass="page-link" action="#{productView.next}" />
+                                </ui:fragment>
+                                <ui:fragment rendered="#{not productView.hasNext}">
+                                    <span class="page-link">Next</span>
+                                </ui:fragment>
+                            </li>
+                        </ul>
+                    </nav>
+                </h:form>
+            </section>
+        </div>
+    </ui:define>
+</ui:composition>

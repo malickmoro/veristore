@@ -1,0 +1,31 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns:pt="http://xmlns.jcp.org/jsf/passthrough">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm" aria-label="Primary">
+        <div class="container py-2">
+            <h:link outcome="/index" styleClass="navbar-brand d-flex align-items-center gap-2">
+                <span class="fw-bold fs-4">Veristore</span>
+            </h:link>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="mainNav">
+                <ul class="navbar-nav ms-auto mb-2 mb-lg-0 gap-lg-2">
+                    <li class="nav-item">
+                        <h:link outcome="/products" styleClass="nav-link">Products</h:link>
+                    </li>
+                    <li class="nav-item">
+                        <h:link outcome="/cart" styleClass="nav-link">Cart</h:link>
+                    </li>
+                    <li class="nav-item">
+                        <h:link outcome="/checkout" styleClass="nav-link">Checkout</h:link>
+                    </li>
+                    <li class="nav-item">
+                        <h:link outcome="/order-success" styleClass="nav-link">Order status</h:link>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+</ui:composition>

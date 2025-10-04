@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns:pt="http://xmlns.jcp.org/jsf/passthrough"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                template="/WEB-INF/template.xhtml">
+    <ui:define name="title">Checkout – Veristore</ui:define>
+    <ui:define name="content">
+        <h1 class="h2 mb-4">Secure checkout</h1>
+        <h:panelGroup rendered="#{empty checkoutView.lines}" layout="block" styleClass="alert alert-info" pt:role="status">
+            Your checkout session is empty. Add items to your cart before continuing.
+        </h:panelGroup>
+        <h:panelGroup rendered="#{not empty checkoutView.lines}" layout="block">
+            <h:form id="checkoutForm" class="row g-4">
+                <section class="col-12 col-lg-8">
+                    <article class="card shadow-sm border-0 mb-4">
+                        <div class="card-body">
+                            <h2 class="h4">Contact information</h2>
+                            <div class="row g-3 mt-2">
+                                <div class="col-12">
+                                    <h:outputLabel for="email" value="Email" styleClass="form-label" />
+                                    <h:inputText id="email" styleClass="form-control" value="#{checkoutView.email}" required="true"
+                                                 pt:type="email" />
+                                </div>
+                                <div class="col-12">
+                                    <h:outputLabel for="phone" value="Phone" styleClass="form-label" />
+                                    <h:inputText id="phone" styleClass="form-control" value="#{checkoutView.phone}" />
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+                    <article class="card shadow-sm border-0 mb-4">
+                        <div class="card-body">
+                            <h2 id="deliveryHeading" class="h4">Delivery preferences</h2>
+                            <div class="mt-3 vstack gap-2" role="group" aria-labelledby="deliveryHeading">
+                                <div class="form-check">
+                                    <h:selectBooleanCheckbox id="deliverEmail" value="#{checkoutView.deliverByEmail}" styleClass="form-check-input" />
+                                    <h:outputLabel for="deliverEmail" styleClass="form-check-label">
+                                        Send fulfillment updates by email
+                                    </h:outputLabel>
+                                </div>
+                                <div class="form-check">
+                                    <h:selectBooleanCheckbox id="deliverSms" value="#{checkoutView.deliverBySms}" styleClass="form-check-input" />
+                                    <h:outputLabel for="deliverSms" styleClass="form-check-label">
+                                        Send SMS alerts for delivery milestones
+                                    </h:outputLabel>
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+                    <article class="card shadow-sm border-0">
+                        <div class="card-body">
+                            <h2 class="h4">Payment</h2>
+                            <p class="text-muted">We will redirect you to our secure payment partner to collect billing details.</p>
+                            <div class="d-flex gap-2">
+                                <h:commandButton value="Pay now" styleClass="btn btn-primary"
+                                                 action="#{checkoutView.pay}" />
+                                <h:commandLink value="Cancel" styleClass="btn btn-outline-secondary"
+                                               action="#{checkoutView.cancel}" immediate="true" />
+                            </div>
+                            <h:panelGroup rendered="#{checkoutView.showStatusPanel}" layout="block" styleClass="alert alert-info mt-3" pt:role="status">
+                                <p class="mb-1">#{checkoutView.paymentStatus}</p>
+                                <h:panelGroup rendered="#{checkoutView.paymentRedirect ne null}">
+                                    <a href="#{checkoutView.paymentRedirect}" class="alert-link">Continue to payment portal</a>
+                                </h:panelGroup>
+                            </h:panelGroup>
+                        </div>
+                    </article>
+                </section>
+                <aside class="col-12 col-lg-4">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-body">
+                            <h2 class="h4">Order summary</h2>
+                            <ul class="list-group list-group-flush my-3">
+                                <ui:repeat value="#{checkoutView.lines}" var="line">
+                                    <li class="list-group-item d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <p class="fw-semibold mb-1">#{line.name}</p>
+                                            <p class="mb-0 text-muted small">#{line.qty} x #{line.priceFormatted}</p>
+                                        </div>
+                                        <span>#{line.totalFormatted}</span>
+                                    </li>
+                                </ui:repeat>
+                            </ul>
+                            <dl class="row small mb-0">
+                                <dt class="col-6">Subtotal</dt>
+                                <dd class="col-6 text-end">#{checkoutView.subtotalFormatted}</dd>
+                                <dt class="col-6">Service fees</dt>
+                                <dd class="col-6 text-end">#{checkoutView.feesFormatted}</dd>
+                                <dt class="col-6 fw-bold">Total due</dt>
+                                <dd class="col-6 text-end fw-bold">#{checkoutView.totalFormatted}</dd>
+                            </dl>
+                            <p class="small text-muted mt-3">Payments are processed securely through Veristore Pay with PCI DSS compliance.</p>
+                        </div>
+                    </div>
+                </aside>
+            </h:form>
+        </h:panelGroup>
+    </ui:define>
+</ui:composition>

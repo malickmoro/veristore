@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:pt="http://xmlns.jcp.org/jsf/passthrough">
+    <f:view locale="#{globalView.locale}">
+        <h:head>
+            <meta charset="utf-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1" />
+            <title><ui:insert name="title">Veristore</ui:insert></title>
+            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous"/>
+            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"/>
+            <ui:insert name="styles" />
+        </h:head>
+        <h:body class="d-flex flex-column min-vh-100 bg-light text-body"
+                dir="#{globalView.rtl ? 'rtl' : 'ltr'}" pt:lang="#{globalView.localeCode}">
+            <a href="#main" class="visually-hidden-focusable position-absolute top-0 start-0 m-3 px-3 py-2 bg-dark text-light rounded">Skip to main content</a>
+            <ui:include src="/WEB-INF/partials/navbar.xhtml" />
+
+            <main id="main" class="flex-grow-1">
+                <div class="container py-4 py-lg-5">
+                    <h:panelGroup layout="block"
+                                  rendered="#{not empty facesContext.messageList}"
+                                  styleClass="mb-4"
+                                  pt:aria-live="polite"
+                                  pt:aria-atomic="true">
+                        <h:messages id="globalMessages"
+                                    showSummary="true"
+                                    showDetail="true"
+                                    layout="list"
+                                    styleClass="list-unstyled d-flex flex-column gap-3 mb-0"
+                                    infoClass="alert alert-info alert-dismissible fade show mb-0"
+                                    warnClass="alert alert-warning alert-dismissible fade show mb-0"
+                                    errorClass="alert alert-danger alert-dismissible fade show mb-0"
+                                    fatalClass="alert alert-danger alert-dismissible fade show mb-0"
+                                    pt:role="alert" />
+                    </h:panelGroup>
+                    <ui:insert name="content" />
+                </div>
+            </main>
+
+            <ui:include src="/WEB-INF/partials/footer.xhtml" />
+
+            <h:outputScript target="body">
+                //<![CDATA[
+                (function () {
+                var messageList = document.getElementById('globalMessages');
+                if (!messageList) {
+                return;
+                }
+                messageList.querySelectorAll('li.alert-dismissible').forEach(function (item) {
+                item.setAttribute('role', 'alert');
+                if (item.querySelector('[data-bs-dismiss="alert"]')) {
+                return;
+                }
+                var button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'btn-close';
+                button.setAttribute('data-bs-dismiss', 'alert');
+                button.setAttribute('aria-label', 'Dismiss message');
+                item.appendChild(button);
+                });
+                })();
+                //]]>
+            </h:outputScript>
+            <ui:insert name="scripts" />
+        </h:body>
+    </f:view>
+</ui:composition>
