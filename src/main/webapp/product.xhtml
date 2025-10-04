@@ -1,72 +1,21 @@
 <!DOCTYPE html>
 <ui:composition xmlns="http://www.w3.org/1999/xhtml"
-                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
                 xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
-                xmlns:pt="http://xmlns.jcp.org/jsf/passthrough"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
                 template="/WEB-INF/template.xhtml">
-    <ui:define name="title">Product detail – Veristore</ui:define>
+    <f:metadata>
+        <f:viewAction action="#{redirectView.toBuyVerification}" />
+    </f:metadata>
+    <ui:define name="title">Redirecting…</ui:define>
     <ui:define name="content">
-        <nav aria-label="Breadcrumb" class="mb-3">
-            <ol class="breadcrumb small">
-                <li class="breadcrumb-item"><h:link outcome="/index">Home</h:link></li>
-                <li class="breadcrumb-item"><h:link outcome="/products">Products</h:link></li>
-                <li class="breadcrumb-item active" aria-current="page">#{productDetailView.item != null ? productDetailView.item.name : 'Product'}</li>
-            </ol>
-        </nav>
-        <h:panelGroup rendered="#{productDetailView.item eq null}" layout="block" styleClass="alert alert-warning" pt:role="alert">
-            The requested product could not be found.
-        </h:panelGroup>
-        <h:panelGroup layout="block" rendered="#{productDetailView.item ne null}">
-            <div class="row g-5">
-                <section class="col-12 col-lg-7" aria-labelledby="productTitle">
-                    <span class="badge bg-secondary mb-3">#{productDetailView.item.category}</span>
-                    <h1 id="productTitle" class="h2">#{productDetailView.item.name}</h1>
-                    <p class="lead">#{productDetailView.item.shortDesc}</p>
-                    <dl class="row small">
-                        <dt class="col-4 col-sm-3">SKU</dt>
-                        <dd class="col-8 col-sm-9">#{productDetailView.item.sku}</dd>
-                        <dt class="col-4 col-sm-3">Country</dt>
-                        <dd class="col-8 col-sm-9">#{productDetailView.item.country}</dd>
-                        <dt class="col-4 col-sm-3">Category</dt>
-                        <dd class="col-8 col-sm-9">#{productDetailView.item.category}</dd>
-                    </dl>
-                    <section aria-labelledby="featuresHeading" class="mt-4">
-                        <h2 id="featuresHeading" class="h4">Overview</h2>
-                        <p class="text-muted">#{productDetailView.item.longDesc}</p>
-                    </section>
-                </section>
-                <aside class="col-12 col-lg-5" aria-label="Purchase options">
-                    <div class="card shadow-sm border-0">
-                        <div class="card-body">
-                            <h2 class="h4">Purchase</h2>
-                            <p class="h3 mb-4">#{productDetailView.item.priceFormatted}</p>
-                            <h:form id="purchaseForm" class="vstack gap-3">
-                                <div>
-                                    <h:outputLabel for="quantity" value="Quantity" styleClass="form-label" />
-                                    <h:inputText id="quantity" value="#{productDetailView.qty}" styleClass="form-control"
-                                                 pt:type="number" pt:min="1" pt:aria-describedby="quantityHelp" />
-                                    <div id="quantityHelp" class="form-text">Enter the number of items you require.</div>
-                                </div>
-                                <div class="form-check">
-                                    <h:selectBooleanCheckbox id="tos" value="#{productDetailView.acceptedTos}" styleClass="form-check-input" />
-                                    <h:outputLabel for="tos" styleClass="form-check-label">
-                                        I agree to the <a href="#" class="link-primary">Terms of Service</a> and acknowledge the service level definitions.
-                                    </h:outputLabel>
-                                </div>
-                                <h:commandButton value="Add to cart" styleClass="btn btn-primary btn-lg" action="#{productDetailView.addToCart}" />
-                            </h:form>
-                            <div class="mt-4">
-                                <h3 class="h5">Trust signals</h3>
-                                <ul class="list-unstyled small mb-0">
-                                    <li>Secure payments processed via Veristore Pay</li>
-                                    <li>Instant delivery with audit trail</li>
-                                    <li>Money-back guarantee within 30 days</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </aside>
+        <div class="text-center py-5">
+            <h1 class="h4 mb-3">Product pages have moved</h1>
+            <p class="text-muted">Please use the dedicated verification or enrollment purchase flows.</p>
+            <div class="d-flex flex-column flex-sm-row gap-2 justify-content-center">
+                <h:link outcome="/buy-verification" styleClass="btn btn-primary">Verification PINs</h:link>
+                <h:link outcome="/buy-enrollment" styleClass="btn btn-outline-primary">Enrollment PINs</h:link>
             </div>
-        </h:panelGroup>
+        </div>
     </ui:define>
 </ui:composition>

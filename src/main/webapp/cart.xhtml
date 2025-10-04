@@ -1,86 +1,21 @@
 <!DOCTYPE html>
 <ui:composition xmlns="http://www.w3.org/1999/xhtml"
-                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
                 xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
-                xmlns:pt="http://xmlns.jcp.org/jsf/passthrough"
-                template="/WEB-INF/template.xhtml"
-                xmlns:f="jakarta.faces.core">
-    <ui:define name="title">Cart – Veristore</ui:define>
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                template="/WEB-INF/template.xhtml">
+    <f:metadata>
+        <f:viewAction action="#{redirectView.toBuyVerification}" />
+    </f:metadata>
+    <ui:define name="title">Redirecting…</ui:define>
     <ui:define name="content">
-        <h1 class="h2 mb-4">Shopping cart</h1>
-        <h:panelGroup rendered="#{empty cartView.lines}" layout="block" styleClass="alert alert-info" pt:role="status">
-            Your cart is currently empty. Browse the catalog to add items.
-        </h:panelGroup>
-        <h:panelGroup rendered="#{not empty cartView.lines}" layout="block">
-            <h:form id="cartForm" class="row g-4">
-                <div class="col-12 col-lg-8">
-                    <div class="table-responsive">
-                        <table class="table align-middle">
-                            <caption class="text-muted">Adjust quantities or remove items before continuing to checkout.</caption>
-                            <thead>
-                                <tr>
-                                    <th scope="col">Item</th>
-                                    <th scope="col" class="text-center">Price</th>
-                                    <th scope="col" class="text-center">Quantity</th>
-                                    <th scope="col" class="text-end">Subtotal</th>
-                                    <th scope="col" class="text-end">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <ui:repeat value="#{cartView.lines}" var="line" varStatus="status">
-                                    <tr>
-                                        <td>
-                                            <p class="fw-semibold mb-1">
-                                                <h:link outcome="/product">
-                                                    <f:param name="sku" value="#{line.sku}" />
-                                                    #{line.name}
-                                                </h:link>
-                                            </p>
-                                            <p class="mb-0 text-muted small">SKU #{line.sku}</p>
-                                        </td>
-                                        <td class="text-center">#{line.priceFormatted}</td>
-                                        <td class="text-center" style="min-width: 7rem;">
-                                            <h:inputText value="#{line.qty}" styleClass="form-control form-control-sm text-center"
-                                                         pt:type="number" pt:min="1" pt:aria-label="Quantity for #{line.name}" />
-                                        </td>
-                                        <td class="text-end">#{line.totalFormatted}</td>
-                                        <td class="text-end">
-                                            <h:commandLink value="Remove" styleClass="btn btn-link text-danger p-0"
-                                                           action="#{cartView.remove(line)}"
-                                                           onclick="return confirm('Remove this item?');" />
-                                        </td>
-                                    </tr>
-                                </ui:repeat>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="d-flex justify-content-between flex-wrap gap-2">
-                        <h:commandButton value="Update cart" styleClass="btn btn-outline-primary"
-                                         action="#{cartView.recalculate}" />
-                        <h:commandButton value="Empty cart" styleClass="btn btn-link text-danger"
-                                         action="#{cartView.clear}" />
-                        <h:link outcome="/products" styleClass="btn btn-link ms-auto">Continue shopping</h:link>
-                    </div>
-                </div>
-                <aside class="col-12 col-lg-4">
-                    <div class="card shadow-sm border-0">
-                        <div class="card-body">
-                            <h2 class="h4">Order summary</h2>
-                            <dl class="row mb-0 small">
-                                <dt class="col-6">Subtotal</dt>
-                                <dd class="col-6 text-end">#{cartView.subtotalFormatted()}</dd>
-                                <dt class="col-6">Service fees</dt>
-                                <dd class="col-6 text-end">#{cartView.feesFormatted()}</dd>
-                                <dt class="col-6 fw-bold">Total</dt>
-                                <dd class="col-6 text-end fw-bold">#{cartView.totalFormatted()}</dd>
-                            </dl>
-                            <div class="d-grid mt-3">
-                                <h:link outcome="/checkout" styleClass="btn btn-primary btn-lg">Proceed to checkout</h:link>
-                            </div>
-                        </div>
-                    </div>
-                </aside>
-            </h:form>
-        </h:panelGroup>
+        <div class="text-center py-5">
+            <h1 class="h4 mb-3">Cart not available</h1>
+            <p class="text-muted">Veristore now sells PINs directly without a shopping cart. Choose a flow below to continue.</p>
+            <div class="d-flex flex-column flex-sm-row gap-2 justify-content-center">
+                <h:link outcome="/buy-verification" styleClass="btn btn-primary">Verification PINs</h:link>
+                <h:link outcome="/buy-enrollment" styleClass="btn btn-outline-primary">Enrollment PINs</h:link>
+            </div>
+        </div>
     </ui:define>
 </ui:composition>
