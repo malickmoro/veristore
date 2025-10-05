@@ -528,7 +528,11 @@ public class PurchaseView implements Serializable {
             added = addSelectionToCart(new ProductKey(ProductFamily.ENROLLMENT, selectedSku));
         }
         if (added) {
-            queueMessage(FacesMessage.SEVERITY_INFO, "Added to cart.");
+            String productName = getUnitLabel();
+            String message = qty > 1 
+                ? String.format("%s (×%d) added to cart.", productName, qty)
+                : String.format("%s added to cart.", productName);
+            queueMessage(FacesMessage.SEVERITY_INFO, message);
             return "/index?faces-redirect=true";
         }
         return null;
@@ -743,7 +747,7 @@ public class PurchaseView implements Serializable {
 
     private void queueMessage(FacesMessage.Severity severity, String message) {
         FacesContext context = FacesContext.getCurrentInstance();
-        context.addMessage(null, new FacesMessage(severity, message, null));
+        context.addMessage(null, new FacesMessage(severity, message, ""));
         context.getExternalContext().getFlash().setKeepMessages(true);
     }
 
