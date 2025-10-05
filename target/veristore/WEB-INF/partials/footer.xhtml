@@ -1,31 +1,90 @@
 <ui:composition xmlns="http://www.w3.org/1999/xhtml"
                 xmlns:h="http://xmlns.jcp.org/jsf/html"
                 xmlns:ui="http://xmlns.jcp.org/jsf/facelets">
-    <footer class="bg-dark text-light py-4 mt-auto" aria-label="Footer">
-        <div class="container d-flex flex-column flex-lg-row justify-content-between gap-4">
-            <div>
-                <h2 class="h5 mb-2">Veristore</h2>
-                <p class="mb-0 small">Trusted commerce for digital, physical, and hybrid fulfillment.</p>
+    <footer class="bg-white border-top mt-auto" aria-label="Footer">
+        <div class="container py-5">
+            <div class="row g-4">
+                <!-- Brand Section -->
+                <div class="col-12 col-md-6 col-lg-4">
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <svg width="28" height="28" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <rect width="32" height="32" rx="8" fill="#0d6efd"/>
+                            <path d="M16 8L20 12H18V20H14V12H12L16 8Z" fill="white"/>
+                            <path d="M10 22H22V24H10V22Z" fill="white"/>
+                            <circle cx="16" cy="16" r="1.5" fill="white"/>
+                        </svg>
+                        <h2 class="h5 mb-0 fw-bold text-dark">Veristore</h2>
+                    </div>
+                    <p class="text-muted mb-3">Secure digital verification and enrollment solutions for modern identity management.</p>
+                    <p class="small text-muted mb-0">© 2025 Veristore. All rights reserved.</p>
+                </div>
+
+                <!-- Products Section -->
+                <div class="col-6 col-md-6 col-lg-2">
+                    <h3 class="h6 fw-semibold text-dark mb-3">Products</h3>
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-2"><h:link outcome="/buy-first-issuance" styleClass="text-muted text-decoration-none">First Issuance</h:link></li>
+                        <li class="mb-2"><h:link outcome="/buy-renewal" styleClass="text-muted text-decoration-none">Renewal</h:link></li>
+                        <li class="mb-2"><h:link outcome="/buy-replacement" styleClass="text-muted text-decoration-none">Replacement</h:link></li>
+                        <li class="mb-2"><h:link outcome="/buy-update" styleClass="text-muted text-decoration-none">Update</h:link></li>
+                        <li class="mb-2"><h:link outcome="/buy-verification" styleClass="text-muted text-decoration-none">Verification</h:link></li>
+                    </ul>
+                </div>
+
+                <!-- Quick Links Section -->
+                <div class="col-6 col-md-6 col-lg-2">
+                    <h3 class="h6 fw-semibold text-dark mb-3">Quick Links</h3>
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-2"><h:link outcome="/index" styleClass="text-muted text-decoration-none">Shop</h:link></li>
+                        <li class="mb-2"><h:link outcome="/history" styleClass="text-muted text-decoration-none">Order History</h:link></li>
+                        <li class="mb-2"><h:link outcome="/redeem" styleClass="text-muted text-decoration-none">Redeem Invoice</h:link></li>
+                    </ul>
+                </div>
+
+                <!-- Contact Section -->
+                <div class="col-12 col-md-6 col-lg-4">
+                    <h3 class="h6 fw-semibold text-dark mb-3">Contact Us</h3>
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-2">
+                            <svg width="16" height="16" fill="currentColor" class="text-muted me-2" viewBox="0 0 16 16" aria-hidden="true">
+                                <path d="M.05 3.555A2 2 0 0 1 2 2h12a2 2 0 0 1 1.95 1.555L8 8.414.05 3.555ZM0 4.697v7.104l5.803-3.558L0 4.697ZM6.761 8.83l-6.57 4.027A2 2 0 0 0 2 14h12a2 2 0 0 0 1.808-1.144l-6.57-4.027L8 9.586l-1.239-.757Zm3.436-.586L16 11.801V4.697l-5.803 3.546Z"/>
+                            </svg>
+                            <a href="mailto:support@veristore.com" class="text-muted text-decoration-none">support@veristore.com</a>
+                        </li>
+                        <li class="mb-2">
+                            <svg width="16" height="16" fill="currentColor" class="text-muted me-2" viewBox="0 0 16 16" aria-hidden="true">
+                                <path d="M3.654 1.328a.678.678 0 0 0-1.015-.063L1.605 2.3c-.483.484-.661 1.169-.45 1.77a17.568 17.568 0 0 0 4.168 6.608 17.569 17.569 0 0 0 6.608 4.168c.601.211 1.286.033 1.77-.45l1.034-1.034a.678.678 0 0 0-.063-1.015l-2.307-1.794a.678.678 0 0 0-.58-.122l-2.19.547a1.745 1.745 0 0 1-1.657-.459L5.482 8.062a1.745 1.745 0 0 1-.46-1.657l.548-2.19a.678.678 0 0 0-.122-.58L3.654 1.328zM1.884.511a1.745 1.745 0 0 1 2.612.163L6.29 2.98c.329.423.445.974.315 1.494l-.547 2.19a.678.678 0 0 0 .178.643l2.457 2.457a.678.678 0 0 0 .644.178l2.189-.547a1.745 1.745 0 0 1 1.494.315l2.306 1.794c.829.645.905 1.87.163 2.611l-1.034 1.034c-.74.74-1.846 1.065-2.877.702a18.634 18.634 0 0 1-7.01-4.42 18.634 18.634 0 0 1-4.42-7.009c-.362-1.03-.037-2.137.703-2.877L1.885.511z"/>
+                            </svg>
+                            <span class="text-muted">+1 (555) 010-2000</span>
+                        </li>
+                        <li class="mb-2">
+                            <svg width="16" height="16" fill="currentColor" class="text-muted me-2" viewBox="0 0 16 16" aria-hidden="true">
+                                <path d="M12.166 8.94c-.524 1.062-1.234 2.12-1.96 3.07A31.493 31.493 0 0 1 8 14.58a31.481 31.481 0 0 1-2.206-2.57c-.726-.95-1.436-2.008-1.96-3.07C3.304 7.867 3 6.862 3 6a5 5 0 0 1 10 0c0 .862-.305 1.867-.834 2.94zM8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10z"/>
+                                <path d="M8 8a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm0 1a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
+                            </svg>
+                            <span class="text-muted">Available 24/7</span>
+                        </li>
+                    </ul>
+                </div>
             </div>
-            <div>
-                <h3 class="h6 text-uppercase small">Support</h3>
-                <ul class="list-unstyled mb-0 small">
-                    <li><a class="link-light" href="mailto:support@veristore.com">support@veristore.com</a></li>
-                    <li><span>+1 (555) 010-2000</span></li>
-                </ul>
+        </div>
+
+        <!-- Bottom Bar -->
+        <div class="border-top bg-white">
+            <div class="container py-3">
+                <div class="row align-items-center">
+                    <div class="col-12 col-md-6 text-center text-md-start mb-2 mb-md-0">
+                        <small class="text-muted">Secure payments powered by industry-leading encryption</small>
+                    </div>
+                    <div class="col-12 col-md-6 text-center text-md-end">
+                        <small class="text-muted">
+                            <a href="#" class="text-muted text-decoration-none me-3">Privacy Policy</a>
+                            <a href="#" class="text-muted text-decoration-none me-3">Terms of Service</a>
+                            <a href="#" class="text-muted text-decoration-none">Help Center</a>
+                        </small>
+                    </div>
+                </div>
             </div>
-            <nav aria-label="Resources" class="small">
-                <h3 class="h6 text-uppercase">Resources</h3>
-                <ul class="list-unstyled mb-0">
-                    <li><h:link outcome="/buy-first-issuance" styleClass="link-light">First issuance</h:link></li>
-                    <li><h:link outcome="/buy-renewal" styleClass="link-light">Renewal</h:link></li>
-                    <li><h:link outcome="/buy-replacement" styleClass="link-light">Replacement</h:link></li>
-                    <li><h:link outcome="/buy-update" styleClass="link-light">Update</h:link></li>
-                    <li><h:link outcome="/buy-verification" styleClass="link-light">Verification</h:link></li>
-                    <li><h:link outcome="/redeem" styleClass="link-light">Redeem invoice</h:link></li>
-                    <li><h:link outcome="/history" styleClass="link-light">Order history</h:link></li>
-                </ul>
-            </nav>
         </div>
     </footer>
 </ui:composition>

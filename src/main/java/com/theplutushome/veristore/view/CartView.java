@@ -53,7 +53,7 @@ public class CartView implements Serializable {
         return findLine(sku).map(CartLineDTO::new).orElse(null);
     }
 
-    public boolean isEmpty() {
+    public boolean getHasNoItems() {
         return lines.isEmpty();
     }
 
@@ -95,17 +95,28 @@ public class CartView implements Serializable {
         Objects.requireNonNull(key, "key");
         Objects.requireNonNull(unitPrice, "unitPrice");
         Objects.requireNonNull(mode, "mode");
-        CartLineDTO line = findLine(key.sku()).orElseGet(() -> {
-            CartLineDTO created = new CartLineDTO();
-            created.setSku(key.sku());
-            created.setFamily(key.family());
-            lines.add(created);
-            return created;
-        });
+        Optional<CartLineDTO> existingLine = findLine(key.sku());
+        CartLineDTO line;
+        boolean isNewItem = existingLine.isEmpty();
+        
+        if (isNewItem) {
+            line = new CartLineDTO();
+            line.setSku(key.sku());
+            line.setFamily(key.family());
+            lines.add(line);
+        } else {
+            line = existingLine.get();
+        }
+        
         line.setName(name);
-        line.setQty(qty);
+        // If item already exists, add to existing quantity; otherwise set the quantity
+        if (isNewItem) {
+            line.setQty(qty);
+        } else {
+            line.setQty(line.getQty() + qty);
+        }
         line.setUnitPriceMinor(unitPrice.amountMinor());
-        line.setTotalMinor(Math.multiplyExact(unitPrice.amountMinor(), qty));
+        line.setTotalMinor(Math.multiplyExact(unitPrice.amountMinor(), line.getQty()));
         line.setPriceFormatted(pricingService.format(unitPrice));
         line.setTotalFormatted(pricingService.format(new Price(unitPrice.currency(), line.getTotalMinor())));
         line.setCurrency(unitPrice.currency().name());

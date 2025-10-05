@@ -45,7 +45,7 @@
                                                               value=""
                                                               title="Choose #{purchaseView.labelForCitizenship(cit)}">
                                                     <f:ajax execute="@this"
-                                                            render="purchaseForm:citizenship purchaseForm:tierSection purchaseForm:variantSection purchaseForm:variant purchaseForm:totalCard purchaseForm:messages" />
+                                                            render="purchaseForm:citizenship purchaseForm:tierSection purchaseForm:variantSection purchaseForm:variant purchaseForm:totalCard purchaseForm:reviewButton purchaseForm:messages" />
                                                 </h:commandLink>
                                             </div>
                                         </div>
@@ -83,7 +83,7 @@
                                                                   value=""
                                                                   title="Choose #{purchaseView.labelForTier(tierOpt)}">
                                                         <f:ajax execute="@this"
-                                                                render="purchaseForm:tier purchaseForm:variantSection purchaseForm:variant purchaseForm:totalCard purchaseForm:messages" />
+                                                                render="purchaseForm:tier purchaseForm:variantSection purchaseForm:variant purchaseForm:totalCard purchaseForm:reviewButton purchaseForm:messages" />
                                                     </h:commandLink>
                                                 </div>
                                             </div>
@@ -124,7 +124,7 @@
                                                                       styleClass="btn btn-outline-primary w-100"
                                                                       value="#{purchaseView.isSkuSelected(variant.sku) ? 'Selected' : 'Choose package'}">
                                                             <f:ajax execute="@this"
-                                                                    render="purchaseForm:variant purchaseForm:variantSection purchaseForm:totalCard" />
+                                                                    render="purchaseForm:variant purchaseForm:variantSection purchaseForm:totalCard purchaseForm:reviewButton" />
                                                         </h:commandLink>
                                                     </div>
                                                 </div>
@@ -139,9 +139,12 @@
                     <p class="text-muted small">You can configure quantity, delivery channels, and payment during checkout.</p>
 
                     <div class="d-flex flex-column flex-sm-row gap-3">
-                        <h:commandButton value="Review &amp; confirm"
-                                         action="#{purchaseView.submitEnrollment}"
-                                         styleClass="btn btn-primary btn-lg" />
+                        <h:panelGroup id="reviewButton" layout="block">
+                            <h:commandButton value="Review &amp; confirm"
+                                             action="#{purchaseView.submitEnrollment}"
+                                             styleClass="btn btn-primary btn-lg"
+                                             rendered="#{purchaseView.readyToAddToCart}" />
+                        </h:panelGroup>
                         <h:link outcome="/index" styleClass="btn btn-outline-secondary btn-lg">Back to storefront</h:link>
                     </div>
                 </h:form>
