@@ -750,7 +750,7 @@ public class PurchaseView implements Serializable {
 
     private void queueMessage(FacesMessage.Severity severity, String message) {
         FacesContext context = FacesContext.getCurrentInstance();
-        context.addMessage(null, new FacesMessage(severity, message, null));
+        context.addMessage(null, new FacesMessage(severity, message, ""));
         context.getExternalContext().getFlash().setKeepMessages(true);
     }
 
