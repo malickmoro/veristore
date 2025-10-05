@@ -10,8 +10,8 @@
     </f:metadata>
     <ui:define name="title">First issuance – Veristore</ui:define>
     <ui:define name="content">
-        <div class="row g-5 align-items-start">
-            <div class="col-12 col-xl-7 col-xxl-8">
+        <div class="row justify-content-center g-5">
+            <div class="col-12 col-xl-10 col-xxl-8">
                 <h:form id="purchaseForm" prependId="true" styleClass="d-flex flex-column gap-4">
                     <h:messages id="messages"
                                 globalOnly="true"
@@ -47,7 +47,7 @@
                                                                   value=""
                                                                   title="Choose #{purchaseView.labelForCitizenship(cit)}">
                                                         <f:ajax execute="@this"
-                                                                render="purchaseForm:citizenship purchaseForm:citizenshipChoices purchaseForm:tierSection purchaseForm:tierChoices purchaseForm:variantSection purchaseForm:variant purchaseForm:totalCard purchaseForm:messages" />
+                                                                render="purchaseForm:citizenship purchaseForm:citizenshipChoices purchaseForm:tierSection purchaseForm:tierChoices purchaseForm:variantSection purchaseForm:variant purchaseForm:messages" />
                                                     </h:commandLink>
                                                 </div>
                                             </div>
@@ -92,7 +92,7 @@
                                                                           styleClass="btn btn-dark btn-lg w-100 rounded-4"
                                                                           value="#{purchaseView.isCitizenTierSelected(tierOpt) ? 'Selected' : 'Select'}">
                                                                 <f:ajax execute="@this"
-                                                                        render="purchaseForm:tier purchaseForm:tierChoices purchaseForm:variantSection purchaseForm:variant purchaseForm:totalCard purchaseForm:messages" />
+                                                                        render="purchaseForm:tier purchaseForm:tierChoices purchaseForm:variantSection purchaseForm:variant purchaseForm:messages" />
                                                             </h:commandLink>
                                                         </div>
                                                     </div>
@@ -148,34 +148,11 @@
                                          action="#{purchaseView.addToCart}"
                                          styleClass="btn btn-dark btn-lg rounded-4">
                             <f:ajax execute="@form"
-                                    render="purchaseForm:messages purchaseForm:totalCard :cartToggle :cartDrawer" />
+                                    render="purchaseForm:messages :cartToggle :cartDrawer" />
                         </h:commandButton>
                         <h:link outcome="/index" styleClass="btn btn-outline-secondary btn-lg">Back to storefront</h:link>
                     </div>
                 </h:form>
-            </div>
-            <div class="col-12 col-xl-5 col-xxl-4">
-                <div class="position-sticky top-0">
-                    <h:panelGroup id="totalCard" layout="block" pt:aria-live="polite" pt:aria-atomic="true">
-                        <div class="product-detail-card">
-                            <div class="card-body">
-                                <h2 class="h6 text-uppercase text-muted mb-3">Order summary</h2>
-                                <dl class="row mb-0 small">
-                                    <dt class="col-5">Variant</dt>
-                                    <dd class="col-7 fw-semibold">#{empty purchaseView.unitLabel ? 'Select a package' : purchaseView.unitLabel}</dd>
-                                    <dt class="col-5">Unit price</dt>
-                                    <dd class="col-7">#{empty purchaseView.unitPriceFormatted ? '—' : purchaseView.unitPriceFormatted}</dd>
-                                    <dt class="col-5">Quantity</dt>
-                                    <dd class="col-7">#{purchaseView.qty}</dd>
-                                    <dt class="col-5">Payment</dt>
-                                    <dd class="col-7">#{purchaseView.paymentModeTitle(purchaseView.mode)}</dd>
-                                    <dt class="col-5">Total</dt>
-                                    <dd class="col-7 fw-bold fs-5">#{empty purchaseView.totalFormatted ? '—' : purchaseView.totalFormatted}</dd>
-                                </dl>
-                            </div>
-                        </div>
-                    </h:panelGroup>
-                </div>
             </div>
         </div>
     </ui:define>

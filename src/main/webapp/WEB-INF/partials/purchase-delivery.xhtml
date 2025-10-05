@@ -14,9 +14,7 @@
                                  styleClass="form-control"
                                  pt:type="number"
                                  pt:min="1"
-                                 pt:max="10">
-                        <f:ajax render="purchaseForm:totalCard" />
-                    </h:inputText>
+                                 pt:max="10" />
                     <h:message for="quantity" styleClass="text-danger small mt-1 d-block" />
                 </div>
                 <div class="col-12 col-sm-6">
@@ -42,7 +40,7 @@
                                                           styleClass="stretched-link"
                                                           value=""
                                                           title="#{purchaseView.paymentModeTitle(modeOpt)}">
-                                                <f:ajax execute="@this" render="purchaseForm:paymentMode purchaseForm:paymentModeChoices purchaseForm:totalCard" />
+                                                <f:ajax execute="@this" render="purchaseForm:paymentMode purchaseForm:paymentModeChoices" />
                                             </h:commandLink>
                                         </div>
                                     </div>
@@ -57,17 +55,13 @@
                         <div class="form-check form-switch">
                             <h:selectBooleanCheckbox id="emailDelivery"
                                                      value="#{purchaseView.deliverEmail}"
-                                                     styleClass="form-check-input">
-                                <f:ajax render="purchaseForm:totalCard" />
-                            </h:selectBooleanCheckbox>
+                                                     styleClass="form-check-input" />
                             <label class="form-check-label" for="purchaseForm:emailDelivery">Email delivery</label>
                         </div>
                         <div class="form-check form-switch">
                             <h:selectBooleanCheckbox id="smsDelivery"
                                                      value="#{purchaseView.deliverSms}"
-                                                     styleClass="form-check-input">
-                                <f:ajax render="purchaseForm:totalCard" />
-                            </h:selectBooleanCheckbox>
+                                                     styleClass="form-check-input" />
                             <label class="form-check-label" for="purchaseForm:smsDelivery">SMS delivery</label>
                         </div>
                     </h:panelGroup>
