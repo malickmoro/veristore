@@ -357,6 +357,10 @@ public class PurchaseView implements Serializable {
         return appType == ApplicationType.UPDATE;
     }
 
+    public boolean isFirstIssuanceFlow() {
+        return appType == ApplicationType.FIRST_ISSUANCE;
+    }
+
     public String labelForCitizenship(CitizenshipType type) {
         return switch (type) {
             case CITIZEN -> "Citizen";
@@ -378,9 +382,9 @@ public class PurchaseView implements Serializable {
             return "";
         }
         return switch (type) {
-            case CITIZEN -> "For Ghanaian citizens across standard and premium tiers.";
-            case NON_CITIZEN -> "For foreign nationals needing renewal, replacement, or updates.";
-            case REFUGEE -> "Special pricing and durations for registered refugees.";
+            case CITIZEN -> "Ghanaian applicants enrolling for their first national ID.";
+            case NON_CITIZEN -> "Foreign residents completing registration in Ghana.";
+            case REFUGEE -> "Refugee programme participants issued by NIA.";
         };
     }
 
@@ -389,8 +393,8 @@ public class PurchaseView implements Serializable {
             return "";
         }
         return switch (tier) {
-            case STANDARD -> "Regular service with the most affordable pricing.";
-            case PREMIUM -> "Priority handling with premium service levels.";
+            case STANDARD -> "Simple, standard service – affordable.";
+            case PREMIUM -> "Priority processing – instant issuance.";
         };
     }
 
@@ -406,7 +410,13 @@ public class PurchaseView implements Serializable {
             return "";
         }
         return switch (sku.appType) {
-            case FIRST_ISSUANCE -> "First issuance support for new applicants.";
+            case FIRST_ISSUANCE -> switch (sku.citizenship) {
+                case CITIZEN -> sku.citizenTier == CitizenTier.PREMIUM
+                    ? "Premium citizen package with priority fulfilment."
+                    : "Regular citizen package for first-time enrolment.";
+                case NON_CITIZEN -> "First issuance for foreign residents.";
+                case REFUGEE -> "First issuance for registered refugees.";
+            };
             case RENEWAL -> sku.durationYears > 0
                 ? (sku.durationYears == 1 ? "Valid for 1 year." : "Valid for " + sku.durationYears + " years.")
                 : "Single renewal issuance.";
@@ -415,6 +425,27 @@ public class PurchaseView implements Serializable {
                 ? "Update existing enrollment details."
                 : CatalogLabels.updateLabel(sku.updateType) + " update.";
             case VERIFICATION -> "";
+        };
+    }
+
+    public String subcategoryLabel(EnrollmentSku sku) {
+        if (sku == null) {
+            return "";
+        }
+        return switch (sku.appType) {
+            case FIRST_ISSUANCE -> switch (sku.citizenship) {
+                case CITIZEN -> sku.citizenTier == CitizenTier.PREMIUM
+                    ? "Citizen • Premium First Issuance"
+                    : "Citizen • Regular First Issuance";
+                case NON_CITIZEN -> "Non-citizen • First Issuance";
+                case REFUGEE -> "Refugee • First Issuance";
+            };
+            case RENEWAL -> (sku.durationYears > 0
+                ? labelForCitizenship(sku.citizenship) + " • Renewal (" + sku.durationYears + (sku.durationYears == 1 ? " year)" : " years)")
+                : labelForCitizenship(sku.citizenship) + " • Renewal");
+            case REPLACEMENT -> labelForCitizenship(sku.citizenship) + " • Replacement";
+            case UPDATE -> labelForCitizenship(sku.citizenship) + " • " + CatalogLabels.updateLabel(sku.updateType);
+            case VERIFICATION -> "Verification";
         };
     }
 
@@ -582,6 +613,89 @@ public class PurchaseView implements Serializable {
         if (selectedSku == null || availableSkus.stream().noneMatch(value -> value.equals(selectedSku))) {
             selectedSku = availableSkus.get(0);
         }
+    }
+
+    public boolean hasSelectedSku() {
+        if (appType != ApplicationType.VERIFICATION && (selectedSku == null || selectedSku.isBlank())) {
+            getVariants();
+        }
+        return selectedSku != null && !selectedSku.isBlank();
+    }
+
+    public EnrollmentSku getSelectedEnrollmentSku() {
+        if (!isEnrollmentFlow() || !hasSelectedSku()) {
+            return null;
+        }
+        return EnrollmentSku.bySku(selectedSku).orElse(null);
+    }
+
+    public String selectedSkuDurationLabel() {
+        EnrollmentSku sku = getSelectedEnrollmentSku();
+        if (sku == null) {
+            return "";
+        }
+        if (sku.durationYears <= 0) {
+            return "Not applicable";
+        }
+        return sku.durationYears == 1 ? "1 year" : sku.durationYears + " years";
+    }
+
+    public String selectedSkuActiveLabel() {
+        EnrollmentSku sku = getSelectedEnrollmentSku();
+        if (sku == null) {
+            return "";
+        }
+        return sku.active ? "Available" : "Unavailable";
+    }
+
+    public String selectedSkuCurrencyCode() {
+        EnrollmentSku sku = getSelectedEnrollmentSku();
+        if (sku == null) {
+            return "";
+        }
+        return sku.currency.name();
+    }
+
+    public String selectedSkuDisplayName() {
+        EnrollmentSku sku = getSelectedEnrollmentSku();
+        return sku == null ? "" : sku.displayName;
+    }
+
+    public String selectedSkuDescription() {
+        EnrollmentSku sku = getSelectedEnrollmentSku();
+        return sku == null ? "" : describeVariant(sku);
+    }
+
+    public String selectedSkuCitizenshipLabel() {
+        EnrollmentSku sku = getSelectedEnrollmentSku();
+        return sku == null ? "" : labelForCitizenship(sku.citizenship);
+    }
+
+    public String selectedSkuSubcategoryLabel() {
+        return subcategoryLabel(getSelectedEnrollmentSku());
+    }
+
+    public String iconForCitizenship(CitizenshipType type) {
+        if (type == null) {
+            return "";
+        }
+        return switch (type) {
+            case CITIZEN -> "🇬🇭";
+            case NON_CITIZEN -> "🌍";
+            case REFUGEE -> "🕊️";
+        };
+    }
+
+    public String tierPriceLabel(CitizenTier tier) {
+        if (tier == null || appType != ApplicationType.FIRST_ISSUANCE || citizenship != CitizenshipType.CITIZEN) {
+            return "";
+        }
+        return EnrollmentSku.filter(CitizenshipType.CITIZEN, ApplicationType.FIRST_ISSUANCE, null, tier)
+            .stream()
+            .findFirst()
+            .map(EnrollmentSku::price)
+            .map(this::formatPrice)
+            .orElse("");
     }
 
     private String componentId(String id) {

@@ -48,11 +48,11 @@ public enum EnrollmentSku implements Serializable {
     REFUGEE_REPLACEMENT("ZP", "Refugee Replacement", Currency.USD, 15, CitizenshipType.REFUGEE, null, ApplicationType.REPLACEMENT, null, 0, true),
     REFUGEE_5_YEAR_RENEWAL("ZR", "Refugee 5-Year Renewal", Currency.USD, 15, CitizenshipType.REFUGEE, null, ApplicationType.RENEWAL, null, 5, true),
 
-    CITIZEN_FIRST_ISSUANCE_STANDARD("CFS", "Citizen First Issuance — Standard (Free)", Currency.GHS, 0, CitizenshipType.CITIZEN, CitizenTier.STANDARD, ApplicationType.FIRST_ISSUANCE, null, 0, true),
-    CITIZEN_FIRST_ISSUANCE_PREMIUM("CFP", "Citizen First Issuance — Premium", Currency.GHS, 0, CitizenshipType.CITIZEN, CitizenTier.PREMIUM, ApplicationType.FIRST_ISSUANCE, null, 0, true),
+    CITIZEN_FIRST_ISSUANCE_REGULAR("CA", "Citizen First Issuance — Regular", Currency.GHS, 60, CitizenshipType.CITIZEN, CitizenTier.STANDARD, ApplicationType.FIRST_ISSUANCE, null, 0, true),
+    CITIZEN_FIRST_ISSUANCE_PREMIUM("PA", "Citizen First Issuance — Premium", Currency.GHS, 355, CitizenshipType.CITIZEN, CitizenTier.PREMIUM, ApplicationType.FIRST_ISSUANCE, null, 0, true),
 
-    NON_CITIZEN_FIRST_ISSUANCE("NFI", "Non-citizen First Issuance", Currency.USD, 0, CitizenshipType.NON_CITIZEN, null, ApplicationType.FIRST_ISSUANCE, null, 0, false),
-    REFUGEE_FIRST_ISSUANCE("RFI", "Refugee First Issuance", Currency.USD, 0, CitizenshipType.REFUGEE, null, ApplicationType.FIRST_ISSUANCE, null, 0, false);
+    NON_CITIZEN_FIRST_ISSUANCE("FA", "Non-citizen First Issuance", Currency.USD, 60, CitizenshipType.NON_CITIZEN, null, ApplicationType.FIRST_ISSUANCE, null, 0, true),
+    REFUGEE_FIRST_ISSUANCE("ZA", "Refugee First Issuance", Currency.USD, 15, CitizenshipType.REFUGEE, null, ApplicationType.FIRST_ISSUANCE, null, 0, true);
 
     public final String sku;
     public final String displayName;

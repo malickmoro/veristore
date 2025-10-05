@@ -22,6 +22,108 @@
                     min-height: 100%;
                 }
 
+                .choice-card,
+                .tier-card,
+                .product-detail-card {
+                    position: relative;
+                    border-radius: 1.5rem;
+                    border: 1px solid rgba(15, 23, 42, .08);
+                    background: linear-gradient(135deg, rgba(255,255,255,.95), rgba(248,249,252,.9));
+                    box-shadow: 0 .5rem 1.5rem rgba(15, 23, 42, .08);
+                    transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+                    overflow: hidden;
+                }
+
+                .choice-card:hover,
+                .tier-card:hover,
+                .product-detail-card:hover {
+                    transform: translateY(-6px) scale(1.01);
+                    box-shadow: 0 1.25rem 2.5rem rgba(15, 23, 42, .15);
+                    border-color: rgba(13, 110, 253, .35);
+                }
+
+                .choice-card.selected,
+                .tier-card.selected {
+                    border-color: rgba(13, 110, 253, .45);
+                    box-shadow: 0 1.5rem 3rem rgba(13, 110, 253, .2);
+                }
+
+                .choice-card::after,
+                .tier-card::after {
+                    content: "";
+                    position: absolute;
+                    inset: 0;
+                    background: radial-gradient(circle at top right, rgba(13, 110, 253, .15), transparent 55%);
+                    opacity: 0;
+                    transition: opacity .25s ease;
+                }
+
+                .choice-card:hover::after,
+                .choice-card.selected::after,
+                .tier-card:hover::after,
+                .tier-card.selected::after {
+                    opacity: 1;
+                }
+
+                .choice-card .card-body,
+                .tier-card .card-body {
+                    position: relative;
+                    padding: 2rem;
+                    z-index: 1;
+                }
+
+                .choice-card-icon {
+                    font-size: 2.5rem;
+                    line-height: 1;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 3.75rem;
+                    height: 3.75rem;
+                    border-radius: 1.25rem;
+                    background: rgba(13, 110, 253, .1);
+                    color: var(--bs-primary);
+                    margin-bottom: 1rem;
+                }
+
+                .tier-card .price-tag {
+                    font-size: 1.5rem;
+                    font-weight: 700;
+                    color: var(--bs-primary);
+                }
+
+                .tier-card .shimmer-hover {
+                    position: relative;
+                    overflow: hidden;
+                }
+
+                .tier-card .shimmer-hover::after {
+                    content: "";
+                    position: absolute;
+                    inset: -150% -40% 0 0;
+                    background: linear-gradient(120deg, transparent 0%, rgba(255,255,255,.5) 50%, transparent 100%);
+                    transform: skewX(-25deg);
+                    transition: transform .6s ease;
+                }
+
+                .tier-card:hover .shimmer-hover::after,
+                .tier-card.selected .shimmer-hover::after {
+                    transform: translateX(200%) skewX(-25deg);
+                }
+
+                .product-detail-card .card-body {
+                    padding: 2.25rem;
+                }
+
+                .product-detail-card .detail-grid dt {
+                    font-weight: 600;
+                    color: rgba(15, 23, 42, .7);
+                }
+
+                .product-detail-card .detail-grid dd {
+                    margin-bottom: .75rem;
+                }
+
                 .selectable-card .card-body,
                 .product-card .card-body {
                     padding: 1.5rem;
