@@ -50,6 +50,9 @@ public class PurchaseView implements Serializable {
     @Inject
     private PricingService pricingService;
 
+    @Inject
+    private CartView cartView;
+
     private ApplicationType appType;
     private CitizenshipType citizenship;
     private CitizenTier citizenTier;
@@ -506,6 +509,25 @@ public class PurchaseView implements Serializable {
         return completeSubmission(new ProductKey(ProductFamily.VERIFICATION, selectedSku));
     }
 
+    public String addToCart() {
+        boolean added;
+        if (appType == ApplicationType.VERIFICATION) {
+            if (!validateVerification()) {
+                return null;
+            }
+            added = addSelectionToCart(new ProductKey(ProductFamily.VERIFICATION, selectedSku));
+        } else {
+            if (!validateEnrollment()) {
+                return null;
+            }
+            added = addSelectionToCart(new ProductKey(ProductFamily.ENROLLMENT, selectedSku));
+        }
+        if (added) {
+            queueMessage(FacesMessage.SEVERITY_INFO, "Added to cart.");
+        }
+        return null;
+    }
+
     private boolean validateEnrollment() {
         boolean valid = true;
         if (citizenship == null) {
@@ -711,6 +733,24 @@ public class PurchaseView implements Serializable {
         FacesContext context = FacesContext.getCurrentInstance();
         context.addMessage(null, new FacesMessage(severity, message, null));
         context.getExternalContext().getFlash().setKeepMessages(true);
+    }
+
+    private boolean addSelectionToCart(ProductKey key) {
+        Price unitPrice = getUnitPrice();
+        if (unitPrice == null) {
+            addMessage(componentId("variant"), FacesMessage.SEVERITY_ERROR, "Select a package.");
+            return false;
+        }
+        cartView.addOrUpdateLine(key,
+            getUnitLabel(),
+            unitPrice,
+            qty,
+            mode,
+            deliverEmail,
+            deliverSms,
+            email,
+            msisdn);
+        return true;
     }
 
     private String redirectTo(String view, String paramName, String value) throws IOException {

@@ -30,24 +30,26 @@
                                        itemValue="#{modeOpt}"
                                        itemLabel="#{modeOpt}" />
                     </h:selectOneRadio>
-                    <div class="row row-cols-1 row-cols-sm-2 g-3">
-                        <ui:repeat value="#{purchaseView.paymentModes}" var="modeOpt">
-                            <div class="col">
-                                <div class="selectable-card h-100 #{purchaseView.isPaymentModeSelected(modeOpt) ? 'selected' : ''}">
-                                    <div class="card-body">
-                                        <h3 class="h6 fw-semibold mb-1">#{purchaseView.paymentModeTitle(modeOpt)}</h3>
-                                        <p class="text-muted small mb-0">#{purchaseView.describePaymentMode(modeOpt)}</p>
-                                        <h:commandLink action="#{purchaseView.selectPaymentMode(modeOpt)}"
-                                                      styleClass="stretched-link"
-                                                      value=""
-                                                      title="#{purchaseView.paymentModeTitle(modeOpt)}">
-                                            <f:ajax execute="@this" render="purchaseForm:paymentMode purchaseForm:totalCard" />
-                                        </h:commandLink>
+                    <h:panelGroup id="paymentModeChoices" layout="block">
+                        <div class="row row-cols-1 row-cols-sm-2 g-3">
+                            <ui:repeat value="#{purchaseView.paymentModes}" var="modeOpt">
+                                <div class="col">
+                                    <div class="selectable-card h-100 #{purchaseView.isPaymentModeSelected(modeOpt) ? 'selected' : ''}">
+                                        <div class="card-body">
+                                            <h3 class="h6 fw-semibold mb-1">#{purchaseView.paymentModeTitle(modeOpt)}</h3>
+                                            <p class="text-muted small mb-0">#{purchaseView.describePaymentMode(modeOpt)}</p>
+                                            <h:commandLink action="#{purchaseView.selectPaymentMode(modeOpt)}"
+                                                          styleClass="stretched-link"
+                                                          value=""
+                                                          title="#{purchaseView.paymentModeTitle(modeOpt)}">
+                                                <f:ajax execute="@this" render="purchaseForm:paymentMode purchaseForm:paymentModeChoices purchaseForm:totalCard" />
+                                            </h:commandLink>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        </ui:repeat>
-                    </div>
+                            </ui:repeat>
+                        </div>
+                    </h:panelGroup>
                 </div>
                 <div class="col-12">
                     <span class="form-label d-block">Delivery channels</span>
