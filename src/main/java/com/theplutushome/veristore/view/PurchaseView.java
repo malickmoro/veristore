@@ -529,6 +529,7 @@ public class PurchaseView implements Serializable {
         }
         if (added) {
             queueMessage(FacesMessage.SEVERITY_INFO, "Added to cart.");
+            return "/index?faces-redirect=true";
         }
         return null;
     }
@@ -762,6 +763,45 @@ public class PurchaseView implements Serializable {
             email,
             msisdn);
         return true;
+    }
+
+
+    public boolean isReadyToAddToCart() {
+        if (appType == ApplicationType.VERIFICATION) {
+            return isVerificationReady();
+        } else if (isFirstIssuanceFlow()) {
+            return isEnrollmentReady();
+        } else {
+            return isEnrollmentReady();
+        }
+    }
+
+    private boolean isEnrollmentReady() {
+        // Check if all required selections are made
+        if (citizenship == null) {
+            return false;
+        }
+        if (citizenship == CitizenshipType.CITIZEN && citizenTier == null) {
+            return false;
+        }
+        if (appType == ApplicationType.UPDATE && updateType == null) {
+            return false;
+        }
+        if (selectedSku == null || getVariants().isEmpty()) {
+            return false;
+        }
+        // Check if a valid variant is selected
+        List<EnrollmentSku> variants = getVariants();
+        return !variants.stream().noneMatch(sku -> sku.sku.equals(selectedSku));
+    }
+
+    private boolean isVerificationReady() {
+        if (selectedSku == null || getVerificationVariants().isEmpty()) {
+            return false;
+        }
+        // Check if a valid verification variant is selected
+        List<VerificationSku> variants = getVerificationVariants();
+        return variants.stream().anyMatch(sku -> sku.sku.equals(selectedSku));
     }
 
     private String redirectTo(String view, String paramName, String value) throws IOException {

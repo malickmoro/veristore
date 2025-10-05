@@ -1,7 +1,8 @@
 <ui:composition xmlns="http://www.w3.org/1999/xhtml"
                 xmlns:h="http://xmlns.jcp.org/jsf/html"
                 xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
-                xmlns:pt="http://xmlns.jcp.org/jsf/passthrough">
+                xmlns:pt="http://xmlns.jcp.org/jsf/passthrough"
+                xmlns:f="jakarta.faces.core">
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm" aria-label="Primary">
         <div class="container py-2">
             <h:link outcome="/index" styleClass="navbar-brand d-flex align-items-center gap-2">
@@ -11,8 +12,25 @@
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="mainNav">
-                <ul class="navbar-nav ms-auto mb-2 mb-lg-0 gap-lg-2">
-                    <!-- Add cart view here -->
+                <ul class="navbar-nav ms-auto mb-2 mb-lg-0 gap-lg-2 align-items-lg-center">
+                    <li class="nav-item">
+                        <h:panelGroup id="cartToggle" layout="block">
+                            <button class="btn btn-link nav-link position-relative px-2"
+                                    type="button"
+                                    data-bs-toggle="offcanvas"
+                                    data-bs-target="#cartDrawerPanel"
+                                    aria-controls="cartDrawerPanel"
+                                    aria-label="View cart">
+                                <span aria-hidden="true" class="fs-5">🛒</span>
+                                <span class="visually-hidden">View cart</span>
+                                <h:panelGroup styleClass="position-absolute top-0 start-100 translate-middle badge rounded-pill #{cartView.itemCount gt 0 ? 'bg-danger' : 'bg-secondary'}"
+                                             rendered="#{cartView.itemCount ge 0}">
+                                    #{cartView.itemCount}
+                                    <span class="visually-hidden">items in cart</span>
+                                </h:panelGroup>
+                            </button>
+                        </h:panelGroup>
+                    </li>
                     <li class="nav-item">
                         <h:link outcome="/history" styleClass="nav-link">Order history</h:link>
                     </li>
@@ -20,4 +38,54 @@
             </div>
         </div>
     </nav>
+    <h:panelGroup id="cartDrawer" layout="block">
+        <div class="offcanvas offcanvas-end" tabindex="-1" id="cartDrawerPanel" aria-labelledby="cartDrawerLabel">
+            <div class="offcanvas-header">
+                <h5 class="offcanvas-title" id="cartDrawerLabel">Your cart</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+            </div>
+            <div class="offcanvas-body">
+                <h:form id="cartForm" styleClass="d-flex flex-column gap-3">
+                    <h:panelGroup rendered="#{cartView.hasNoItems}" layout="block">
+                        <p class="text-muted mb-0">Your cart is empty. Add a package to begin checkout.</p>
+                    </h:panelGroup>
+                    <h:panelGroup rendered="#{not cartView.hasNoItems}" layout="block" styleClass="d-flex flex-column gap-3">
+                        <ui:repeat value="#{cartView.lines}" var="line">
+                            <div class="card shadow-sm">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <div>
+                                            <h6 class="fw-semibold mb-1">#{line.name}</h6>
+                                            <p class="text-muted small mb-0">SKU #{line.sku} · Qty #{line.qty}</p>
+                                        </div>
+                                        <span class="fw-semibold">#{line.totalFormatted}</span>
+                                    </div>
+                                    <p class="small text-muted mb-3">#{line.priceFormatted} per unit · #{cartView.paymentModeLabel(line.paymentMode)}</p>
+                                    <div class="d-flex flex-wrap gap-2">
+                                        <h:commandButton value="#{cartView.checkoutButtonLabel(line.paymentMode)}"
+                                                         action="#{cartView.goToCheckout(line.sku)}"
+                                                         styleClass="btn btn-primary btn-sm" />
+                                        <h:commandButton value="Remove"
+                                                         action="#{cartView.removeLine(line.sku)}"
+                                                         styleClass="btn btn-outline-secondary btn-sm">
+                                            <f:ajax render=":cartToggle :cartDrawer" />
+                                        </h:commandButton>
+                                    </div>
+                                </div>
+                            </div>
+                        </ui:repeat>
+                        <div class="border-top pt-3">
+                            <h6 class="fw-semibold mb-2">Totals</h6>
+                            <ui:repeat value="#{cartView.totalsByCurrency.entrySet()}" var="total">
+                                <div class="d-flex justify-content-between small">
+                                    <span class="text-muted">#{total.key}</span>
+                                    <span class="fw-semibold">#{total.value}</span>
+                                </div>
+                            </ui:repeat>
+                        </div>
+                    </h:panelGroup>
+                </h:form>
+            </div>
+        </div>
+    </h:panelGroup>
 </ui:composition>

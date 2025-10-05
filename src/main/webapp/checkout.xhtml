@@ -59,7 +59,7 @@
                                             <div class="row row-cols-1 row-cols-sm-2 g-3">
                                                 <ui:repeat value="#{checkoutView.paymentModes}" var="modeOpt">
                                                     <div class="col">
-                                                        <div class="selectable-card h-100 #{checkoutView.paymentModeSelected(modeOpt) ? 'selected' : ''}">
+                                                        <div class="selectable-card h-100 #{checkoutView.isPaymentModeSelected(modeOpt) ? 'selected' : ''}">
                                                             <div class="card-body">
                                                                 <h3 class="h6 fw-semibold mb-1">#{checkoutView.paymentModeTitle(modeOpt)}</h3>
                                                                 <p class="text-muted small mb-0">#{checkoutView.describePaymentMode(modeOpt)}</p>
