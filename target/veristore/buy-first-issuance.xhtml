@@ -39,9 +39,7 @@
                                         <div class="col">
                                             <div class="choice-card h-100 #{purchaseView.isCitizenshipSelected(cit) ? 'selected' : ''}">
                                                 <div class="card-body text-center">
-                                                    <span class="choice-card-icon" aria-hidden="true">
-                                                        <h:outputText value="#{purchaseView.iconForCitizenship(cit)}" />
-                                                    </span>
+                                                    <div class="choice-card-icon">#{purchaseView.iconForCitizenship(cit)}</div>
                                                     <h3 class="h5 fw-semibold mb-2">#{purchaseView.labelForCitizenship(cit)}</h3>
                                                     <p class="text-muted small mb-0">#{purchaseView.describeCitizenshipOption(cit)}</p>
                                                     <h:commandLink action="#{purchaseView.selectCitizenship(cit)}"
@@ -49,7 +47,7 @@
                                                                   value=""
                                                                   title="Choose #{purchaseView.labelForCitizenship(cit)}">
                                                         <f:ajax execute="@this"
-                                                                render="purchaseForm:citizenship purchaseForm:citizenshipChoices purchaseForm:tierSection purchaseForm:tierChoices purchaseForm:variantSection purchaseForm:variant purchaseForm:addToCartButton purchaseForm:messages" />
+                                                                render="purchaseForm:citizenship purchaseForm:citizenshipChoices purchaseForm:tierSection purchaseForm:variantSection purchaseForm:variant purchaseForm:totalCard purchaseForm:addToCartButton purchaseForm:messages" />
                                                     </h:commandLink>
                                                 </div>
                                             </div>
@@ -62,7 +60,7 @@
                     </div>
 
                     <h:panelGroup id="tierSection" layout="block">
-                        <h:panelGroup id="tierSectionContent" layout="block" rendered="#{purchaseView.isTierRequired()}">
+                        <h:panelGroup layout="block" rendered="#{purchaseView.isTierRequired()}">
                             <div class="product-detail-card">
                                 <div class="card-body">
                                     <h2 class="h4 fw-semibold mb-3">Step 2 · Select issuance tier</h2>
@@ -77,33 +75,31 @@
                                                        itemValue="#{tierOpt}"
                                                        itemLabel="#{purchaseView.labelForTier(tierOpt)}" />
                                     </h:selectOneMenu>
-                                    <h:panelGroup id="tierChoices" layout="block">
-                                        <div class="row row-cols-1 row-cols-md-2 g-3">
-                                            <ui:repeat value="#{purchaseView.tiersForCitizen}" var="tierOpt">
-                                                <div class="col">
-                                                    <div class="tier-card h-100 #{purchaseView.isCitizenTierSelected(tierOpt) ? 'selected' : ''}">
-                                                        <div class="card-body">
-                                                            <div class="d-flex justify-content-between align-items-start mb-3">
-                                                                <div>
-                                                                    <h3 class="h5 fw-semibold mb-1">#{purchaseView.labelForTier(tierOpt)}</h3>
-                                                                    <p class="text-muted small mb-0">#{purchaseView.describeTierOption(tierOpt)}</p>
-                                                                </div>
-                                                                <span class="price-tag">#{purchaseView.tierPriceLabel(tierOpt)}</span>
+                                    <div class="row row-cols-1 row-cols-md-2 g-3">
+                                        <ui:repeat value="#{purchaseView.tiersForCitizen}" var="tierOpt">
+                                            <div class="col">
+                                                <div class="tier-card h-100 #{purchaseView.isCitizenTierSelected(tierOpt) ? 'selected' : ''}">
+                                                    <div class="card-body">
+                                                        <div class="d-flex justify-content-between align-items-start mb-3">
+                                                            <div>
+                                                                <h3 class="h5 fw-semibold mb-1">#{purchaseView.labelForTier(tierOpt)}</h3>
+                                                                <p class="text-muted small mb-0">#{purchaseView.describeTierOption(tierOpt)}</p>
                                                             </div>
-                                                            <div class="shimmer-hover">
-                                                                <h:commandLink action="#{purchaseView.selectCitizenTier(tierOpt)}"
-                                                                              styleClass="btn btn-dark btn-lg w-100 rounded-4"
-                                                                              value="#{purchaseView.isCitizenTierSelected(tierOpt) ? 'Selected' : 'Select'}">
-                                                                    <f:ajax execute="@this"
-                                                                            render="purchaseForm:tier purchaseForm:tierChoices purchaseForm:variantSection purchaseForm:variant purchaseForm:addToCartButton purchaseForm:messages" />
-                                                                </h:commandLink>
-                                                            </div>
+                                                            <span class="price-tag">#{purchaseView.tierPriceLabel(tierOpt)}</span>
+                                                        </div>
+                                                        <div class="shimmer-hover">
+                                                            <h:commandLink action="#{purchaseView.selectCitizenTier(tierOpt)}"
+                                                                          styleClass="btn btn-dark btn-lg w-100 rounded-4"
+                                                                          value="#{purchaseView.isCitizenTierSelected(tierOpt) ? 'Selected' : 'Select'}">
+                                                                <f:ajax execute="@this"
+                                                                        render="purchaseForm:tier purchaseForm:variantSection purchaseForm:variant purchaseForm:totalCard purchaseForm:addToCartButton purchaseForm:messages" />
+                                                            </h:commandLink>
                                                         </div>
                                                     </div>
                                                 </div>
-                                            </ui:repeat>
-                                        </div>
-                                    </h:panelGroup>
+                                            </div>
+                                        </ui:repeat>
+                                    </div>
                                     <h:message for="tier" styleClass="text-danger small mt-3 d-block" />
                                 </div>
                             </div>

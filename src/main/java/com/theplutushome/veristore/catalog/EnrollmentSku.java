@@ -87,6 +87,46 @@ public enum EnrollmentSku implements Serializable {
         this.active = active;
     }
 
+    public String getSku() {
+        return sku;
+    }
+
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    public Currency getCurrency() {
+        return currency;
+    }
+
+    public int getPriceMajor() {
+        return priceMajor;
+    }
+
+    public CitizenshipType getCitizenship() {
+        return citizenship;
+    }
+
+    public CitizenTier getCitizenTier() {
+        return citizenTier;
+    }
+
+    public ApplicationType getAppType() {
+        return appType;
+    }
+
+    public UpdateType getUpdateType() {
+        return updateType;
+    }
+
+    public int getDurationYears() {
+        return durationYears;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
     public Price price() {
         return Price.ofMajor(currency, priceMajor);
     }

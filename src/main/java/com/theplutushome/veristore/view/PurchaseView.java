@@ -254,8 +254,11 @@ public class PurchaseView implements Serializable {
         if (citizenship == null) {
             return List.of();
         }
-        if (citizenship == CitizenshipType.CITIZEN && isTierRequired() && citizenTier == null) {
-            return List.of();
+        // For renewals, tier is not required - show all renewal packages
+        if (appType != ApplicationType.RENEWAL) {
+            if (citizenship == CitizenshipType.CITIZEN && isTierRequired() && citizenTier == null) {
+                return List.of();
+            }
         }
         List<EnrollmentSku> variants = switch (appType) {
             case FIRST_ISSUANCE -> EnrollmentSku.filter(citizenship, ApplicationType.FIRST_ISSUANCE, null, citizenTier);
@@ -516,19 +519,20 @@ public class PurchaseView implements Serializable {
                 return null;
             }
             added = addSelectionToCart(new ProductKey(ProductFamily.VERIFICATION, selectedSku));
-        } else if (isFirstIssuanceFlow()) {
+        } else {
+            // For add to cart, only validate selections, not common fields (qty, delivery, etc.)
+            // Those will be configured during checkout
             if (!finalizeValidation(validateEnrollmentSelections())) {
                 return null;
             }
-            added = addSelectionToCart(new ProductKey(ProductFamily.ENROLLMENT, selectedSku));
-        } else {
-            if (!validateEnrollment()) {
-                return null;
-            }
-            added = addSelectionToCart(new ProductKey(ProductFamily.ENROLLMENT, selectedSku));
+            added = addSelectionToCartWithDefaults(new ProductKey(ProductFamily.ENROLLMENT, selectedSku));
         }
         if (added) {
-            queueMessage(FacesMessage.SEVERITY_INFO, "Added to cart.");
+            String productName = getUnitLabel();
+            String message = qty > 1 
+                ? String.format("%s (×%d) added to cart.", productName, qty)
+                : String.format("%s added to cart.", productName);
+            queueMessage(FacesMessage.SEVERITY_INFO, message);
             return "/index?faces-redirect=true";
         }
         return null;
@@ -548,9 +552,12 @@ public class PurchaseView implements Serializable {
             addMessage(componentId("citizenship"), FacesMessage.SEVERITY_ERROR, "Select a citizenship.");
             valid = false;
         }
-        if (citizenship == CitizenshipType.CITIZEN && citizenTier == null) {
-            addMessage(componentId("tier"), FacesMessage.SEVERITY_ERROR, "Select a citizen tier.");
-            valid = false;
+        // For renewals, tier is not required
+        if (appType != ApplicationType.RENEWAL) {
+            if (citizenship == CitizenshipType.CITIZEN && citizenTier == null) {
+                addMessage(componentId("tier"), FacesMessage.SEVERITY_ERROR, "Select a citizen tier.");
+                valid = false;
+            }
         }
         if (appType == ApplicationType.UPDATE && updateType == null) {
             addMessage(componentId("updateType"), FacesMessage.SEVERITY_ERROR, "Select an update type.");
@@ -765,6 +772,24 @@ public class PurchaseView implements Serializable {
         return true;
     }
 
+    private boolean addSelectionToCartWithDefaults(ProductKey key) {
+        Price unitPrice = getUnitPrice();
+        if (unitPrice == null) {
+            addMessage(componentId("variant"), FacesMessage.SEVERITY_ERROR, "Select a package.");
+            return false;
+        }
+        // Use default values for add-to-cart flow - user will configure during checkout
+        cartView.addOrUpdateLine(key,
+            getUnitLabel(),
+            unitPrice,
+            1, // Default quantity
+            PaymentMode.PAY_NOW, // Default payment mode
+            true, // Default to email delivery
+            false, // Default to no SMS
+            "", // Empty email - will be configured at checkout
+            ""); // Empty phone - will be configured at checkout
+        return true;
+    }
 
     public boolean isReadyToAddToCart() {
         if (appType == ApplicationType.VERIFICATION) {
@@ -781,8 +806,11 @@ public class PurchaseView implements Serializable {
         if (citizenship == null) {
             return false;
         }
-        if (citizenship == CitizenshipType.CITIZEN && citizenTier == null) {
-            return false;
+        // For renewals, tier is not required
+        if (appType != ApplicationType.RENEWAL) {
+            if (citizenship == CitizenshipType.CITIZEN && citizenTier == null) {
+                return false;
+            }
         }
         if (appType == ApplicationType.UPDATE && updateType == null) {
             return false;

@@ -26,6 +26,22 @@ public enum VerificationSku implements Serializable {
         this.priceMajor = priceMajor;
     }
 
+    public String getSku() {
+        return sku;
+    }
+
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    public Currency getCurrency() {
+        return currency;
+    }
+
+    public int getPriceMajor() {
+        return priceMajor;
+    }
+
     public Price price() {
         return Price.ofMajor(currency, priceMajor);
     }

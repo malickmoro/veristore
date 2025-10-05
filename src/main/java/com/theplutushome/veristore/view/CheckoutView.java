@@ -2,6 +2,8 @@ package com.theplutushome.veristore.view;
 
 import com.theplutushome.veristore.domain.Currency;
 import com.theplutushome.veristore.domain.PaymentMode;
+import static com.theplutushome.veristore.domain.PaymentMode.PAY_LATER;
+import static com.theplutushome.veristore.domain.PaymentMode.PAY_NOW;
 import com.theplutushome.veristore.domain.Price;
 import com.theplutushome.veristore.dto.CartLineDTO;
 import com.theplutushome.veristore.service.PricingService;
