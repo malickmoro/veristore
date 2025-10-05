@@ -287,9 +287,7 @@ public class PurchaseView implements Serializable {
         if (appType != ApplicationType.VERIFICATION) {
             return List.of();
         }
-        List<VerificationSku> variants = Arrays.stream(VerificationSku.values())
-            .filter(variant -> variant.getCategory() == VerificationSku.VerificationSkuCategory.DURATION)
-            .toList();
+        List<VerificationSku> variants = Arrays.asList(VerificationSku.values());
         syncSelectedSku(variants.stream().map(sku -> sku.sku).toList());
         return variants;
     }
@@ -472,8 +470,6 @@ public class PurchaseView implements Serializable {
             case Y1 -> "12 months of verification access.";
             case Y2 -> "24 months of verification access.";
             case Y3 -> "36 months of verification access.";
-            case MOBILE -> "Bundle of mobile verification PINs for on-device checks.";
-            case WEB -> "Bundle of web verification PINs for browser-based checks.";
         };
     }
 
@@ -673,10 +669,8 @@ public class PurchaseView implements Serializable {
             selectedSku = null;
             return;
         }
-        // Only clear selection if current selection is not in available list
-        // Don't auto-select the first item
-        if (selectedSku != null && availableSkus.stream().noneMatch(value -> value.equals(selectedSku))) {
-            selectedSku = null;
+        if (selectedSku == null || availableSkus.stream().noneMatch(value -> value.equals(selectedSku))) {
+            selectedSku = availableSkus.get(0);
         }
     }
 
