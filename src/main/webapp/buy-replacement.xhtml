@@ -49,7 +49,7 @@
                                                                   value=""
                                                                   title="Choose #{purchaseView.labelForCitizenship(cit)}">
                                                         <f:ajax execute="@this"
-                                                                render="purchaseForm:citizenship purchaseForm:citizenshipChoices purchaseForm:tierSection purchaseForm:variantSection purchaseForm:variantChoices purchaseForm:variantSummary purchaseForm:addToCartButton purchaseForm:messages" />
+                                                                render="purchaseForm:citizenship purchaseForm:citizenshipChoices purchaseForm:variantSection purchaseForm:variantChoices purchaseForm:variantSummary purchaseForm:addToCartButton purchaseForm:messages" />
                                                     </h:commandLink>
                                                 </div>
                                             </div>
@@ -61,58 +61,11 @@
                         </div>
                     </div>
 
-                    <h:panelGroup id="tierSection" layout="block">
-                        <h:panelGroup layout="block" rendered="#{purchaseView.isTierRequired()}">
-                            <div class="product-detail-card">
-                                <div class="card-body">
-                                    <h2 class="h4 fw-semibold mb-3">Step 2 · Select service tier</h2>
-                                    <p class="text-muted mb-4">Citizen replacements support both Standard and Premium service levels.</p>
-                                    <h:selectOneMenu id="tier"
-                                                     value="#{purchaseView.citizenTier}"
-                                                     styleClass="d-none"
-                                                     rendered="#{purchaseView.isTierRequired()}">
-                                        <f:selectItem itemLabel="" itemValue="" noSelectionOption="true" />
-                                        <f:selectItems value="#{purchaseView.tiersForCitizen}"
-                                                       var="tierOpt"
-                                                       itemValue="#{tierOpt}"
-                                                       itemLabel="#{purchaseView.labelForTier(tierOpt)}" />
-                                    </h:selectOneMenu>
-                                    <div class="row row-cols-1 row-cols-md-2 g-3">
-                                        <ui:repeat value="#{purchaseView.tiersForCitizen}" var="tierOpt">
-                                            <div class="col">
-                                                <div class="tier-card h-100 #{purchaseView.isCitizenTierSelected(tierOpt) ? 'selected' : ''}">
-                                                    <div class="card-body">
-                                                        <div class="d-flex justify-content-between align-items-start mb-3">
-                                                            <div>
-                                                                <h3 class="h5 fw-semibold mb-1">#{purchaseView.labelForTier(tierOpt)}</h3>
-                                                                <p class="text-muted small mb-0">#{purchaseView.describeTierOption(tierOpt)}</p>
-                                                            </div>
-                                                            <span class="price-tag">#{purchaseView.tierPriceLabel(tierOpt)}</span>
-                                                        </div>
-                                                        <div class="shimmer-hover">
-                                                            <h:commandLink action="#{purchaseView.selectCitizenTier(tierOpt)}"
-                                                                          styleClass="btn btn-dark btn-lg w-100 rounded-4"
-                                                                          value="#{purchaseView.isCitizenTierSelected(tierOpt) ? 'Selected' : 'Select'}">
-                                                                <f:ajax execute="@this"
-                                                                        render="purchaseForm:tier purchaseForm:variantSection purchaseForm:variantChoices purchaseForm:variantSummary purchaseForm:addToCartButton purchaseForm:messages" />
-                                                            </h:commandLink>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </ui:repeat>
-                                    </div>
-                                    <h:message for="tier" styleClass="text-danger small mt-3 d-block" />
-                                </div>
-                            </div>
-                        </h:panelGroup>
-                    </h:panelGroup>
-
                     <h:panelGroup id="variantSection" layout="block">
                         <h:panelGroup id="variantSectionContent" layout="block" rendered="#{not empty purchaseView.variants}">
                             <div class="product-detail-card">
                                 <div class="card-body">
-                                    <h2 class="h4 fw-semibold mb-3">Step 3 · Pick a replacement package</h2>
+                                    <h2 class="h4 fw-semibold mb-3">Step 2 · Pick a replacement package</h2>
                                     <p class="text-muted mb-4">Every package includes masked PINs delivered through the channels you’ll configure during checkout.</p>
                                     <h:selectOneMenu id="variant"
                                                      value="#{purchaseView.selectedSku}"

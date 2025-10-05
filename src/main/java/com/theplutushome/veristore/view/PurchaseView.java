@@ -254,8 +254,8 @@ public class PurchaseView implements Serializable {
         if (citizenship == null) {
             return List.of();
         }
-        // For renewals, tier is not required - show all renewal packages
-        if (appType != ApplicationType.RENEWAL) {
+        // For renewals, replacements, and first issuance, tier is not required - show all packages
+        if (appType != ApplicationType.RENEWAL && appType != ApplicationType.REPLACEMENT && appType != ApplicationType.FIRST_ISSUANCE) {
             if (citizenship == CitizenshipType.CITIZEN && isTierRequired() && citizenTier == null) {
                 return List.of();
             }
@@ -556,8 +556,8 @@ public class PurchaseView implements Serializable {
             addMessage(componentId("citizenship"), FacesMessage.SEVERITY_ERROR, "Select a citizenship.");
             valid = false;
         }
-        // For renewals, tier is not required
-        if (appType != ApplicationType.RENEWAL) {
+        // For renewals, replacements, and first issuance, tier is not required
+        if (appType != ApplicationType.RENEWAL && appType != ApplicationType.REPLACEMENT && appType != ApplicationType.FIRST_ISSUANCE) {
             if (citizenship == CitizenshipType.CITIZEN && citizenTier == null) {
                 addMessage(componentId("tier"), FacesMessage.SEVERITY_ERROR, "Select a citizen tier.");
                 valid = false;
@@ -810,8 +810,8 @@ public class PurchaseView implements Serializable {
         if (citizenship == null) {
             return false;
         }
-        // For renewals, tier is not required
-        if (appType != ApplicationType.RENEWAL) {
+        // For renewals, replacements, and first issuance, tier is not required
+        if (appType != ApplicationType.RENEWAL && appType != ApplicationType.REPLACEMENT && appType != ApplicationType.FIRST_ISSUANCE) {
             if (citizenship == CitizenshipType.CITIZEN && citizenTier == null) {
                 return false;
             }
