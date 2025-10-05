@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns:pt="http://xmlns.jcp.org/jsf/passthrough"
+                template="/WEB-INF/template.xhtml">
+    <f:metadata>
+        <f:viewAction action="#{invoiceView.load}" />
+    </f:metadata>
+    <ui:define name="title">Invoice</ui:define>
+    <ui:define name="content">
+        <h:panelGroup rendered="#{invoiceView.found}" layout="block" styleClass="mb-5">
+            <header class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3 mb-4" aria-labelledby="invoiceHeading">
+                <div>
+                    <h1 id="invoiceHeading" class="display-6 fw-bold mb-2">Invoice #{invoiceView.invoiceNo}</h1>
+                    <p class="text-muted mb-0">Created on #{invoiceView.invoice.created}</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <span class="badge #{invoiceView.invoice.status eq 'PAID' ? 'bg-success' : 'bg-warning text-dark'}">#{invoiceView.invoice.status}</span>
+                </div>
+            </header>
+
+            <div class="row g-4">
+                <div class="col-12 col-lg-7">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body">
+                            <h2 class="h5 mb-3">Payment instructions</h2>
+                            <p class="text-muted">Present this invoice number at a participating bank or trigger the mock Hubtel callback. Once payment is confirmed, redeem the invoice or follow the simulated callback to receive masked codes.</p>
+                            <dl class="row small mb-3">
+                                <dt class="col-5 text-muted">Invoice number</dt>
+                                <dd class="col-7">#{invoiceView.invoice.invoiceNo}</dd>
+                                <dt class="col-5 text-muted">Amount due</dt>
+                                <dd class="col-7">#{invoiceView.total}</dd>
+                                <dt class="col-5 text-muted">Quantity</dt>
+                                <dd class="col-7">#{invoiceView.invoice.qty}</dd>
+                                <dt class="col-5 text-muted">Service</dt>
+                                <dd class="col-7">#{invoiceView.serviceLabel}</dd>
+                                <dt class="col-5 text-muted">Contact email</dt>
+                                <dd class="col-7">#{invoiceView.invoice.contact.email}</dd>
+                                <dt class="col-5 text-muted">Contact phone</dt>
+                                <dd class="col-7">#{invoiceView.invoice.contact.msisdn}</dd>
+                            </dl>
+                            <div class="d-flex flex-column flex-sm-row gap-2">
+                                <h:link outcome="/redeem" styleClass="btn btn-outline-primary">Redeem after bank payment</h:link>
+                                <h:outputLink value="#{invoiceView.simulatePaymentUrl}" styleClass="btn btn-secondary">Simulate payment (mock)</h:outputLink>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-lg-5">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body">
+                            <h2 class="h5 mb-3">Status</h2>
+                            <h:panelGroup rendered="#{invoiceView.invoice.status eq 'PAID'}">
+                                <p class="text-success small mb-3">Payment received. Redeemed codes are listed below.</p>
+                                <ul class="list-unstyled small mb-0">
+                                    <ui:repeat value="#{invoiceView.maskedCodes}" var="code">
+                                        <li class="mb-1"><span class="badge bg-light text-dark">#{code}</span></li>
+                                    </ui:repeat>
+                                </ul>
+                            </h:panelGroup>
+                            <h:panelGroup rendered="#{invoiceView.invoice.status ne 'PAID'}">
+                                <p class="text-muted small mb-0">Awaiting payment confirmation. Use the simulate button to mark this invoice paid instantly.</p>
+                            </h:panelGroup>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </h:panelGroup>
+
+        <h:panelGroup rendered="#{not invoiceView.found}" layout="block" styleClass="text-center py-5">
+            <h1 class="h3 mb-3">Invoice not found</h1>
+            <p class="text-muted">Check the invoice number or generate a new invoice from the purchase flow.</p>
+            <div class="d-flex flex-column flex-sm-row flex-wrap gap-2 justify-content-center mt-3">
+                <h:link outcome="/buy-first-issuance" styleClass="btn btn-primary">First Issuance</h:link>
+                <h:link outcome="/buy-renewal" styleClass="btn btn-outline-primary">Renewal</h:link>
+                <h:link outcome="/buy-replacement" styleClass="btn btn-outline-primary">Replacement</h:link>
+                <h:link outcome="/buy-update" styleClass="btn btn-outline-primary">Update</h:link>
+                <h:link outcome="/buy-verification" styleClass="btn btn-outline-primary">Verification</h:link>
+            </div>
+        </h:panelGroup>
+
+        <h:panelGroup rendered="#{invoiceView.found}" layout="block" styleClass="mt-5">
+            <section class="alert alert-secondary" aria-labelledby="devToolsHeading">
+                <h2 id="devToolsHeading" class="h6 text-uppercase mb-2">Dev tools</h2>
+                <p class="small mb-2">Use this mock callback to mark the invoice paid instantly during demos.</p>
+                <h:outputLink value="#{invoiceView.simulatePaymentUrl}" styleClass="btn btn-outline-dark btn-sm">Trigger mock Hubtel callback</h:outputLink>
+            </section>
+        </h:panelGroup>
+    </ui:define>
+</ui:composition>
