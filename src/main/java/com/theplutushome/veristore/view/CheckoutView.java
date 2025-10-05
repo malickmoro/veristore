@@ -2,15 +2,12 @@ package com.theplutushome.veristore.view;
 
 import com.theplutushome.veristore.domain.Currency;
 import com.theplutushome.veristore.domain.PaymentMode;
-import static com.theplutushome.veristore.domain.PaymentMode.PAY_LATER;
-import static com.theplutushome.veristore.domain.PaymentMode.PAY_NOW;
 import com.theplutushome.veristore.domain.Price;
 import com.theplutushome.veristore.dto.CartLineDTO;
 import com.theplutushome.veristore.service.PricingService;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.faces.application.FacesMessage;
-import jakarta.faces.context.ExternalContext;
 import jakarta.faces.context.FacesContext;
 import jakarta.faces.view.ViewScoped;
 import jakarta.inject.Inject;
@@ -19,9 +16,14 @@ import jakarta.inject.Named;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.regex.Pattern;
+
+import static com.theplutushome.veristore.domain.PaymentMode.PAY_LATER;
+import static com.theplutushome.veristore.domain.PaymentMode.PAY_NOW;
 
 @Named
 @ViewScoped
@@ -39,11 +41,10 @@ public class CheckoutView implements Serializable {
     @Inject
     private PricingService pricingService;
 
-    private CartLineDTO line;
+    private final List<CartLineDTO> lines = new ArrayList<>();
     private boolean missing;
     private boolean initialized;
 
-    private int qty;
     private PaymentMode paymentMode;
     private boolean deliverEmail;
     private boolean deliverSms;
@@ -55,7 +56,8 @@ public class CheckoutView implements Serializable {
         email = "";
         msisdn = "";
         paymentMode = PaymentMode.PAY_NOW;
-        qty = 1;
+        deliverEmail = false;
+        deliverSms = false;
     }
 
     public void load() {
@@ -63,52 +65,30 @@ public class CheckoutView implements Serializable {
             return;
         }
         initialized = true;
-        FacesContext context = FacesContext.getCurrentInstance();
-        if (context == null) {
+        lines.clear();
+        lines.addAll(cartView.getLineCopies());
+        if (lines.isEmpty()) {
             missing = true;
             return;
         }
-        ExternalContext externalContext = context.getExternalContext();
-        Map<String, String> params = externalContext.getRequestParameterMap();
-        String sku = params.get("sku");
-        if (sku == null || sku.isBlank()) {
-            missing = true;
-            return;
-        }
-        CartLineDTO existing = cartView.getLine(sku);
-        if (existing == null) {
-            missing = true;
-            return;
-        }
-        line = existing;
-        qty = Math.max(1, existing.getQty());
-        paymentMode = existing.getPaymentMode() == null ? PaymentMode.PAY_NOW : existing.getPaymentMode();
-        deliverEmail = existing.isDeliverEmail();
-        deliverSms = existing.isDeliverSms();
-        email = existing.getEmail() == null ? "" : existing.getEmail();
-        msisdn = existing.getMsisdn() == null ? "" : existing.getMsisdn();
+        CartLineDTO first = lines.get(0);
+        paymentMode = Optional.ofNullable(first.getPaymentMode()).orElse(PaymentMode.PAY_NOW);
+        deliverEmail = lines.stream().anyMatch(CartLineDTO::isDeliverEmail);
+        deliverSms = lines.stream().anyMatch(CartLineDTO::isDeliverSms);
+        email = Optional.ofNullable(first.getEmail()).orElse("");
+        msisdn = Optional.ofNullable(first.getMsisdn()).orElse("");
     }
 
     public boolean isMissing() {
         return missing;
     }
 
-    public CartLineDTO getLine() {
-        return line;
+    public List<CartLineDTO> getLines() {
+        return lines;
     }
 
-    public int getQty() {
-        return qty;
-    }
-
-    public void setQty(int qty) {
-        if (qty < 1) {
-            this.qty = 1;
-        } else if (qty > 10) {
-            this.qty = 10;
-        } else {
-            this.qty = qty;
-        }
+    public PaymentMode[] getPaymentModes() {
+        return PaymentMode.values();
     }
 
     public PaymentMode getPaymentMode() {
@@ -156,10 +136,6 @@ public class CheckoutView implements Serializable {
         this.msisdn = msisdn;
     }
 
-    public PaymentMode[] getPaymentModes() {
-        return PaymentMode.values();
-    }
-
     public boolean isPaymentModeSelected(PaymentMode mode) {
         return mode != null && mode == paymentMode;
     }
@@ -179,30 +155,34 @@ public class CheckoutView implements Serializable {
             return "";
         }
         return switch (mode) {
-            case PAY_NOW -> "Checkout instantly and receive masked PINs immediately.";
-            case PAY_LATER -> "Generate an invoice for bank payment and redeem later.";
+            case PAY_NOW -> "Complete payment immediately and receive PINs right away.";
+            case PAY_LATER -> "Generate an invoice to pay via bank and redeem later.";
         };
     }
 
-    public String getUnitPriceFormatted() {
-        Price unitPrice = unitPrice();
-        return unitPrice == null ? "" : pricingService.format(unitPrice);
+    public int getItemCount() {
+        return lines.stream().mapToInt(CartLineDTO::getQty).sum();
     }
 
-    public String getTotalPriceFormatted() {
-        Price totalPrice = totalPrice();
-        return totalPrice == null ? "" : pricingService.format(totalPrice);
-    }
-
-    public String getCurrencyCode() {
-        return line == null ? "" : line.getCurrency();
-    }
-
-    public String getSubmitLabel() {
-        if (paymentMode == PaymentMode.PAY_LATER) {
-            return "Generate invoice";
+    public Map<String, String> getTotalsByCurrency() {
+        Map<String, Long> totals = new LinkedHashMap<>();
+        for (CartLineDTO line : lines) {
+            if (line.getCurrency() == null || line.getCurrency().isBlank()) {
+                continue;
+            }
+            totals.merge(line.getCurrency(), line.getTotalMinor(), Long::sum);
         }
-        return "Complete checkout";
+        Map<String, String> formatted = new LinkedHashMap<>();
+        for (Map.Entry<String, Long> entry : totals.entrySet()) {
+            try {
+                Currency currency = Currency.valueOf(entry.getKey());
+                Price price = new Price(currency, entry.getValue());
+                formatted.put(entry.getKey(), pricingService.format(price));
+            } catch (IllegalArgumentException ex) {
+                // Skip unknown currencies
+            }
+        }
+        return formatted;
     }
 
     public String getDeliverySummary() {
@@ -219,19 +199,21 @@ public class CheckoutView implements Serializable {
         return String.join(" & ", channels);
     }
 
+    public String getSubmitLabel() {
+        if (paymentMode == PaymentMode.PAY_LATER) {
+            return "Generate invoice";
+        }
+        return "Pay now";
+    }
+
     public String submit() {
-        if (line == null) {
+        if (lines.isEmpty()) {
             return null;
         }
         if (!validate()) {
             return null;
         }
-        boolean updated = cartView.updateLineDetails(line.getSku(), qty, paymentMode, deliverEmail, deliverSms, email, msisdn);
-        if (!updated) {
-            addMessage(null, FacesMessage.SEVERITY_ERROR, "The cart item could not be found.");
-            return null;
-        }
-        return cartView.checkoutLine(line.getSku());
+        return cartView.checkoutAll(paymentMode, deliverEmail, deliverSms, email, msisdn);
     }
 
     public String cancel() {
@@ -240,8 +222,8 @@ public class CheckoutView implements Serializable {
 
     private boolean validate() {
         boolean valid = true;
-        if (qty < 1 || qty > 10) {
-            addMessage(componentId("quantity"), FacesMessage.SEVERITY_ERROR, "Quantity must be between 1 and 10.");
+        if (lines.isEmpty()) {
+            addMessage(null, FacesMessage.SEVERITY_ERROR, "Your cart is empty.");
             valid = false;
         }
         if (!deliverEmail && !deliverSms) {
@@ -273,26 +255,6 @@ public class CheckoutView implements Serializable {
             }
         }
         return valid;
-    }
-
-    private Price unitPrice() {
-        if (line == null || line.getCurrency() == null || line.getCurrency().isBlank()) {
-            return null;
-        }
-        try {
-            Currency currency = Currency.valueOf(line.getCurrency());
-            return new Price(currency, line.getUnitPriceMinor());
-        } catch (IllegalArgumentException ex) {
-            return null;
-        }
-    }
-
-    private Price totalPrice() {
-        Price unit = unitPrice();
-        if (unit == null) {
-            return null;
-        }
-        return new Price(unit.currency(), Math.multiplyExact(unit.amountMinor(), qty));
     }
 
     private void addMessage(String clientId, FacesMessage.Severity severity, String summary) {

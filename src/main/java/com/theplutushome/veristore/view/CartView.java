@@ -13,22 +13,22 @@ import com.theplutushome.veristore.service.PricingService;
 
 import jakarta.enterprise.context.SessionScoped;
 import jakarta.faces.application.FacesMessage;
-import jakarta.faces.context.ExternalContext;
 import jakarta.faces.context.FacesContext;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 
-import java.io.IOException;
 import java.io.Serial;
 import java.io.Serializable;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 
 @Named
 @SessionScoped
@@ -44,9 +44,18 @@ public class CartView implements Serializable {
     private PaymentService paymentService;
 
     private final List<CartLineDTO> lines = new ArrayList<>();
+    private final Map<String, CheckoutResult> checkoutResults = new HashMap<>();
 
     public List<CartLineDTO> getLines() {
         return lines;
+    }
+
+    public List<CartLineDTO> getLineCopies() {
+        List<CartLineDTO> copies = new ArrayList<>();
+        for (CartLineDTO line : lines) {
+            copies.add(new CartLineDTO(line));
+        }
+        return copies;
     }
 
     public CartLineDTO getLine(String sku) {
@@ -135,8 +144,46 @@ public class CartView implements Serializable {
         }
     }
 
+    public void updateLineQuantity(String sku, int qty) {
+        Optional<CartLineDTO> lineOpt = findLine(sku);
+        if (lineOpt.isEmpty()) {
+            FacesContext context = FacesContext.getCurrentInstance();
+            if (context != null) {
+                context.addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Cart item could not be found.", null));
+            }
+            return;
+        }
+        CartLineDTO line = lineOpt.get();
+        int normalizedQty = Math.max(1, Math.min(qty, 10));
+        updateLineDetails(sku,
+                normalizedQty,
+                line.getPaymentMode(),
+                line.isDeliverEmail(),
+                line.isDeliverSms(),
+                line.getEmail(),
+                line.getMsisdn());
+        FacesContext context = FacesContext.getCurrentInstance();
+        if (context != null) {
+            context.addMessage(null, new FacesMessage(FacesMessage.SEVERITY_INFO,
+                    "Updated quantity to " + normalizedQty + ".",
+                    null));
+        }
+    }
+
     public void clear() {
         lines.clear();
+    }
+
+    public String goToCheckout() {
+        if (getHasNoItems()) {
+            FacesContext context = FacesContext.getCurrentInstance();
+            if (context != null) {
+                context.addMessage(null, new FacesMessage(FacesMessage.SEVERITY_WARN,
+                        "Add an item before checking out.", null));
+            }
+            return null;
+        }
+        return "/checkout?faces-redirect=true";
     }
 
     public boolean updateLineDetails(String sku,
@@ -172,34 +219,40 @@ public class CartView implements Serializable {
         return true;
     }
 
-    public String goToCheckout(String sku) {
-        if (sku == null || sku.isBlank()) {
-            return null;
-        }
-        String encoded = URLEncoder.encode(sku, StandardCharsets.UTF_8);
-        return "/checkout?faces-redirect=true&sku=" + encoded;
-    }
-
-    public String checkoutLine(String sku) {
-        Optional<CartLineDTO> lineOpt = findLine(sku);
-        if (lineOpt.isEmpty()) {
-            return null;
-        }
-        CartLineDTO line = lineOpt.get();
-        ProductKey key = new ProductKey(Optional.ofNullable(line.getFamily()).orElse(ProductFamily.ENROLLMENT), line.getSku());
-        Contact contact = new Contact(line.getEmail(), line.getMsisdn());
-        DeliveryPrefs prefs = new DeliveryPrefs(line.isDeliverEmail(), line.isDeliverSms());
-        try {
-            String destination;
-            if (line.getPaymentMode() == PaymentMode.PAY_NOW) {
-                String orderId = paymentService.payNow(key, line.getQty(), contact, prefs);
-                destination = redirectUrl("success", "orderId", orderId);
-            } else {
-                String invoiceNo = paymentService.payLater(key, line.getQty(), contact, prefs);
-                destination = redirectUrl("invoice", "no", invoiceNo);
+    public String checkoutAll(PaymentMode mode,
+                               boolean deliverEmail,
+                               boolean deliverSms,
+                               String email,
+                               String msisdn) {
+        if (lines.isEmpty()) {
+            FacesContext context = FacesContext.getCurrentInstance();
+            if (context != null) {
+                context.addMessage(null, new FacesMessage(FacesMessage.SEVERITY_WARN, "Your cart is empty.", null));
             }
-            lines.remove(line);
-            return destination;
+            return null;
+        }
+        Objects.requireNonNull(mode, "mode");
+        String normalizedEmail = email == null ? "" : email;
+        String normalizedMsisdn = msisdn == null ? "" : msisdn;
+        Contact contact = new Contact(normalizedEmail, normalizedMsisdn);
+        DeliveryPrefs prefs = new DeliveryPrefs(deliverEmail, deliverSms);
+        List<CheckoutReference> references = new ArrayList<>();
+        try {
+            for (CartLineDTO line : new ArrayList<>(lines)) {
+                line.setPaymentMode(mode);
+                line.setDeliverEmail(deliverEmail);
+                line.setDeliverSms(deliverSms);
+                line.setEmail(normalizedEmail);
+                line.setMsisdn(normalizedMsisdn);
+                ProductKey key = new ProductKey(Optional.ofNullable(line.getFamily()).orElse(ProductFamily.ENROLLMENT), line.getSku());
+                if (mode == PaymentMode.PAY_NOW) {
+                    String orderId = paymentService.payNow(key, line.getQty(), contact, prefs);
+                    references.add(new CheckoutReference(CheckoutReference.Type.ORDER, orderId));
+                } else {
+                    String invoiceNo = paymentService.payLater(key, line.getQty(), contact, prefs);
+                    references.add(new CheckoutReference(CheckoutReference.Type.INVOICE, invoiceNo));
+                }
+            }
         } catch (Exception ex) {
             FacesContext context = FacesContext.getCurrentInstance();
             if (context != null) {
@@ -207,36 +260,75 @@ public class CartView implements Serializable {
             }
             return null;
         }
+        lines.clear();
+        String token = storeCheckoutResult(new CheckoutResult(mode, references));
+        return "/checkout-result?faces-redirect=true&token=" + URLEncoder.encode(token, StandardCharsets.UTF_8);
     }
 
     private Optional<CartLineDTO> findLine(String sku) {
         return lines.stream().filter(line -> Objects.equals(line.getSku(), sku)).findFirst();
     }
 
-    public String paymentModeLabel(PaymentMode mode) {
-        if (mode == null) {
-            return "Choose at checkout";
-        }
-        return switch (mode) {
-            case PAY_NOW -> "Pay now";
-            case PAY_LATER -> "Pay later";
-        };
-    }
-
-    public String checkoutButtonLabel(PaymentMode mode) {
-        return "Checkout";
-    }
-
-    private String redirectUrl(String view, String paramName, String value) throws IOException {
-        FacesContext context = FacesContext.getCurrentInstance();
-        if (context == null) {
+    public CheckoutResult consumeCheckoutResult(String token) {
+        if (token == null || token.isBlank()) {
             return null;
         }
-        ExternalContext externalContext = context.getExternalContext();
-        String encoded = URLEncoder.encode(value, StandardCharsets.UTF_8);
-        String url = externalContext.getRequestContextPath() + "/" + view + ".xhtml?" + paramName + "=" + encoded + "&faces-redirect=true";
-        externalContext.redirect(url);
-        context.responseComplete();
-        return null;
+        return checkoutResults.remove(token);
     }
+
+    private String storeCheckoutResult(CheckoutResult result) {
+        String token = UUID.randomUUID().toString();
+        checkoutResults.put(token, result);
+        return token;
+    }
+
+    public static final class CheckoutResult implements Serializable {
+
+        @Serial
+        private static final long serialVersionUID = 1L;
+
+        private final PaymentMode paymentMode;
+        private final List<CheckoutReference> references;
+
+        public CheckoutResult(PaymentMode paymentMode, List<CheckoutReference> references) {
+            this.paymentMode = Objects.requireNonNull(paymentMode, "paymentMode");
+            this.references = List.copyOf(Objects.requireNonNull(references, "references"));
+        }
+
+        public PaymentMode getPaymentMode() {
+            return paymentMode;
+        }
+
+        public List<CheckoutReference> getReferences() {
+            return references;
+        }
+    }
+
+    public static final class CheckoutReference implements Serializable {
+
+        @Serial
+        private static final long serialVersionUID = 1L;
+
+        public enum Type {
+            ORDER,
+            INVOICE
+        }
+
+        private final Type type;
+        private final String reference;
+
+        public CheckoutReference(Type type, String reference) {
+            this.type = Objects.requireNonNull(type, "type");
+            this.reference = Objects.requireNonNull(reference, "reference");
+        }
+
+        public Type getType() {
+            return type;
+        }
+
+        public String getReference() {
+            return reference;
+        }
+    }
+
 }
