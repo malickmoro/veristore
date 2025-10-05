@@ -3,74 +3,139 @@
                 xmlns:h="http://xmlns.jcp.org/jsf/html"
                 xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
                 template="/WEB-INF/template.xhtml">
-    <ui:define name="title">Veristore – Discover trusted digital and physical goods</ui:define>
+    <ui:define name="title">Veristore – Secure PIN storefront</ui:define>
     <ui:define name="content">
         <section class="row g-5 align-items-center" aria-labelledby="heroHeading">
             <div class="col-12 col-lg-6">
-                <span class="badge bg-primary text-uppercase mb-3">Trusted marketplace</span>
-                <h1 id="heroHeading" class="display-5 fw-bold mb-3">Commerce designed for verifiable fulfillment</h1>
-                <p class="lead mb-4">Source digital licenses, physical goods, and managed services from rigorously vetted providers with transparent delivery status.</p>
+                <span class="badge bg-primary text-uppercase mb-3">Digital identity</span>
+                <h1 id="heroHeading" class="display-5 fw-bold mb-3">Shop PIN services the modern way</h1>
+                <p class="lead mb-4">Browse curated verification and enrollment PIN packages with clear pricing, instant fulfillment, and invoice-based payments for teams that need extra time.</p>
                 <div class="d-flex flex-column flex-sm-row gap-3">
-                    <h:link outcome="/products" styleClass="btn btn-primary btn-lg">Browse catalog</h:link>
-                    <h:link outcome="/checkout" styleClass="btn btn-outline-primary btn-lg">Secure checkout</h:link>
+                    <h:link outcome="/buy-verification" styleClass="btn btn-primary btn-lg">Buy verification PINs</h:link>
+                    <h:link outcome="/buy-update" styleClass="btn btn-outline-primary btn-lg">Update enrollment details</h:link>
                 </div>
             </div>
             <div class="col-12 col-lg-6">
-                <div class="position-relative overflow-hidden rounded-4 shadow-sm bg-white">
-                    <div class="ratio ratio-16x9 bg-gradient" style="background: radial-gradient(circle at 20% 20%, rgba(13,110,253,.2), transparent 60%), radial-gradient(circle at 80% 0%, rgba(25,135,84,.25), transparent 55%), #f8f9fa;">
-                        <div class="position-absolute top-50 start-50 translate-middle text-center px-4">
-                            <p class="h4 fw-semibold mb-1">Real-time verification</p>
-                            <p class="text-muted mb-0">Monitor inventory trust scores, compliance attestations, and delivery milestones in one view.</p>
+                <div class="row row-cols-1 row-cols-sm-2 g-3">
+                    <div class="col">
+                        <div class="product-card selected h-100">
+                            <div class="card-body">
+                                <span class="badge bg-primary-subtle text-primary-emphasis mb-2">Verification</span>
+                                <h3 class="h5 fw-semibold">Yearly PIN bundles</h3>
+                                <p class="text-muted small mb-3">Choose 1, 2, or 3-year verification plans with instant delivery.</p>
+                                <h:link outcome="/buy-verification" styleClass="btn btn-outline-primary">Explore plans</h:link>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="product-card h-100">
+                            <div class="card-body">
+                                <span class="badge bg-success-subtle text-success-emphasis mb-2">Enrollment</span>
+                                <h3 class="h5 fw-semibold">Citizen packages</h3>
+                                <p class="text-muted small mb-3">Standard and premium tiers for first issuance, renewal, and replacements.</p>
+                                <h:link outcome="/buy-first-issuance" styleClass="btn btn-outline-success">Shop citizen PINs</h:link>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="product-card h-100">
+                            <div class="card-body">
+                                <span class="badge bg-warning-subtle text-warning-emphasis mb-2">Non-citizen</span>
+                                <h3 class="h5 fw-semibold">Renewal durations</h3>
+                                <p class="text-muted small mb-3">Flexible 1 to 5-year renewals with USD pricing for foreign nationals.</p>
+                                <h:link outcome="/buy-renewal" styleClass="btn btn-outline-warning">Browse renewals</h:link>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="product-card h-100">
+                            <div class="card-body">
+                                <span class="badge bg-info-subtle text-info-emphasis mb-2">Refugee</span>
+                                <h3 class="h5 fw-semibold">Affordable updates</h3>
+                                <p class="text-muted small mb-3">Low-cost replacements and updates tailored for refugee programs.</p>
+                                <h:link outcome="/buy-replacement" styleClass="btn btn-outline-info">See refugee offers</h:link>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <section class="mt-5 pt-4 border-top" aria-labelledby="popularCategories">
-            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+        <section class="mt-5 pt-4 border-top" aria-labelledby="categoryHeading">
+            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
                 <div>
-                    <h2 id="popularCategories" class="h3 mb-1">Popular categories</h2>
-                    <p class="text-muted mb-0">Blueprint-aligned bundles curated by fulfillment type.</p>
+                    <h2 id="categoryHeading" class="h4 fw-semibold mb-1">Shop by enrollment need</h2>
+                    <p class="text-muted mb-0">Each track guides you through citizenship, tier, and exact SKU selection.</p>
                 </div>
-                <h:link outcome="/products" styleClass="btn btn-outline-secondary">View all products</h:link>
+                <h:link outcome="/history" styleClass="btn btn-outline-secondary">View order history</h:link>
             </div>
-            <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-4 g-4">
+            <div class="row row-cols-1 row-cols-md-2 row-cols-xl-4 g-4">
                 <div class="col">
-                    <article class="card h-100 border-0 shadow-sm" aria-labelledby="catDigital">
+                    <div class="selectable-card h-100 selected">
                         <div class="card-body">
-                            <h3 id="catDigital" class="h5">Digital keys</h3>
-                            <p class="text-muted">Instant license delivery with audit trails and revocation controls.</p>
-                            <h:link outcome="/products" styleClass="stretched-link">Explore</h:link>
+                            <h3 class="h5 fw-semibold mb-2">First issuance</h3>
+                            <p class="text-muted small mb-3">Launch new enrollment journeys with citizen standard and premium options.</p>
+                            <h:link outcome="/buy-first-issuance" styleClass="stretched-link">Start first issuance</h:link>
                         </div>
-                    </article>
+                    </div>
                 </div>
                 <div class="col">
-                    <article class="card h-100 border-0 shadow-sm" aria-labelledby="catCreator">
+                    <div class="selectable-card h-100">
                         <div class="card-body">
-                            <h3 id="catCreator" class="h5">Creator kits</h3>
-                            <p class="text-muted">Streamlined gear bundles with insured courier delivery.</p>
-                            <h:link outcome="/products" styleClass="stretched-link">Explore</h:link>
+                            <h3 class="h5 fw-semibold mb-2">Renewal</h3>
+                            <p class="text-muted small mb-3">Support citizens, non-citizens, and refugees with clear renewal durations.</p>
+                            <h:link outcome="/buy-renewal" styleClass="stretched-link">Renew enrollment</h:link>
                         </div>
-                    </article>
+                    </div>
                 </div>
                 <div class="col">
-                    <article class="card h-100 border-0 shadow-sm" aria-labelledby="catWellness">
+                    <div class="selectable-card h-100">
                         <div class="card-body">
-                            <h3 id="catWellness" class="h5">Wellness essentials</h3>
-                            <p class="text-muted">Clinically reviewed devices and supplements with proactive tracking.</p>
-                            <h:link outcome="/products" styleClass="stretched-link">Explore</h:link>
+                            <h3 class="h5 fw-semibold mb-2">Replacement</h3>
+                            <p class="text-muted small mb-3">Issue replacement PINs after loss or damage while keeping deliveries masked.</p>
+                            <h:link outcome="/buy-replacement" styleClass="stretched-link">Replace PIN</h:link>
                         </div>
-                    </article>
+                    </div>
                 </div>
                 <div class="col">
-                    <article class="card h-100 border-0 shadow-sm" aria-labelledby="catEnterprise">
+                    <div class="selectable-card h-100">
                         <div class="card-body">
-                            <h3 id="catEnterprise" class="h5">Enterprise services</h3>
-                            <p class="text-muted">Managed deployment, compliance operations, and customer support programs.</p>
-                            <h:link outcome="/products" styleClass="stretched-link">Explore</h:link>
+                            <h3 class="h5 fw-semibold mb-2">Updates</h3>
+                            <p class="text-muted small mb-3">Guide applicants through DOB, nationality, or personal information changes.</p>
+                            <h:link outcome="/buy-update" styleClass="stretched-link">Update details</h:link>
                         </div>
-                    </article>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="mt-5 pt-4 border-top" aria-labelledby="flowHeading">
+            <div class="row g-4">
+                <div class="col-12 col-lg-4">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body">
+                            <h2 id="flowHeading" class="h5 mb-3">Flexible payments</h2>
+                            <p class="text-muted">Toggle between pay-now fulfillment and invoice-based pay-later flows for each package.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-lg-4">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body">
+                            <h2 class="h5 mb-3">Redeem &amp; track</h2>
+                            <p class="text-muted">Use invoice numbers to redeem masked PINs and trace deliveries through the in-memory outbox.</p>
+                            <h:link outcome="/redeem" styleClass="btn btn-outline-primary mt-3">Redeem invoice</h:link>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-lg-4">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body">
+                            <h2 class="h5 mb-3">Safe by design</h2>
+                            <p class="text-muted">Every PIN stays masked on the web. Contacts receive full codes only through their chosen secure channels.</p>
+                            <h:link outcome="/history" styleClass="btn btn-outline-secondary mt-3">Search history</h:link>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>

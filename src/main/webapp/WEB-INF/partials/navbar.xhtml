@@ -13,16 +13,37 @@
             <div class="collapse navbar-collapse" id="mainNav">
                 <ul class="navbar-nav ms-auto mb-2 mb-lg-0 gap-lg-2">
                     <li class="nav-item">
-                        <h:link outcome="/products" styleClass="nav-link">Products</h:link>
+                        <h:link outcome="/buy-first-issuance" styleClass="nav-link">First Issuance</h:link>
                     </li>
                     <li class="nav-item">
-                        <h:link outcome="/cart" styleClass="nav-link">Cart</h:link>
+                        <h:link outcome="/buy-renewal" styleClass="nav-link">Renewal</h:link>
                     </li>
                     <li class="nav-item">
-                        <h:link outcome="/checkout" styleClass="nav-link">Checkout</h:link>
+                        <h:link outcome="/buy-replacement" styleClass="nav-link">Replacement</h:link>
                     </li>
                     <li class="nav-item">
-                        <h:link outcome="/order-success" styleClass="nav-link">Order status</h:link>
+                        <h:link outcome="/buy-update" styleClass="nav-link">Update</h:link>
+                    </li>
+                    <li class="nav-item">
+                        <h:link outcome="/buy-verification" styleClass="nav-link">Verification</h:link>
+                    </li>
+                    <li class="nav-item">
+                        <h:link outcome="/redeem" styleClass="nav-link">Redeem invoice</h:link>
+                    </li>
+                    <li class="nav-item">
+                        <h:link outcome="/history" styleClass="nav-link">Order history</h:link>
+                    </li>
+                    <li class="nav-item">
+                        <!-- Cart indicator wired to session cartView bean -->
+                        <h:link outcome="/cart" styleClass="nav-link position-relative">
+                            <span aria-hidden="true">🛒</span>
+                            <span class="ms-1">Cart</span>
+                            <h:panelGroup rendered="#{cartView.itemCount gt 0}" layout="block"
+                                          styleClass="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                #{cartView.itemCount}
+                                <span class="visually-hidden">items in cart</span>
+                            </h:panelGroup>
+                        </h:link>
                     </li>
                 </ul>
             </div>

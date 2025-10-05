@@ -1,85 +1,74 @@
 <!DOCTYPE html>
 <ui:composition xmlns="http://www.w3.org/1999/xhtml"
                 xmlns:h="http://xmlns.jcp.org/jsf/html"
-                xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
                 xmlns:pt="http://xmlns.jcp.org/jsf/passthrough"
-                template="/WEB-INF/template.xhtml"
-                xmlns:f="jakarta.faces.core">
+                xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                template="/WEB-INF/template.xhtml">
     <ui:define name="title">Cart – Veristore</ui:define>
     <ui:define name="content">
-        <h1 class="h2 mb-4">Shopping cart</h1>
-        <h:panelGroup rendered="#{empty cartView.lines}" layout="block" styleClass="alert alert-info" pt:role="status">
-            Your cart is currently empty. Browse the catalog to add items.
+        <h:panelGroup layout="block" rendered="#{not cartView.hasItem()}" styleClass="text-center py-5">
+            <span class="display-4 d-block mb-3" aria-hidden="true">🛒</span>
+            <h2 class="h4 fw-semibold mb-2">Your cart is empty</h2>
+            <p class="text-muted mb-4">Add a PIN package from any purchase track to begin checkout.</p>
+            <div class="d-flex flex-wrap gap-3 justify-content-center">
+                <h:link outcome="/buy-first-issuance" styleClass="btn btn-primary">Browse first issuance</h:link>
+                <h:link outcome="/buy-verification" styleClass="btn btn-outline-primary">Shop verification</h:link>
+            </div>
         </h:panelGroup>
-        <h:panelGroup rendered="#{not empty cartView.lines}" layout="block">
-            <h:form id="cartForm" class="row g-4">
-                <div class="col-12 col-lg-8">
-                    <div class="table-responsive">
-                        <table class="table align-middle">
-                            <caption class="text-muted">Adjust quantities or remove items before continuing to checkout.</caption>
-                            <thead>
-                                <tr>
-                                    <th scope="col">Item</th>
-                                    <th scope="col" class="text-center">Price</th>
-                                    <th scope="col" class="text-center">Quantity</th>
-                                    <th scope="col" class="text-end">Subtotal</th>
-                                    <th scope="col" class="text-end">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <ui:repeat value="#{cartView.lines}" var="line" varStatus="status">
-                                    <tr>
-                                        <td>
-                                            <p class="fw-semibold mb-1">
-                                                <h:link outcome="/product">
-                                                    <f:param name="sku" value="#{line.sku}" />
-                                                    #{line.name}
-                                                </h:link>
-                                            </p>
-                                            <p class="mb-0 text-muted small">SKU #{line.sku}</p>
-                                        </td>
-                                        <td class="text-center">#{line.priceFormatted}</td>
-                                        <td class="text-center" style="min-width: 7rem;">
-                                            <h:inputText value="#{line.qty}" styleClass="form-control form-control-sm text-center"
-                                                         pt:type="number" pt:min="1" pt:aria-label="Quantity for #{line.name}" />
-                                        </td>
-                                        <td class="text-end">#{line.totalFormatted}</td>
-                                        <td class="text-end">
-                                            <h:commandLink value="Remove" styleClass="btn btn-link text-danger p-0"
-                                                           action="#{cartView.remove(line)}"
-                                                           onclick="return confirm('Remove this item?');" />
-                                        </td>
-                                    </tr>
-                                </ui:repeat>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="d-flex justify-content-between flex-wrap gap-2">
-                        <h:commandButton value="Update cart" styleClass="btn btn-outline-primary"
-                                         action="#{cartView.recalculate}" />
-                        <h:commandButton value="Empty cart" styleClass="btn btn-link text-danger"
-                                         action="#{cartView.clear}" />
-                        <h:link outcome="/products" styleClass="btn btn-link ms-auto">Continue shopping</h:link>
-                    </div>
-                </div>
-                <aside class="col-12 col-lg-4">
-                    <div class="card shadow-sm border-0">
-                        <div class="card-body">
-                            <h2 class="h4">Order summary</h2>
-                            <dl class="row mb-0 small">
-                                <dt class="col-6">Subtotal</dt>
-                                <dd class="col-6 text-end">#{cartView.subtotalFormatted()}</dd>
-                                <dt class="col-6">Service fees</dt>
-                                <dd class="col-6 text-end">#{cartView.feesFormatted()}</dd>
-                                <dt class="col-6 fw-bold">Total</dt>
-                                <dd class="col-6 text-end fw-bold">#{cartView.totalFormatted()}</dd>
-                            </dl>
-                            <div class="d-grid mt-3">
-                                <h:link outcome="/checkout" styleClass="btn btn-primary btn-lg">Proceed to checkout</h:link>
+
+        <h:panelGroup layout="block" rendered="#{cartView.hasItem()}" pt:aria-live="polite" pt:aria-atomic="true">
+            <h:form id="cartForm" prependId="true" styleClass="row g-5 align-items-start">
+                <div class="col-12 col-xl-7 col-xxl-8">
+                    <div class="card shadow-sm">
+                        <div class="card-body d-flex flex-column gap-3">
+                            <div class="d-flex flex-column flex-lg-row justify-content-lg-between gap-3">
+                                <div>
+                                    <h2 class="h4 fw-semibold mb-1">#{cartView.currentItem.displayName()}</h2>
+                                    <p class="text-muted mb-0">#{cartView.currentItem.description()}</p>
+                                </div>
+                                <div class="text-lg-end">
+                                    <span class="badge bg-secondary-subtle text-secondary-emphasis">#{cartView.currentItem.mode().name() eq 'PAY_NOW' ? 'Pay now' : 'Invoice later'}</span>
+                                </div>
                             </div>
+
+                            <dl class="row small mb-0">
+                                <dt class="col-sm-4">Unit price</dt>
+                                <dd class="col-sm-8 fw-semibold">#{cartView.unitPriceFormatted}</dd>
+                                <dt class="col-sm-4">Quantity</dt>
+                                <dd class="col-sm-8">#{cartView.currentItem.quantity()}</dd>
+                                <dt class="col-sm-4">Total</dt>
+                                <dd class="col-sm-8 fw-bold">#{cartView.totalFormatted}</dd>
+                                <dt class="col-sm-4">Email delivery</dt>
+                                <dd class="col-sm-8">#{cartView.currentItem.delivery().byEmail() ? cartView.currentItem.contact().email() : 'Not requested'}</dd>
+                                <dt class="col-sm-4">SMS delivery</dt>
+                                <dd class="col-sm-8">#{cartView.currentItem.delivery().bySms() ? cartView.currentItem.contact().msisdn() : 'Not requested'}</dd>
+                            </dl>
                         </div>
                     </div>
-                </aside>
+
+                    <div class="mt-4 d-flex flex-column flex-sm-row gap-3">
+                        <h:commandButton value="Complete checkout"
+                                         action="#{cartView.checkout}"
+                                         styleClass="btn btn-dark btn-lg" />
+                        <h:commandButton value="Clear cart"
+                                         action="#{cartView.removeItem}"
+                                         immediate="true"
+                                         styleClass="btn btn-outline-secondary btn-lg" />
+                    </div>
+                </div>
+                <div class="col-12 col-xl-5 col-xxl-4">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <h3 class="h6 text-uppercase text-muted mb-3">Delivery summary</h3>
+                            <p class="small mb-2">We will send masked PINs using the channels you selected:</p>
+                            <ul class="small list-unstyled mb-0">
+                                <li>• Email: #{cartView.currentItem.delivery().byEmail() ? cartView.currentItem.contact().email() : 'Not requested'}</li>
+                                <li>• SMS: #{cartView.currentItem.delivery().bySms() ? cartView.currentItem.contact().msisdn() : 'Not requested'}</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
             </h:form>
         </h:panelGroup>
     </ui:define>

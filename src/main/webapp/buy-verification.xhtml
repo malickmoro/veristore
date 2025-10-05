@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns:pt="http://xmlns.jcp.org/jsf/passthrough"
+                template="/WEB-INF/template.xhtml">
+    <f:metadata>
+        <f:viewAction action="#{purchaseView.prepareVerification}" />
+    </f:metadata>
+    <ui:define name="title">Verification PINs – Veristore</ui:define>
+    <ui:define name="content">
+        <div class="row g-5 align-items-start">
+            <div class="col-12 col-xl-7 col-xxl-8">
+                <h:form id="purchaseForm" prependId="true" styleClass="d-flex flex-column gap-4">
+                    <h:messages id="messages"
+                                globalOnly="true"
+                                styleClass="alert alert-warning"
+                                rendered="#{not empty facesContext.messageList}"
+                                errorClass="alert-danger"
+                                infoClass="alert-info" />
+
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <h2 class="h5 fw-semibold mb-3">Step 1 · Select verification duration</h2>
+                            <p class="text-muted mb-4">Choose how long the verification PIN should remain active. All options deliver masked codes instantly after payment.</p>
+                            <h:selectOneMenu id="verificationVariant"
+                                             value="#{purchaseView.selectedSku}"
+                                             styleClass="d-none">
+                                <f:selectItems value="#{purchaseView.verificationVariants}"
+                                               var="variant"
+                                               itemValue="#{variant.sku}"
+                                               itemLabel="#{variant.displayName}" />
+                            </h:selectOneMenu>
+                            <div class="row row-cols-1 row-cols-md-3 g-3">
+                                <ui:repeat value="#{purchaseView.verificationVariants}" var="variant">
+                                    <div class="col">
+                                        <div class="product-card h-100 #{purchaseView.isSkuSelected(variant.sku) ? 'selected' : ''}">
+                                            <div class="card-body d-flex flex-column gap-2">
+                                                <div>
+                                                    <h3 class="h6 fw-semibold mb-1">#{variant.displayName}</h3>
+                                                    <p class="text-muted small mb-0">#{purchaseView.describeVerificationVariant(variant)}</p>
+                                                </div>
+                                                <div class="mt-auto">
+                                                    <p class="fw-semibold fs-5 mb-2">#{purchaseView.formatPrice(variant.price())}</p>
+                                                    <h:commandLink action="#{purchaseView.selectSku(variant.sku)}"
+                                                                  styleClass="btn btn-outline-primary w-100"
+                                                                  value="#{purchaseView.isSkuSelected(variant.sku) ? 'Selected' : 'Choose plan'}">
+                                                        <f:ajax execute="@this"
+                                                                render="purchaseForm:verificationVariant purchaseForm:totalCard" />
+                                                    </h:commandLink>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </ui:repeat>
+                            </div>
+                            <h:message for="verificationVariant" styleClass="text-danger small mt-2 d-block" />
+                        </div>
+                    </div>
+
+                    <ui:include src="/WEB-INF/partials/purchase-delivery.xhtml" />
+
+                    <div class="d-flex flex-column flex-sm-row gap-3">
+                        <h:commandButton value="Add to cart"
+                                         action="#{purchaseView.submitVerification}"
+                                         styleClass="btn btn-primary btn-lg" />
+                        <h:link outcome="/index" styleClass="btn btn-outline-secondary btn-lg">Back to storefront</h:link>
+                    </div>
+                </h:form>
+            </div>
+            <div class="col-12 col-xl-5 col-xxl-4">
+                <div class="position-sticky top-0">
+                    <h:panelGroup id="totalCard" layout="block" pt:aria-live="polite" pt:aria-atomic="true">
+                        <div class="card shadow-sm">
+                            <div class="card-body">
+                                <h2 class="h6 text-uppercase text-muted mb-3">Order summary</h2>
+                                <dl class="row mb-0 small">
+                                    <dt class="col-5">Variant</dt>
+                                    <dd class="col-7 fw-semibold">#{empty purchaseView.unitLabel ? 'Select a plan' : purchaseView.unitLabel}</dd>
+                                    <dt class="col-5">Unit price</dt>
+                                    <dd class="col-7">#{empty purchaseView.unitPriceFormatted ? '—' : purchaseView.unitPriceFormatted}</dd>
+                                    <dt class="col-5">Quantity</dt>
+                                    <dd class="col-7">#{purchaseView.qty}</dd>
+                                    <dt class="col-5">Payment</dt>
+                                    <dd class="col-7">#{purchaseView.paymentModeTitle(purchaseView.mode)}</dd>
+                                    <dt class="col-5">Total</dt>
+                                    <dd class="col-7 fw-bold fs-5">#{empty purchaseView.totalFormatted ? '—' : purchaseView.totalFormatted}</dd>
+                                </dl>
+                            </div>
+                        </div>
+                    </h:panelGroup>
+                </div>
+            </div>
+        </div>
+    </ui:define>
+</ui:composition>
