@@ -49,6 +49,10 @@ public class CartView implements Serializable {
         return lines;
     }
 
+    public CartLineDTO getLine(String sku) {
+        return findLine(sku).map(CartLineDTO::new).orElse(null);
+    }
+
     public boolean isEmpty() {
         return lines.isEmpty();
     }
@@ -124,6 +128,47 @@ public class CartView implements Serializable {
         lines.clear();
     }
 
+    public boolean updateLineDetails(String sku,
+                                     int qty,
+                                     PaymentMode mode,
+                                     boolean deliverEmail,
+                                     boolean deliverSms,
+                                     String email,
+                                     String msisdn) {
+        Optional<CartLineDTO> lineOpt = findLine(sku);
+        if (lineOpt.isEmpty()) {
+            return false;
+        }
+        CartLineDTO line = lineOpt.get();
+        line.setQty(qty);
+        line.setPaymentMode(mode);
+        line.setDeliverEmail(deliverEmail);
+        line.setDeliverSms(deliverSms);
+        line.setEmail(email);
+        line.setMsisdn(msisdn);
+        line.setTotalMinor(Math.multiplyExact(line.getUnitPriceMinor(), qty));
+        if (line.getCurrency() != null && !line.getCurrency().isBlank()) {
+            try {
+                Currency currency = Currency.valueOf(line.getCurrency());
+                Price unitPrice = new Price(currency, line.getUnitPriceMinor());
+                line.setPriceFormatted(pricingService.format(unitPrice));
+                Price totalPrice = new Price(currency, line.getTotalMinor());
+                line.setTotalFormatted(pricingService.format(totalPrice));
+            } catch (IllegalArgumentException ex) {
+                // Leave formatted fields unchanged for unknown currencies.
+            }
+        }
+        return true;
+    }
+
+    public String goToCheckout(String sku) {
+        if (sku == null || sku.isBlank()) {
+            return null;
+        }
+        String encoded = URLEncoder.encode(sku, StandardCharsets.UTF_8);
+        return "/checkout?faces-redirect=true&sku=" + encoded;
+    }
+
     public String checkoutLine(String sku) {
         Optional<CartLineDTO> lineOpt = findLine(sku);
         if (lineOpt.isEmpty()) {
@@ -159,7 +204,7 @@ public class CartView implements Serializable {
 
     public String paymentModeLabel(PaymentMode mode) {
         if (mode == null) {
-            return "";
+            return "Choose at checkout";
         }
         return switch (mode) {
             case PAY_NOW -> "Pay now";
@@ -168,13 +213,7 @@ public class CartView implements Serializable {
     }
 
     public String checkoutButtonLabel(PaymentMode mode) {
-        if (mode == null) {
-            return "Checkout";
-        }
-        return switch (mode) {
-            case PAY_NOW -> "Checkout now";
-            case PAY_LATER -> "Generate invoice";
-        };
+        return "Checkout";
     }
 
     private String redirectUrl(String view, String paramName, String value) throws IOException {

@@ -39,7 +39,9 @@
                                         <div class="col">
                                             <div class="choice-card h-100 #{purchaseView.isCitizenshipSelected(cit) ? 'selected' : ''}">
                                                 <div class="card-body text-center">
-                                                    <div class="choice-card-icon">#{purchaseView.iconForCitizenship(cit)}</div>
+                                                    <span class="choice-card-icon" aria-hidden="true">
+                                                        <h:outputText value="#{purchaseView.iconForCitizenship(cit)}" />
+                                                    </span>
                                                     <h3 class="h5 fw-semibold mb-2">#{purchaseView.labelForCitizenship(cit)}</h3>
                                                     <p class="text-muted small mb-0">#{purchaseView.describeCitizenshipOption(cit)}</p>
                                                     <h:commandLink action="#{purchaseView.selectCitizenship(cit)}"
@@ -138,14 +140,14 @@
                                         <dd class="col-7 col-sm-8">#{purchaseView.selectedSkuDurationLabel()}</dd>
                                     </dl>
                                     <div class="alert alert-info mb-0" role="status">
-                                        <strong>What happens next?</strong> When you add this package to cart, Veristore will generate the invoice or deliverable PIN based on your payment choice below.
+                                        <strong>What happens next?</strong> After adding this package to your cart you'll pick payment and delivery options on the checkout page before we generate invoices or masked PINs.
                                     </div>
                                 </div>
                             </div>
                         </h:panelGroup>
                     </h:panelGroup>
 
-                    <ui:include src="/WEB-INF/partials/purchase-delivery.xhtml" />
+                    <p class="text-muted small">You can configure quantity, delivery channels, and payment during checkout.</p>
 
                     <div class="d-flex flex-column flex-sm-row gap-3">
                         <h:commandButton value="Add to cart"

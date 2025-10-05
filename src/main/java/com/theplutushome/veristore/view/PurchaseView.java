@@ -516,6 +516,11 @@ public class PurchaseView implements Serializable {
                 return null;
             }
             added = addSelectionToCart(new ProductKey(ProductFamily.VERIFICATION, selectedSku));
+        } else if (isFirstIssuanceFlow()) {
+            if (!finalizeValidation(validateEnrollmentSelections())) {
+                return null;
+            }
+            added = addSelectionToCart(new ProductKey(ProductFamily.ENROLLMENT, selectedSku));
         } else {
             if (!validateEnrollment()) {
                 return null;
@@ -529,6 +534,14 @@ public class PurchaseView implements Serializable {
     }
 
     private boolean validateEnrollment() {
+        boolean valid = validateEnrollmentSelections();
+        if (!validateCommon()) {
+            valid = false;
+        }
+        return finalizeValidation(valid);
+    }
+
+    private boolean validateEnrollmentSelections() {
         boolean valid = true;
         if (citizenship == null) {
             addMessage(componentId("citizenship"), FacesMessage.SEVERITY_ERROR, "Select a citizenship.");
@@ -550,12 +563,6 @@ public class PurchaseView implements Serializable {
             addMessage(componentId("variant"), FacesMessage.SEVERITY_ERROR, "Choose a variant.");
             valid = false;
         }
-        if (!validateCommon()) {
-            valid = false;
-        }
-        if (!valid) {
-            FacesContext.getCurrentInstance().validationFailed();
-        }
         return valid;
     }
 
@@ -572,6 +579,10 @@ public class PurchaseView implements Serializable {
         if (!validateCommon()) {
             valid = false;
         }
+        return finalizeValidation(valid);
+    }
+
+    private boolean finalizeValidation(boolean valid) {
         if (!valid) {
             FacesContext.getCurrentInstance().validationFailed();
         }

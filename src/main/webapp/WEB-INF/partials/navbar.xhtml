@@ -62,7 +62,7 @@
                                     <p class="small text-muted mb-3">#{line.priceFormatted} per unit · #{cartView.paymentModeLabel(line.paymentMode)}</p>
                                     <div class="d-flex flex-wrap gap-2">
                                         <h:commandButton value="#{cartView.checkoutButtonLabel(line.paymentMode)}"
-                                                         action="#{cartView.checkoutLine(line.sku)}"
+                                                         action="#{cartView.goToCheckout(line.sku)}"
                                                          styleClass="btn btn-primary btn-sm" />
                                         <h:commandButton value="Remove"
                                                          action="#{cartView.removeLine(line.sku)}"
