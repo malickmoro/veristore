@@ -160,19 +160,19 @@ public class VerificationPinPurchaseView implements Serializable {
         };
     }
 
-    public String stepOneTitle() {
+    public String getStepOneTitle() {
         return "Step 1 · Find merchant";
     }
 
-    public String stepTwoTitle() {
+    public String getStepTwoTitle() {
         return "Step 2 · Choose quantity";
     }
 
-    public String stepOneDescription() {
+    public String getStepOneDescription() {
         return "Search using the merchant code provided during onboarding.";
     }
 
-    public String stepTwoDescription() {
+    public String getStepTwoDescription() {
         return "Enter how many " + productLabel().toLowerCase(Locale.ROOT) + " the merchant wants to buy. Pricing is per PIN.";
     }
 
