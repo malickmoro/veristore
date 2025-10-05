@@ -59,86 +59,90 @@
                         </div>
                     </div>
 
-                    <h:panelGroup id="tierSection" layout="block" rendered="#{purchaseView.isTierRequired()}">
-                        <div class="product-detail-card">
-                            <div class="card-body">
-                                <h2 class="h4 fw-semibold mb-3">Step 2 · Select issuance tier</h2>
-                                <p class="text-muted mb-4">Citizens can choose between Regular and Premium service levels for their first issuance.</p>
-                                <h:selectOneMenu id="tier"
-                                                 value="#{purchaseView.citizenTier}"
-                                                 styleClass="d-none"
-                                                 rendered="#{purchaseView.isTierRequired()}">
-                                    <f:selectItem itemLabel="" itemValue="" noSelectionOption="true" />
-                                    <f:selectItems value="#{purchaseView.tiersForCitizen}"
-                                                   var="tierOpt"
-                                                   itemValue="#{tierOpt}"
-                                                   itemLabel="#{purchaseView.labelForTier(tierOpt)}" />
-                                </h:selectOneMenu>
-                                <h:panelGroup id="tierChoices" layout="block">
-                                    <div class="row row-cols-1 row-cols-md-2 g-3">
-                                        <ui:repeat value="#{purchaseView.tiersForCitizen}" var="tierOpt">
-                                            <div class="col">
-                                                <div class="tier-card h-100 #{purchaseView.isCitizenTierSelected(tierOpt) ? 'selected' : ''}">
-                                                    <div class="card-body">
-                                                        <div class="d-flex justify-content-between align-items-start mb-3">
-                                                            <div>
-                                                                <h3 class="h5 fw-semibold mb-1">#{purchaseView.labelForTier(tierOpt)}</h3>
-                                                                <p class="text-muted small mb-0">#{purchaseView.describeTierOption(tierOpt)}</p>
+                    <h:panelGroup id="tierSection" layout="block">
+                        <h:panelGroup id="tierSectionContent" layout="block" rendered="#{purchaseView.isTierRequired()}">
+                            <div class="product-detail-card">
+                                <div class="card-body">
+                                    <h2 class="h4 fw-semibold mb-3">Step 2 · Select issuance tier</h2>
+                                    <p class="text-muted mb-4">Citizens can choose between Regular and Premium service levels for their first issuance.</p>
+                                    <h:selectOneMenu id="tier"
+                                                     value="#{purchaseView.citizenTier}"
+                                                     styleClass="d-none"
+                                                     rendered="#{purchaseView.isTierRequired()}">
+                                        <f:selectItem itemLabel="" itemValue="" noSelectionOption="true" />
+                                        <f:selectItems value="#{purchaseView.tiersForCitizen}"
+                                                       var="tierOpt"
+                                                       itemValue="#{tierOpt}"
+                                                       itemLabel="#{purchaseView.labelForTier(tierOpt)}" />
+                                    </h:selectOneMenu>
+                                    <h:panelGroup id="tierChoices" layout="block">
+                                        <div class="row row-cols-1 row-cols-md-2 g-3">
+                                            <ui:repeat value="#{purchaseView.tiersForCitizen}" var="tierOpt">
+                                                <div class="col">
+                                                    <div class="tier-card h-100 #{purchaseView.isCitizenTierSelected(tierOpt) ? 'selected' : ''}">
+                                                        <div class="card-body">
+                                                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                                                <div>
+                                                                    <h3 class="h5 fw-semibold mb-1">#{purchaseView.labelForTier(tierOpt)}</h3>
+                                                                    <p class="text-muted small mb-0">#{purchaseView.describeTierOption(tierOpt)}</p>
+                                                                </div>
+                                                                <span class="price-tag">#{purchaseView.tierPriceLabel(tierOpt)}</span>
                                                             </div>
-                                                            <span class="price-tag">#{purchaseView.tierPriceLabel(tierOpt)}</span>
-                                                        </div>
-                                                        <div class="shimmer-hover">
-                                                            <h:commandLink action="#{purchaseView.selectCitizenTier(tierOpt)}"
-                                                                          styleClass="btn btn-dark btn-lg w-100 rounded-4"
-                                                                          value="#{purchaseView.isCitizenTierSelected(tierOpt) ? 'Selected' : 'Select'}">
-                                                                <f:ajax execute="@this"
-                                                                        render="purchaseForm:tier purchaseForm:tierChoices purchaseForm:variantSection purchaseForm:variant purchaseForm:messages" />
-                                                            </h:commandLink>
+                                                            <div class="shimmer-hover">
+                                                                <h:commandLink action="#{purchaseView.selectCitizenTier(tierOpt)}"
+                                                                              styleClass="btn btn-dark btn-lg w-100 rounded-4"
+                                                                              value="#{purchaseView.isCitizenTierSelected(tierOpt) ? 'Selected' : 'Select'}">
+                                                                    <f:ajax execute="@this"
+                                                                            render="purchaseForm:tier purchaseForm:tierChoices purchaseForm:variantSection purchaseForm:variant purchaseForm:messages" />
+                                                                </h:commandLink>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        </ui:repeat>
-                                    </div>
-                                </h:panelGroup>
-                                <h:message for="tier" styleClass="text-danger small mt-3 d-block" />
+                                            </ui:repeat>
+                                        </div>
+                                    </h:panelGroup>
+                                    <h:message for="tier" styleClass="text-danger small mt-3 d-block" />
+                                </div>
                             </div>
-                        </div>
+                        </h:panelGroup>
                     </h:panelGroup>
 
-                    <h:panelGroup id="variantSection" layout="block" rendered="#{purchaseView.hasSelectedSku()}">
-                        <div class="product-detail-card">
-                            <div class="card-body">
-                                <div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-lg-between gap-4 mb-4">
-                                    <div>
-                                        <span class="badge bg-primary-subtle text-primary-emphasis mb-2">#{purchaseView.selectedSkuCitizenshipLabel()}</span>
-                                        <h3 class="h4 fw-semibold mb-1">#{purchaseView.selectedSkuDisplayName()}</h3>
-                                        <p class="text-muted mb-0">#{purchaseView.selectedSkuDescription()}</p>
+                    <h:panelGroup id="variantSection" layout="block">
+                        <h:panelGroup id="variantSectionContent" layout="block" rendered="#{purchaseView.hasSelectedSku()}">
+                            <div class="product-detail-card">
+                                <div class="card-body">
+                                    <div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-lg-between gap-4 mb-4">
+                                        <div>
+                                            <span class="badge bg-primary-subtle text-primary-emphasis mb-2">#{purchaseView.selectedSkuCitizenshipLabel()}</span>
+                                            <h3 class="h4 fw-semibold mb-1">#{purchaseView.selectedSkuDisplayName()}</h3>
+                                            <p class="text-muted mb-0">#{purchaseView.selectedSkuDescription()}</p>
+                                        </div>
+                                        <div class="text-lg-end">
+                                            <div class="fs-3 fw-bold mb-1">#{purchaseView.unitPriceFormatted}</div>
+                                            <span class="text-muted small text-uppercase">#{purchaseView.selectedSkuCurrencyCode()}</span>
+                                        </div>
                                     </div>
-                                    <div class="text-lg-end">
-                                        <div class="fs-3 fw-bold mb-1">#{purchaseView.unitPriceFormatted}</div>
-                                        <span class="text-muted small text-uppercase">#{purchaseView.selectedSkuCurrencyCode()}</span>
+
+                                    <h:inputHidden id="variant" value="#{purchaseView.selectedSku}" />
+                                    <h:message for="variant" styleClass="text-danger small d-block mb-3" />
+
+                                    <dl class="row detail-grid small mb-4">
+                                        <dt class="col-5 col-sm-4">Product code</dt>
+                                        <dd class="col-7 col-sm-8">#{purchaseView.selectedSku}</dd>
+                                        <dt class="col-5 col-sm-4">Subcategory</dt>
+                                        <dd class="col-7 col-sm-8">#{purchaseView.selectedSkuSubcategoryLabel()}</dd>
+                                        <dt class="col-5 col-sm-4">Status</dt>
+                                        <dd class="col-7 col-sm-8">#{purchaseView.selectedSkuActiveLabel()}</dd>
+                                        <dt class="col-5 col-sm-4">Duration</dt>
+                                        <dd class="col-7 col-sm-8">#{purchaseView.selectedSkuDurationLabel()}</dd>
+                                    </dl>
+                                    <div class="alert alert-info mb-0" role="status">
+                                        <strong>What happens next?</strong> When you add this package to cart, Veristore will generate the invoice or deliverable PIN based on your payment choice below.
                                     </div>
-                                </div>
-
-                                <h:inputHidden id="variant" value="#{purchaseView.selectedSku}" />
-                                <h:message for="variant" styleClass="text-danger small d-block mb-3" />
-
-                                <dl class="row detail-grid small mb-4">
-                                    <dt class="col-5 col-sm-4">Product code</dt>
-                                    <dd class="col-7 col-sm-8">#{purchaseView.selectedSku}</dd>
-                                    <dt class="col-5 col-sm-4">Subcategory</dt>
-                                    <dd class="col-7 col-sm-8">#{purchaseView.selectedSkuSubcategoryLabel()}</dd>
-                                    <dt class="col-5 col-sm-4">Status</dt>
-                                    <dd class="col-7 col-sm-8">#{purchaseView.selectedSkuActiveLabel()}</dd>
-                                    <dt class="col-5 col-sm-4">Duration</dt>
-                                    <dd class="col-7 col-sm-8">#{purchaseView.selectedSkuDurationLabel()}</dd>
-                                </dl>
-                                <div class="alert alert-info mb-0" role="status">
-                                    <strong>What happens next?</strong> When you add this package to cart, Veristore will generate the invoice or deliverable PIN based on your payment choice below.
                                 </div>
                             </div>
-                        </div>
+                        </h:panelGroup>
                     </h:panelGroup>
 
                     <ui:include src="/WEB-INF/partials/purchase-delivery.xhtml" />
