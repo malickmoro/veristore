@@ -48,6 +48,24 @@
                     box-shadow: 0 1.5rem 3rem rgba(13, 110, 253, .2);
                 }
 
+                .choice-card.selected::before {
+                    content: '\2713';
+                    position: absolute;
+                    top: .85rem;
+                    inset-inline-end: 1rem;
+                    width: 2.25rem;
+                    height: 2.25rem;
+                    border-radius: 50%;
+                    background-color: rgba(13, 110, 253, .18);
+                    color: var(--bs-primary);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 1.1rem;
+                    font-weight: 600;
+                    z-index: 2;
+                }
+
                 .choice-card::after,
                 .tier-card::after {
                     content: "";
@@ -84,6 +102,8 @@
                     background: rgba(13, 110, 253, .1);
                     color: var(--bs-primary);
                     margin-bottom: 1rem;
+                    position: relative;
+                    z-index: 2;
                 }
 
                 .tier-card .price-tag {

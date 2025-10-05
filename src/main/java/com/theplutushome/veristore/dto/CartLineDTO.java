@@ -1,5 +1,8 @@
 package com.theplutushome.veristore.dto;
 
+import com.theplutushome.veristore.catalog.ProductFamily;
+import com.theplutushome.veristore.domain.PaymentMode;
+
 import java.io.Serial;
 import java.io.Serializable;
 
@@ -16,6 +19,12 @@ public class CartLineDTO implements Serializable {
     private String priceFormatted;
     private String totalFormatted;
     private String currency;
+    private ProductFamily family;
+    private PaymentMode paymentMode;
+    private boolean deliverEmail;
+    private boolean deliverSms;
+    private String email;
+    private String msisdn;
 
     public CartLineDTO() {
     }
@@ -29,6 +38,12 @@ public class CartLineDTO implements Serializable {
         this.priceFormatted = other.priceFormatted;
         this.totalFormatted = other.totalFormatted;
         this.currency = other.currency;
+        this.family = other.family;
+        this.paymentMode = other.paymentMode;
+        this.deliverEmail = other.deliverEmail;
+        this.deliverSms = other.deliverSms;
+        this.email = other.email;
+        this.msisdn = other.msisdn;
     }
 
     public String getSku() {
@@ -93,5 +108,53 @@ public class CartLineDTO implements Serializable {
 
     public void setCurrency(String currency) {
         this.currency = currency;
+    }
+
+    public ProductFamily getFamily() {
+        return family;
+    }
+
+    public void setFamily(ProductFamily family) {
+        this.family = family;
+    }
+
+    public PaymentMode getPaymentMode() {
+        return paymentMode;
+    }
+
+    public void setPaymentMode(PaymentMode paymentMode) {
+        this.paymentMode = paymentMode;
+    }
+
+    public boolean isDeliverEmail() {
+        return deliverEmail;
+    }
+
+    public void setDeliverEmail(boolean deliverEmail) {
+        this.deliverEmail = deliverEmail;
+    }
+
+    public boolean isDeliverSms() {
+        return deliverSms;
+    }
+
+    public void setDeliverSms(boolean deliverSms) {
+        this.deliverSms = deliverSms;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getMsisdn() {
+        return msisdn;
+    }
+
+    public void setMsisdn(String msisdn) {
+        this.msisdn = msisdn;
     }
 }
