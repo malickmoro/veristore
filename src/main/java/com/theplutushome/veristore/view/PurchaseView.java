@@ -255,9 +255,18 @@ public class PurchaseView implements Serializable {
             return List.of();
         }
         // For renewals, replacements, and first issuance, tier is not required - show all packages
+        // For updates, tier is required for citizens only
         if (appType != ApplicationType.RENEWAL && appType != ApplicationType.REPLACEMENT && appType != ApplicationType.FIRST_ISSUANCE) {
-            if (citizenship == CitizenshipType.CITIZEN && isTierRequired() && citizenTier == null) {
-                return List.of();
+            if (appType == ApplicationType.UPDATE) {
+                // For updates, only require tier for citizens
+                if (citizenship == CitizenshipType.CITIZEN && citizenTier == null) {
+                    return List.of();
+                }
+            } else {
+                // For other types, use the standard tier requirement logic
+                if (citizenship == CitizenshipType.CITIZEN && isTierRequired() && citizenTier == null) {
+                    return List.of();
+                }
             }
         }
         List<EnrollmentSku> variants = switch (appType) {
@@ -265,10 +274,8 @@ public class PurchaseView implements Serializable {
             case RENEWAL -> EnrollmentSku.renewalsFor(citizenship);
             case REPLACEMENT -> EnrollmentSku.filter(citizenship, ApplicationType.REPLACEMENT, null, citizenTier);
             case UPDATE -> {
-                if (updateType == null) {
-                    yield List.of();
-                }
-                yield EnrollmentSku.filter(citizenship, ApplicationType.UPDATE, updateType, citizenTier);
+                // Update type is no longer required - show all update packages
+                yield EnrollmentSku.filter(citizenship, ApplicationType.UPDATE, null, citizenTier);
             }
             case VERIFICATION -> List.of();
         };
@@ -557,16 +564,27 @@ public class PurchaseView implements Serializable {
             valid = false;
         }
         // For renewals, replacements, and first issuance, tier is not required
+        // For updates, tier is required for citizens only
         if (appType != ApplicationType.RENEWAL && appType != ApplicationType.REPLACEMENT && appType != ApplicationType.FIRST_ISSUANCE) {
-            if (citizenship == CitizenshipType.CITIZEN && citizenTier == null) {
-                addMessage(componentId("tier"), FacesMessage.SEVERITY_ERROR, "Select a citizen tier.");
-                valid = false;
+            if (appType == ApplicationType.UPDATE) {
+                // For updates, only require tier for citizens
+                if (citizenship == CitizenshipType.CITIZEN && citizenTier == null) {
+                    addMessage(componentId("tier"), FacesMessage.SEVERITY_ERROR, "Select a citizen tier.");
+                    valid = false;
+                }
+            } else {
+                // For other types, use the standard tier requirement logic
+                if (citizenship == CitizenshipType.CITIZEN && citizenTier == null) {
+                    addMessage(componentId("tier"), FacesMessage.SEVERITY_ERROR, "Select a citizen tier.");
+                    valid = false;
+                }
             }
         }
-        if (appType == ApplicationType.UPDATE && updateType == null) {
-            addMessage(componentId("updateType"), FacesMessage.SEVERITY_ERROR, "Select an update type.");
-            valid = false;
-        }
+        // Update type is no longer required for updates
+        // if (appType == ApplicationType.UPDATE && updateType == null) {
+        //     addMessage(componentId("updateType"), FacesMessage.SEVERITY_ERROR, "Select an update type.");
+        //     valid = false;
+        // }
         List<EnrollmentSku> variants = getVariants();
         if (variants.isEmpty()) {
             addMessage(componentId("variant"), FacesMessage.SEVERITY_ERROR, "No variants are available for the chosen options.");
@@ -655,8 +673,10 @@ public class PurchaseView implements Serializable {
             selectedSku = null;
             return;
         }
-        if (selectedSku == null || availableSkus.stream().noneMatch(value -> value.equals(selectedSku))) {
-            selectedSku = availableSkus.get(0);
+        // Only clear selection if current selection is not in available list
+        // Don't auto-select the first item
+        if (selectedSku != null && availableSkus.stream().noneMatch(value -> value.equals(selectedSku))) {
+            selectedSku = null;
         }
     }
 
@@ -811,14 +831,24 @@ public class PurchaseView implements Serializable {
             return false;
         }
         // For renewals, replacements, and first issuance, tier is not required
+        // For updates, tier is required for citizens only
         if (appType != ApplicationType.RENEWAL && appType != ApplicationType.REPLACEMENT && appType != ApplicationType.FIRST_ISSUANCE) {
-            if (citizenship == CitizenshipType.CITIZEN && citizenTier == null) {
-                return false;
+            if (appType == ApplicationType.UPDATE) {
+                // For updates, only require tier for citizens
+                if (citizenship == CitizenshipType.CITIZEN && citizenTier == null) {
+                    return false;
+                }
+            } else {
+                // For other types, use the standard tier requirement logic
+                if (citizenship == CitizenshipType.CITIZEN && citizenTier == null) {
+                    return false;
+                }
             }
         }
-        if (appType == ApplicationType.UPDATE && updateType == null) {
-            return false;
-        }
+        // Update type is no longer required for updates
+        // if (appType == ApplicationType.UPDATE && updateType == null) {
+        //     return false;
+        // }
         if (selectedSku == null || getVariants().isEmpty()) {
             return false;
         }
