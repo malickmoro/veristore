@@ -18,7 +18,29 @@
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="mainNav">
+<<<<<<< HEAD
                 <ul class="navbar-nav ms-auto mb-2 mb-lg-0 gap-lg-3 align-items-lg-center">
+=======
+                <ul class="navbar-nav ms-auto mb-2 mb-lg-0 gap-lg-2 align-items-lg-center">
+                    <li class="nav-item">
+                        <h:panelGroup id="cartToggle" layout="block">
+                            <button class="btn btn-link nav-link position-relative px-2"
+                                    type="button"
+                                    data-bs-toggle="offcanvas"
+                                    data-bs-target="#cartDrawerPanel"
+                                    aria-controls="cartDrawerPanel"
+                                    aria-label="View cart">
+                                <span aria-hidden="true" class="fs-5">🛒</span>
+                                <span class="visually-hidden">View cart</span>
+                                <h:panelGroup styleClass="position-absolute top-0 start-100 translate-middle badge rounded-pill #{cartView.itemCount gt 0 ? 'bg-danger' : 'bg-secondary'}"
+                                             rendered="#{cartView.itemCount ge 0}">
+                                    #{cartView.itemCount}
+                                    <span class="visually-hidden">items in cart</span>
+                                </h:panelGroup>
+                            </button>
+                        </h:panelGroup>
+                    </li>
+>>>>>>> 07c7d34 (update)
                     <li class="nav-item">
                         <h:link outcome="/index" styleClass="nav-link text-dark fw-medium px-2">
                             Shop
@@ -67,10 +89,17 @@
             </div>
             <div class="offcanvas-body">
                 <h:form id="cartForm" styleClass="d-flex flex-column gap-3">
+<<<<<<< HEAD
                     <h:panelGroup rendered="#{cartView.hasNoItems}" layout="block">
                         <p class="text-muted mb-0">Your cart is empty. Add a package to begin checkout.</p>
                     </h:panelGroup>
                     <h:panelGroup rendered="#{not cartView.hasNoItems}" layout="block" styleClass="d-flex flex-column gap-3">
+=======
+                    <h:panelGroup rendered="#{cartView.empty}" layout="block">
+                        <p class="text-muted mb-0">Your cart is empty. Add a package to begin checkout.</p>
+                    </h:panelGroup>
+                    <h:panelGroup rendered="#{not cartView.empty}" layout="block" styleClass="d-flex flex-column gap-3">
+>>>>>>> 07c7d34 (update)
                         <ui:repeat value="#{cartView.lines}" var="line">
                             <div class="card shadow-sm">
                                 <div class="card-body">

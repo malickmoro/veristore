@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns:pt="http://xmlns.jcp.org/jsf/passthrough"
+                template="/WEB-INF/template.xhtml">
+    <f:metadata>
+        <f:viewAction action="#{checkoutView.load}" />
+    </f:metadata>
+    <ui:define name="title">Checkout – Veristore</ui:define>
+    <ui:define name="content">
+        <h:panelGroup rendered="#{checkoutView.missing}" layout="block" styleClass="text-center py-5">
+            <h1 class="h3 mb-3">Cart item not found</h1>
+            <p class="text-muted mb-4">The selection you tried to checkout is no longer in your cart. Add it again from the storefront.</p>
+            <div class="d-flex flex-column flex-sm-row gap-2 justify-content-center">
+                <h:link outcome="/index" styleClass="btn btn-primary">Back to storefront</h:link>
+            </div>
+        </h:panelGroup>
+
+        <h:panelGroup rendered="#{not checkoutView.missing}" layout="block">
+            <div class="row g-5 align-items-start">
+                <div class="col-12 col-xl-7 col-xxl-8">
+                    <h:form id="checkoutForm" styleClass="d-flex flex-column gap-4">
+                        <h:messages id="messages"
+                                    globalOnly="true"
+                                    styleClass="alert alert-warning"
+                                    rendered="#{not empty facesContext.messageList}"
+                                    errorClass="alert-danger"
+                                    infoClass="alert-info" />
+
+                        <div class="card shadow-sm">
+                            <div class="card-body">
+                                <h2 class="h5 fw-semibold mb-4">Delivery preferences</h2>
+                                <div class="row g-3">
+                                    <div class="col-12 col-sm-6">
+                                        <label for="checkoutForm:quantity" class="form-label">Quantity</label>
+                                        <h:inputText id="quantity"
+                                                     value="#{checkoutView.qty}"
+                                                     styleClass="form-control"
+                                                     pt:type="number"
+                                                     pt:min="1"
+                                                     pt:max="10">
+                                            <f:ajax render="checkoutForm:summary" />
+                                        </h:inputText>
+                                        <h:message for="quantity" styleClass="text-danger small mt-1 d-block" />
+                                    </div>
+                                    <div class="col-12 col-sm-6">
+                                        <span class="form-label d-block">Payment option</span>
+                                        <h:selectOneRadio id="paymentMode"
+                                                          value="#{checkoutView.paymentMode}"
+                                                          layout="pageDirection"
+                                                          styleClass="d-none">
+                                            <f:selectItems value="#{checkoutView.paymentModes}"
+                                                           var="modeOpt"
+                                                           itemValue="#{modeOpt}" />
+                                        </h:selectOneRadio>
+                                        <h:panelGroup id="paymentModeChoices" layout="block">
+                                            <div class="row row-cols-1 row-cols-sm-2 g-3">
+                                                <ui:repeat value="#{checkoutView.paymentModes}" var="modeOpt">
+                                                    <div class="col">
+                                                        <div class="selectable-card h-100 #{checkoutView.paymentModeSelected(modeOpt) ? 'selected' : ''}">
+                                                            <div class="card-body">
+                                                                <h3 class="h6 fw-semibold mb-1">#{checkoutView.paymentModeTitle(modeOpt)}</h3>
+                                                                <p class="text-muted small mb-0">#{checkoutView.describePaymentMode(modeOpt)}</p>
+                                                                <h:commandLink action="#{checkoutView.selectPaymentMode(modeOpt)}"
+                                                                              styleClass="stretched-link"
+                                                                              value=""
+                                                                              title="#{checkoutView.paymentModeTitle(modeOpt)}">
+                                                                    <f:ajax render="checkoutForm:paymentMode checkoutForm:paymentModeChoices checkoutForm:summary" />
+                                                                </h:commandLink>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </ui:repeat>
+                                            </div>
+                                        </h:panelGroup>
+                                    </div>
+                                    <div class="col-12">
+                                        <span class="form-label d-block">Delivery channels</span>
+                                        <h:panelGroup id="deliveryOptions" layout="block" styleClass="d-flex flex-wrap gap-3">
+                                            <div class="form-check form-switch">
+                                                <h:selectBooleanCheckbox id="emailDelivery"
+                                                                         value="#{checkoutView.deliverEmail}"
+                                                                         styleClass="form-check-input">
+                                                    <f:ajax render="checkoutForm:summary checkoutForm:email checkoutForm:emailMessage" />
+                                                </h:selectBooleanCheckbox>
+                                                <label class="form-check-label" for="checkoutForm:emailDelivery">Email delivery</label>
+                                            </div>
+                                            <div class="form-check form-switch">
+                                                <h:selectBooleanCheckbox id="smsDelivery"
+                                                                         value="#{checkoutView.deliverSms}"
+                                                                         styleClass="form-check-input">
+                                                    <f:ajax render="checkoutForm:summary checkoutForm:msisdn checkoutForm:msisdnMessage" />
+                                                </h:selectBooleanCheckbox>
+                                                <label class="form-check-label" for="checkoutForm:smsDelivery">SMS delivery</label>
+                                            </div>
+                                        </h:panelGroup>
+                                        <h:message for="deliveryOptions" styleClass="text-danger small mt-1 d-block" />
+                                    </div>
+                                    <div class="col-12 col-md-6">
+                                        <label for="checkoutForm:email" class="form-label">Email address</label>
+                                        <h:inputText id="email"
+                                                     value="#{checkoutView.email}"
+                                                     styleClass="form-control"
+                                                     pt:type="email"
+                                                     pt:placeholder="name@example.com">
+                                            <f:ajax render="checkoutForm:summary" />
+                                        </h:inputText>
+                                        <h:message id="emailMessage" for="email" styleClass="text-danger small mt-1 d-block" />
+                                    </div>
+                                    <div class="col-12 col-md-6">
+                                        <label for="checkoutForm:msisdn" class="form-label">Phone number</label>
+                                        <h:inputText id="msisdn"
+                                                     value="#{checkoutView.msisdn}"
+                                                     styleClass="form-control"
+                                                     pt:placeholder="+233XXXXXXXXX">
+                                            <f:ajax render="checkoutForm:summary" />
+                                        </h:inputText>
+                                        <h:message id="msisdnMessage" for="msisdn" styleClass="text-danger small mt-1 d-block" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex flex-column flex-sm-row gap-3">
+                            <h:commandButton value="#{checkoutView.submitLabel}"
+                                             action="#{checkoutView.submit}"
+                                             styleClass="btn btn-primary btn-lg" />
+                            <h:commandLink action="#{checkoutView.cancel}"
+                                           styleClass="btn btn-outline-secondary btn-lg"
+                                           value="Back to storefront" />
+                        </div>
+                    </h:form>
+                </div>
+                <div class="col-12 col-xl-5 col-xxl-4">
+                    <div class="position-sticky top-0">
+                        <h:panelGroup id="summary" layout="block" pt:aria-live="polite" pt:aria-atomic="true">
+                            <div class="card shadow-sm">
+                                <div class="card-body">
+                                    <h2 class="h6 text-uppercase text-muted mb-3">Order summary</h2>
+                                    <dl class="row mb-0 small">
+                                        <dt class="col-5">Product</dt>
+                                        <dd class="col-7 fw-semibold">#{checkoutView.line.name}</dd>
+                                        <dt class="col-5">SKU</dt>
+                                        <dd class="col-7">#{checkoutView.line.sku}</dd>
+                                        <dt class="col-5">Unit price</dt>
+                                        <dd class="col-7">#{checkoutView.unitPriceFormatted}</dd>
+                                        <dt class="col-5">Quantity</dt>
+                                        <dd class="col-7">#{checkoutView.qty}</dd>
+                                        <dt class="col-5">Payment</dt>
+                                        <dd class="col-7">#{checkoutView.paymentModeTitle(checkoutView.paymentMode)}</dd>
+                                        <dt class="col-5">Delivery</dt>
+                                        <dd class="col-7">#{checkoutView.deliverySummary}</dd>
+                                        <dt class="col-5">Total</dt>
+                                        <dd class="col-7 fw-bold fs-5">#{checkoutView.totalPriceFormatted}</dd>
+                                    </dl>
+                                </div>
+                            </div>
+                        </h:panelGroup>
+                    </div>
+                </div>
+            </div>
+        </h:panelGroup>
+    </ui:define>
+</ui:composition>
