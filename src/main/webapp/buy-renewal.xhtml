@@ -10,151 +10,160 @@
     </f:metadata>
     <ui:define name="title">Renewal PINs – Veristore</ui:define>
     <ui:define name="content">
-        <div class="row g-4 g-lg-5 align-items-start">
-            <div class="col-12 col-lg-7">
-                <h:form id="purchaseForm" prependId="true">
-                    <div class="card shadow-sm mb-4">
+        <div class="row g-5 align-items-start">
+            <div class="col-12 col-xl-7 col-xxl-8">
+                <h:form id="purchaseForm" prependId="true" styleClass="d-flex flex-column gap-4">
+                    <h:messages id="messages"
+                                globalOnly="true"
+                                styleClass="alert alert-warning"
+                                rendered="#{not empty facesContext.messageList}"
+                                errorClass="alert-danger"
+                                infoClass="alert-info" />
+
+                    <div class="card shadow-sm">
                         <div class="card-body">
-                            <h2 class="h5 fw-semibold mb-3">Step 1: Choose your category</h2>
-                            <div class="mb-3">
-                                <label for="purchaseForm:citizenship" class="form-label">Citizenship</label>
-                                <h:selectOneMenu id="citizenship" value="#{purchaseView.citizenship}" styleClass="form-select">
-                                    <f:selectItem itemLabel="Select citizenship" itemValue="" noSelectionOption="true" />
-                                    <f:selectItems value="#{purchaseView.citizenshipsForApp}"
-                                                   var="cit"
-                                                   itemValue="#{cit}"
-                                                   itemLabel="#{purchaseView.labelForCitizenship(cit)}" />
-                                    <f:ajax render="tierSection updateSection variantSection totalCard" />
-                                </h:selectOneMenu>
-                                <h:message for="citizenship" styleClass="text-danger small mt-1 d-block" />
+                            <h2 class="h5 fw-semibold mb-3">Step 1 · Choose applicant category</h2>
+                            <p class="text-muted mb-4">Pick the renewal category that fits the applicant. Each category unlocks a curated list of renewal durations.</p>
+                            <h:selectOneMenu id="citizenship"
+                                             value="#{purchaseView.citizenship}"
+                                             styleClass="d-none">
+                                <f:selectItem itemLabel="" itemValue="" noSelectionOption="true" />
+                                <f:selectItems value="#{purchaseView.citizenshipsForApp}"
+                                               var="cit"
+                                               itemValue="#{cit}"
+                                               itemLabel="#{purchaseView.labelForCitizenship(cit)}" />
+                            </h:selectOneMenu>
+                            <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-3" id="categoryGrid">
+                                <ui:repeat value="#{purchaseView.citizenshipsForApp}" var="cit">
+                                    <div class="col">
+                                        <div class="selectable-card h-100 #{purchaseView.isCitizenshipSelected(cit) ? 'selected' : ''}">
+                                            <div class="card-body">
+                                                <h3 class="h6 fw-semibold mb-1">#{purchaseView.labelForCitizenship(cit)}</h3>
+                                                <p class="text-muted small mb-0">#{purchaseView.describeCitizenshipOption(cit)}</p>
+                                                <h:commandLink action="#{purchaseView.selectCitizenship(cit)}"
+                                                              styleClass="stretched-link"
+                                                              value=""
+                                                              title="Choose #{purchaseView.labelForCitizenship(cit)}">
+                                                    <f:ajax execute="@this"
+                                                            render="purchaseForm:citizenship purchaseForm:tierSection purchaseForm:variantSection purchaseForm:variant purchaseForm:totalCard purchaseForm:messages" />
+                                                </h:commandLink>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </ui:repeat>
                             </div>
-                            <h:panelGroup id="tierSection" layout="block" rendered="#{purchaseView.isTierRequired()}">
-                                <div class="mb-3">
-                                    <span class="form-label d-block">Tier</span>
-                                    <h:selectOneRadio id="tier"
-                                                      value="#{purchaseView.citizenTier}"
-                                                      layout="pageDirection"
-                                                      styleClass="d-flex flex-column gap-2">
-                                        <f:selectItems value="#{purchaseView.tiersForCitizen}"
-                                                       var="tierOpt"
-                                                       itemValue="#{tierOpt}"
-                                                       itemLabel="#{purchaseView.labelForTier(tierOpt)}" />
-                                        <f:ajax render="variantSection totalCard" />
-                                    </h:selectOneRadio>
-                                    <h:message for="tier" styleClass="text-danger small mt-1 d-block" />
-                                </div>
-                            </h:panelGroup>
-                            <h:panelGroup id="updateSection" layout="block" rendered="false" />
-                            <h:panelGroup id="variantSection" layout="block" rendered="#{not empty purchaseView.variants}">
-                                <div class="mb-0">
-                                    <label for="purchaseForm:variant" class="form-label">Renewal duration</label>
-                                    <h:selectOneMenu id="variant"
-                                                     value="#{purchaseView.selectedSku}"
-                                                     styleClass="form-select">
-                                        <f:selectItems value="#{purchaseView.variants}"
-                                                       var="variant"
-                                                       itemValue="#{variant.sku}"
-                                                       itemLabel="#{variant.displayName}" />
-                                        <f:ajax render="totalCard" />
-                                    </h:selectOneMenu>
-                                    <h:message for="variant" styleClass="text-danger small mt-1 d-block" />
-                                </div>
-                            </h:panelGroup>
+                            <h:message for="citizenship" styleClass="text-danger small mt-2 d-block" />
                         </div>
                     </div>
 
-                    <div class="card shadow-sm mb-4">
-                        <div class="card-body">
-                            <h2 class="h5 fw-semibold mb-3">Step 2: Delivery and payment</h2>
-                            <div class="row g-3">
-                                <div class="col-12 col-sm-6">
-                                    <label for="purchaseForm:quantity" class="form-label">Quantity</label>
-                                    <h:inputText id="quantity"
-                                                 value="#{purchaseView.qty}"
-                                                 styleClass="form-control"
-                                                 pt:type="number"
-                                                 pt:min="1"
-                                                 pt:max="10">
-                                        <f:ajax render="totalCard" />
-                                    </h:inputText>
-                                    <h:message for="quantity" styleClass="text-danger small mt-1 d-block" />
-                                </div>
-                                <div class="col-12 col-sm-6">
-                                    <label for="purchaseForm:paymentMode" class="form-label">Payment mode</label>
-                                    <h:selectOneRadio id="paymentMode"
-                                                      value="#{purchaseView.mode}"
-                                                      layout="pageDirection"
-                                                      styleClass="d-flex flex-column gap-2">
-                                        <f:selectItem itemValue="#{T(com.theplutushome.veristore.domain.PaymentMode).PAY_NOW}" itemLabel="Pay now (instant delivery)" />
-                                        <f:selectItem itemValue="#{T(com.theplutushome.veristore.domain.PaymentMode).PAY_LATER}" itemLabel="Pay later (invoice)" />
-                                        <f:ajax render="totalCard" />
-                                    </h:selectOneRadio>
-                                </div>
-                                <div class="col-12">
-                                    <h:panelGroup id="deliveryOptions" layout="block">
-                                        <span class="form-label d-block">Delivery channels</span>
-                                        <div class="form-check">
-                                            <h:selectBooleanCheckbox id="emailDelivery"
-                                                                     value="#{purchaseView.deliverEmail}"
-                                                                     styleClass="form-check-input">
-                                                <f:ajax render="totalCard" />
-                                            </h:selectBooleanCheckbox>
-                                            <label class="form-check-label" for="purchaseForm:emailDelivery">Email</label>
+                    <h:panelGroup id="tierSection" layout="block" rendered="#{purchaseView.isTierRequired()}">
+                        <div class="card shadow-sm">
+                            <div class="card-body">
+                                <h2 class="h5 fw-semibold mb-3">Step 2 · Select service tier</h2>
+                                <p class="text-muted mb-4">Citizens may choose between Standard and Premium renewal service levels.</p>
+                                <h:selectOneMenu id="tier"
+                                                 value="#{purchaseView.citizenTier}"
+                                                 styleClass="d-none"
+                                                 rendered="#{purchaseView.isTierRequired()}">
+                                    <f:selectItem itemLabel="" itemValue="" noSelectionOption="true" />
+                                    <f:selectItems value="#{purchaseView.tiersForCitizen}"
+                                                   var="tierOpt"
+                                                   itemValue="#{tierOpt}"
+                                                   itemLabel="#{purchaseView.labelForTier(tierOpt)}" />
+                                </h:selectOneMenu>
+                                <div class="row row-cols-1 row-cols-sm-2 g-3">
+                                    <ui:repeat value="#{purchaseView.tiersForCitizen}" var="tierOpt">
+                                        <div class="col">
+                                            <div class="selectable-card h-100 #{purchaseView.isCitizenTierSelected(tierOpt) ? 'selected' : ''}">
+                                                <div class="card-body">
+                                                    <h3 class="h6 fw-semibold mb-1">#{purchaseView.labelForTier(tierOpt)}</h3>
+                                                    <p class="text-muted small mb-0">#{purchaseView.describeTierOption(tierOpt)}</p>
+                                                    <h:commandLink action="#{purchaseView.selectCitizenTier(tierOpt)}"
+                                                                  styleClass="stretched-link"
+                                                                  value=""
+                                                                  title="Choose #{purchaseView.labelForTier(tierOpt)}">
+                                                        <f:ajax execute="@this"
+                                                                render="purchaseForm:tier purchaseForm:variantSection purchaseForm:variant purchaseForm:totalCard purchaseForm:messages" />
+                                                    </h:commandLink>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div class="form-check">
-                                            <h:selectBooleanCheckbox id="smsDelivery"
-                                                                     value="#{purchaseView.deliverSms}"
-                                                                     styleClass="form-check-input">
-                                                <f:ajax render="totalCard" />
-                                            </h:selectBooleanCheckbox>
-                                            <label class="form-check-label" for="purchaseForm:smsDelivery">SMS</label>
-                                        </div>
-                                    </h:panelGroup>
-                                    <h:message for="deliveryOptions" styleClass="text-danger small mt-1 d-block" />
+                                    </ui:repeat>
                                 </div>
-                                <div class="col-12 col-md-6">
-                                    <label for="purchaseForm:email" class="form-label">Email address</label>
-                                    <h:inputText id="email"
-                                                 value="#{purchaseView.email}"
-                                                 styleClass="form-control"
-                                                 pt:type="email"
-                                                 pt:placeholder="name@example.com" />
-                                    <h:message for="email" styleClass="text-danger small mt-1 d-block" />
-                                </div>
-                                <div class="col-12 col-md-6">
-                                    <label for="purchaseForm:msisdn" class="form-label">Phone number</label>
-                                    <h:inputText id="msisdn"
-                                                 value="#{purchaseView.msisdn}"
-                                                 styleClass="form-control"
-                                                 pt:placeholder="+233XXXXXXXXX" />
-                                    <h:message for="msisdn" styleClass="text-danger small mt-1 d-block" />
-                                </div>
+                                <h:message for="tier" styleClass="text-danger small mt-2 d-block" />
                             </div>
                         </div>
-                    </div>
+                    </h:panelGroup>
+
+                    <h:panelGroup id="variantSection" layout="block" rendered="#{not empty purchaseView.variants}">
+                        <div class="card shadow-sm">
+                            <div class="card-body">
+                                <h2 class="h5 fw-semibold mb-3">Step 3 · Pick a renewal package</h2>
+                                <p class="text-muted mb-4">Each package includes a masked PIN delivered through your chosen channels as soon as payment is confirmed.</p>
+                                <h:selectOneMenu id="variant"
+                                                 value="#{purchaseView.selectedSku}"
+                                                 styleClass="d-none">
+                                    <f:selectItems value="#{purchaseView.variants}"
+                                                   var="variant"
+                                                   itemValue="#{variant.sku}"
+                                                   itemLabel="#{variant.displayName}" />
+                                </h:selectOneMenu>
+                                <div class="row row-cols-1 row-cols-md-2 g-3" id="variantGrid">
+                                    <ui:repeat value="#{purchaseView.variants}" var="variant">
+                                        <div class="col">
+                                            <div class="product-card h-100 #{purchaseView.isSkuSelected(variant.sku) ? 'selected' : ''}">
+                                                <div class="card-body d-flex flex-column gap-2">
+                                                    <div>
+                                                        <span class="badge bg-primary-subtle text-primary-emphasis mb-2">#{purchaseView.labelForCitizenship(variant.citizenship)}</span>
+                                                        <h3 class="h6 fw-semibold mb-1">#{variant.displayName}</h3>
+                                                        <p class="text-muted small mb-0">#{purchaseView.describeVariant(variant)}</p>
+                                                    </div>
+                                                    <div class="mt-auto">
+                                                        <p class="fw-semibold fs-5 mb-2">#{purchaseView.formatPrice(variant.price())}</p>
+                                                        <h:commandLink action="#{purchaseView.selectSku(variant.sku)}"
+                                                                      styleClass="btn btn-outline-primary w-100"
+                                                                      value="#{purchaseView.isSkuSelected(variant.sku) ? 'Selected' : 'Choose package'}">
+                                                            <f:ajax execute="@this"
+                                                                    render="purchaseForm:variant purchaseForm:variantSection purchaseForm:totalCard" />
+                                                        </h:commandLink>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </ui:repeat>
+                                </div>
+                                <h:message for="variant" styleClass="text-danger small mt-2 d-block" />
+                            </div>
+                        </div>
+                    </h:panelGroup>
+
+                    <ui:include src="/WEB-INF/partials/purchase-delivery.xhtml" />
 
                     <div class="d-flex flex-column flex-sm-row gap-3">
-                        <h:commandButton value="Continue"
+                        <h:commandButton value="Review &amp; confirm"
                                          action="#{purchaseView.submitEnrollment}"
                                          styleClass="btn btn-primary btn-lg" />
+                        <h:link outcome="/index" styleClass="btn btn-outline-secondary btn-lg">Back to storefront</h:link>
                     </div>
                 </h:form>
             </div>
-            <div class="col-12 col-lg-5">
+            <div class="col-12 col-xl-5 col-xxl-4">
                 <div class="position-sticky top-0">
                     <h:panelGroup id="totalCard" layout="block" pt:aria-live="polite" pt:aria-atomic="true">
                         <div class="card shadow-sm">
                             <div class="card-body">
                                 <h2 class="h6 text-uppercase text-muted mb-3">Order summary</h2>
-                                <dl class="row mb-0">
+                                <dl class="row mb-0 small">
                                     <dt class="col-5">Variant</dt>
-                                    <dd class="col-7 fw-semibold">#{empty purchaseView.unitLabel ? 'Select a variant' : purchaseView.unitLabel}</dd>
+                                    <dd class="col-7 fw-semibold">#{empty purchaseView.unitLabel ? 'Select a package' : purchaseView.unitLabel}</dd>
                                     <dt class="col-5">Unit price</dt>
                                     <dd class="col-7">#{empty purchaseView.unitPriceFormatted ? '—' : purchaseView.unitPriceFormatted}</dd>
                                     <dt class="col-5">Quantity</dt>
                                     <dd class="col-7">#{purchaseView.qty}</dd>
+                                    <dt class="col-5">Payment</dt>
+                                    <dd class="col-7">#{purchaseView.paymentModeTitle(purchaseView.mode)}</dd>
                                     <dt class="col-5">Total</dt>
-                                    <dd class="col-7 fw-bold">#{empty purchaseView.totalFormatted ? '—' : purchaseView.totalFormatted}</dd>
+                                    <dd class="col-7 fw-bold fs-5">#{empty purchaseView.totalFormatted ? '—' : purchaseView.totalFormatted}</dd>
                                 </dl>
                             </div>
                         </div>

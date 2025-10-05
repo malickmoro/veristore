@@ -203,6 +203,14 @@ public class PurchaseView implements Serializable {
         return List.of(CitizenshipType.CITIZEN, CitizenshipType.NON_CITIZEN, CitizenshipType.REFUGEE);
     }
 
+    public void selectCitizenship(CitizenshipType choice) {
+        setCitizenship(choice);
+    }
+
+    public boolean isCitizenshipSelected(CitizenshipType type) {
+        return type != null && type == citizenship;
+    }
+
     public List<CitizenTier> getTiersForCitizen() {
         if (appType == null || appType == ApplicationType.VERIFICATION) {
             return List.of();
@@ -213,11 +221,27 @@ public class PurchaseView implements Serializable {
         return List.of();
     }
 
+    public void selectCitizenTier(CitizenTier tier) {
+        setCitizenTier(tier);
+    }
+
+    public boolean isCitizenTierSelected(CitizenTier tier) {
+        return tier != null && tier == citizenTier;
+    }
+
     public List<UpdateType> getUpdateTypes() {
         if (appType == ApplicationType.UPDATE) {
             return Arrays.asList(UpdateType.values());
         }
         return List.of();
+    }
+
+    public void selectUpdateType(UpdateType type) {
+        setUpdateType(type);
+    }
+
+    public boolean isUpdateTypeSelected(UpdateType type) {
+        return type != null && type == updateType;
     }
 
     public List<EnrollmentSku> getVariants() {
@@ -255,6 +279,16 @@ public class PurchaseView implements Serializable {
         return variants;
     }
 
+    public void selectSku(String sku) {
+        if (sku != null && !sku.isBlank()) {
+            this.selectedSku = sku;
+        }
+    }
+
+    public boolean isSkuSelected(String sku) {
+        return sku != null && sku.equals(selectedSku);
+    }
+
     public Price getUnitPrice() {
         if (selectedSku == null || selectedSku.isBlank()) {
             return null;
@@ -274,6 +308,10 @@ public class PurchaseView implements Serializable {
 
     public String getUnitPriceFormatted() {
         Price price = getUnitPrice();
+        return price == null ? "" : pricingService.format(price);
+    }
+
+    public String formatPrice(Price price) {
         return price == null ? "" : pricingService.format(price);
     }
 
@@ -333,6 +371,94 @@ public class PurchaseView implements Serializable {
 
     public String labelForUpdate(UpdateType type) {
         return CatalogLabels.updateLabel(type);
+    }
+
+    public String describeCitizenshipOption(CitizenshipType type) {
+        if (type == null) {
+            return "";
+        }
+        return switch (type) {
+            case CITIZEN -> "For Ghanaian citizens across standard and premium tiers.";
+            case NON_CITIZEN -> "For foreign nationals needing renewal, replacement, or updates.";
+            case REFUGEE -> "Special pricing and durations for registered refugees.";
+        };
+    }
+
+    public String describeTierOption(CitizenTier tier) {
+        if (tier == null) {
+            return "";
+        }
+        return switch (tier) {
+            case STANDARD -> "Regular service with the most affordable pricing.";
+            case PREMIUM -> "Priority handling with premium service levels.";
+        };
+    }
+
+    public String describeUpdateOption(UpdateType type) {
+        if (type == null) {
+            return "";
+        }
+        return CatalogLabels.updateLabel(type);
+    }
+
+    public String describeVariant(EnrollmentSku sku) {
+        if (sku == null) {
+            return "";
+        }
+        return switch (sku.appType) {
+            case FIRST_ISSUANCE -> "First issuance support for new applicants.";
+            case RENEWAL -> sku.durationYears > 0
+                ? (sku.durationYears == 1 ? "Valid for 1 year." : "Valid for " + sku.durationYears + " years.")
+                : "Single renewal issuance.";
+            case REPLACEMENT -> "Replacement PIN for lost or damaged cards.";
+            case UPDATE -> sku.updateType == null
+                ? "Update existing enrollment details."
+                : CatalogLabels.updateLabel(sku.updateType) + " update.";
+            case VERIFICATION -> "";
+        };
+    }
+
+    public String describeVerificationVariant(VerificationSku sku) {
+        if (sku == null) {
+            return "";
+        }
+        return switch (sku) {
+            case Y1 -> "12 months of verification access.";
+            case Y2 -> "24 months of verification access.";
+            case Y3 -> "36 months of verification access.";
+        };
+    }
+
+    public PaymentMode[] getPaymentModes() {
+        return PaymentMode.values();
+    }
+
+    public void selectPaymentMode(PaymentMode newMode) {
+        setMode(newMode);
+    }
+
+    public boolean isPaymentModeSelected(PaymentMode modeOption) {
+        return modeOption != null && modeOption == mode;
+    }
+
+    public String paymentModeTitle(PaymentMode modeOption) {
+        if (modeOption == null) {
+            return "";
+        }
+        return switch (modeOption) {
+            case PAY_NOW -> "Pay now";
+            case PAY_LATER -> "Pay later";
+        };
+    }
+
+    public String describePaymentMode(PaymentMode modeOption) {
+        if (modeOption == null) {
+            return "";
+        }
+        return switch (modeOption) {
+            case PAY_NOW -> "Checkout instantly and receive masked PINs immediately.";
+            case PAY_LATER -> "Generate an invoice for bank payment and redeem later.";
+        };
     }
 
     public String submitEnrollment() {
