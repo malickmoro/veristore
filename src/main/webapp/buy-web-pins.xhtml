@@ -31,14 +31,16 @@
                                         <h:inputText id="merchantCode"
                                                      value="#{pinPurchaseView.merchantCode}"
                                                      styleClass="form-control form-control-lg"
-                                                     pt:placeholder="Enter merchant code" />
+                                                     pt:placeholder="Enter merchant code"
+                                                     required="true"
+                                                     requiredMessage="Enter a merchant code." />
                                     </div>
                                     <div class="col-auto">
                                         <h:commandButton value="Search"
                                                          action="#{pinPurchaseView.searchMerchant}"
                                                          styleClass="btn btn-dark btn-lg rounded-4">
                                             <f:ajax execute="pinForm:merchantCode"
-                                                    render="pinForm:messages pinForm:searchResults pinForm:stepTwo pinForm:addToCartButton" />
+                                                    render="pinForm:messages pinForm:merchantCode pinForm:searchResults pinForm:stepTwo pinForm:addToCartButton" />
                                         </h:commandButton>
                                     </div>
                                 </div>
@@ -46,7 +48,7 @@
                             </div>
 
                             <h:panelGroup id="searchResults" layout="block">
-                                <ui:fragment rendered="#{pinPurchaseView.lookupAttempted and not pinPurchaseView.merchantFound}">
+                                <ui:fragment rendered="#{pinPurchaseView.lookupAttempted and not pinPurchaseView.merchantFound and not empty pinPurchaseView.merchantCode}">
                                     <div class="alert alert-danger mb-0" role="alert">
                                         No merchant found for code <strong>#{pinPurchaseView.merchantCode}</strong>. Check the code and try again.
                                     </div>

@@ -109,24 +109,16 @@ public class VerificationPinPurchaseView implements Serializable {
     public void searchMerchant() {
         lookupAttempted = true;
         merchant = null;
-        if (merchantCode == null || merchantCode.isBlank()) {
-            lookupAttempted = false;
-            addMessage(componentId("merchantCode"), FacesMessage.SEVERITY_ERROR, "Enter a merchant code.");
-            return;
-        }
+        // JSF required validation will handle empty codes
         String normalized = merchantCode.toUpperCase(Locale.ROOT);
         merchantCode = normalized;
         Optional<MerchantProfile> match = MerchantDirectory.lookup(normalized);
         if (match.isEmpty()) {
-            addMessage(componentId("merchantCode"), FacesMessage.SEVERITY_ERROR, "No merchant found for code " + normalized + ".");
+            // Don't add global message - let the search results panel handle the display
             return;
         }
         merchant = match.get();
-        if (!isEligible()) {
-            addMessage(null, FacesMessage.SEVERITY_WARN, eligibilityMessage());
-        } else {
-            addMessage(null, FacesMessage.SEVERITY_INFO, merchant.name() + " is eligible to buy " + productLabel().toLowerCase(Locale.ROOT) + ".");
-        }
+        // Don't add global messages - let the search results panel handle the display
     }
 
     public boolean isEligible() {
@@ -139,7 +131,7 @@ public class VerificationPinPurchaseView implements Serializable {
         };
     }
 
-    public String eligibilityMessage() {
+    public String getEligibilityMessage() {
         if (merchant == null) {
             return "";
         }
@@ -255,7 +247,7 @@ public class VerificationPinPurchaseView implements Serializable {
         private static final List<MerchantProfile> MERCHANTS = List.of(
             new MerchantProfile("MERCH001", "Accra Digital Hub", "Accra", true, true),
             new MerchantProfile("MERCH145", "Kumasi Retail Group", "Kumasi", true, false),
-            new MerchantProfile("MERCH209", "Takoradi Telco", "Takoradi", false, true),
+            new MerchantProfile("MERCH008", "Takoradi Telco", "Takoradi", false, true),
             new MerchantProfile("MERCH377", "Tamale Market", "Tamale", true, true)
         );
 
