@@ -236,7 +236,7 @@ public class VerificationPinPurchaseView implements Serializable {
     private void queueMessage(FacesMessage.Severity severity, String summary) {
         FacesContext context = FacesContext.getCurrentInstance();
         context.addMessage(null, new FacesMessage(severity, summary, ""));
-        context.getExternalContext().getFlash().setKeepMessages(true);
+        // Remove Flash scope usage to avoid NullPointerException
     }
 
     private record MerchantProfile(String code, String name, String location, boolean mobileEligible, boolean webEligible) {
