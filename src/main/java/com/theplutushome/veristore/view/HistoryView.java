@@ -14,6 +14,8 @@ import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import java.io.Serial;
 import java.io.Serializable;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -91,6 +93,10 @@ public class HistoryView implements Serializable {
 
     public String describeService(OrderStore.Order order) {
         return VariantDescriptions.describe(order.getKey().family(), order.getKey().sku());
+    }
+
+    public LocalDateTime getCreatedLocalDateTime(OrderStore.Order order) {
+        return order.getCreated().atZone(ZoneId.systemDefault()).toLocalDateTime();
     }
 
     private String normalize(String value) {

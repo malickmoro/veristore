@@ -9,6 +9,30 @@
         <f:viewAction action="#{purchaseView.prepareReplacement}" />
     </f:metadata>
     <ui:define name="title">Replacement PINs – Veristore</ui:define>
+    <ui:define name="scripts">
+        <script>
+            function bindCitizenshipCards() {
+                document.querySelectorAll('.choice-card .stretched-link').forEach(link => {
+                    link.addEventListener('click', e => {
+                        document.querySelectorAll('.choice-card').forEach(card => card.classList.remove('selected'));
+                        e.target.closest('.choice-card').classList.add('selected');
+                    });
+                });
+            }
+
+            // Run on initial page load
+            document.addEventListener('DOMContentLoaded', bindCitizenshipCards);
+
+            // Re-run after any JSF partial update
+            if (window.jsf &amp;&amp; jsf.ajax) {
+                jsf.ajax.addOnEvent(function (data) {
+                    if (data.status === 'success') {
+                        bindCitizenshipCards();
+                    }
+                });
+            }
+        </script>
+    </ui:define>
     <ui:define name="content">
         <div class="row justify-content-center g-5">
             <div class="col-12 col-xl-10 col-xxl-8">
@@ -39,17 +63,15 @@
                                         <div class="col">
                                             <div class="choice-card h-100 #{purchaseView.isCitizenshipSelected(cit) ? 'selected' : ''}">
                                                 <div class="card-body text-center">
-                                                    <span class="choice-card-icon" aria-hidden="true">
-                                                        <h:outputText value="#{purchaseView.iconForCitizenship(cit)}" />
-                                                    </span>
+                                                    <div class="choice-card-icon">#{purchaseView.iconForCitizenship(cit)}</div>
                                                     <h3 class="h5 fw-semibold mb-2">#{purchaseView.labelForCitizenship(cit)}</h3>
                                                     <p class="text-muted small mb-0">#{purchaseView.describeCitizenshipOption(cit)}</p>
                                                     <h:commandLink action="#{purchaseView.selectCitizenship(cit)}"
-                                                                  styleClass="stretched-link"
-                                                                  value=""
-                                                                  title="Choose #{purchaseView.labelForCitizenship(cit)}">
+                                                                   styleClass="stretched-link"
+                                                                   value=""
+                                                                   title="Choose #{purchaseView.labelForCitizenship(cit)}">
                                                         <f:ajax execute="@this"
-                                                                render="purchaseForm:citizenship purchaseForm:citizenshipChoices purchaseForm:tierSection purchaseForm:variantSection purchaseForm:variantChoices purchaseForm:variantSummary purchaseForm:addToCartButton purchaseForm:messages" />
+                                                                render="purchaseForm:citizenship purchaseForm:tierSection purchaseForm:variantSection purchaseForm:variantChoices purchaseForm:variantSummary purchaseForm:addToCartButton purchaseForm:messages" />
                                                     </h:commandLink>
                                                 </div>
                                             </div>
@@ -80,7 +102,7 @@
                                     <div class="row row-cols-1 row-cols-md-2 g-3">
                                         <ui:repeat value="#{purchaseView.tiersForCitizen}" var="tierOpt">
                                             <div class="col">
-                                                <div class="tier-card h-100 #{purchaseView.isCitizenTierSelected(tierOpt) ? 'selected' : ''}">
+                                                <div class="product-card h-100 #{purchaseView.isCitizenTierSelected(tierOpt) ? 'selected' : ''}">
                                                     <div class="card-body">
                                                         <div class="d-flex justify-content-between align-items-start mb-3">
                                                             <div>
@@ -89,14 +111,12 @@
                                                             </div>
                                                             <span class="price-tag">#{purchaseView.tierPriceLabel(tierOpt)}</span>
                                                         </div>
-                                                        <div class="shimmer-hover">
-                                                            <h:commandLink action="#{purchaseView.selectCitizenTier(tierOpt)}"
-                                                                          styleClass="btn btn-dark btn-lg w-100 rounded-4"
-                                                                          value="#{purchaseView.isCitizenTierSelected(tierOpt) ? 'Selected' : 'Select'}">
-                                                                <f:ajax execute="@this"
-                                                                        render="purchaseForm:tier purchaseForm:variantSection purchaseForm:variantChoices purchaseForm:variantSummary purchaseForm:addToCartButton purchaseForm:messages" />
-                                                            </h:commandLink>
-                                                        </div>
+                                                        <h:commandLink action="#{purchaseView.selectCitizenTier(tierOpt)}"
+                                                                       styleClass="btn btn-outline-primary w-100"
+                                                                       value="#{purchaseView.isCitizenTierSelected(tierOpt) ? 'Selected' : 'Select'}">
+                                                            <f:ajax execute="@this"
+                                                                    render="purchaseForm:tier purchaseForm:tierSection purchaseForm:variantSection purchaseForm:variantChoices purchaseForm:variantSummary purchaseForm:addToCartButton purchaseForm:messages" />
+                                                        </h:commandLink>
                                                     </div>
                                                 </div>
                                             </div>
@@ -138,8 +158,8 @@
                                                                     <span class="fw-semibold fs-5 mb-0">#{purchaseView.formatPrice(variant.price())}</span>
                                                                 </div>
                                                                 <h:commandLink action="#{purchaseView.selectSku(variant.sku)}"
-                                                                              styleClass="btn btn-outline-primary w-100"
-                                                                              value="#{purchaseView.isSkuSelected(variant.sku) ? 'Selected' : 'Choose package'}">
+                                                                               styleClass="btn btn-outline-primary w-100"
+                                                                               value="#{purchaseView.isSkuSelected(variant.sku) ? 'Selected' : 'Choose package'}">
                                                                     <f:ajax execute="@this"
                                                                             render="purchaseForm:variant purchaseForm:variantChoices purchaseForm:variantSummary purchaseForm:addToCartButton purchaseForm:messages" />
                                                                 </h:commandLink>
@@ -182,8 +202,6 @@
                             </div>
                         </h:panelGroup>
                     </h:panelGroup>
-
-                    <p class="text-muted small">You can configure quantity, delivery channels, and payment during checkout.</p>
 
                     <div class="d-flex flex-column flex-sm-row gap-3">
                         <h:panelGroup id="addToCartButton" layout="block">

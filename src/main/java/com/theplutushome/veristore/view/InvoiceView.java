@@ -16,6 +16,8 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -99,6 +101,13 @@ public class InvoiceView implements Serializable {
             return List.of();
         }
         return invoice.getCodesIfDelivered().stream().map(Masker::mask).collect(Collectors.toList());
+    }
+
+    public LocalDateTime getCreatedLocalDateTime() {
+        if (invoice == null) {
+            return null;
+        }
+        return invoice.getCreated().atZone(ZoneId.systemDefault()).toLocalDateTime();
     }
 
     public String getSimulatePaymentUrl() {
