@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:pt="http://xmlns.jcp.org/jsf/passthrough"
+                template="/WEB-INF/template.xhtml">
+    <ui:define name="title">Your cart – Veristore</ui:define>
+    <ui:define name="content">
+        <section class="mb-4" aria-labelledby="cartHeading">
+            <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+                <div>
+                    <h1 id="cartHeading" class="display-6 fw-bold mb-1">Your cart</h1>
+                    <p class="text-muted mb-0">Review your selected PIN packages, adjust quantities, or remove items before checkout.</p>
+                </div>
+                <h:panelGroup layout="block" rendered="#{not cartView.hasNoItems}" styleClass="text-md-end">
+                    <span class="badge rounded-pill bg-primary-subtle text-primary fw-semibold px-3 py-2">
+                        #{cartView.itemCount} item#{cartView.itemCount eq 1 ? '' : 's'} in cart
+                    </span>
+                </h:panelGroup>
+            </div>
+        </section>
+
+        <h:form id="cartForm">
+            <h:panelGroup id="cartContent" layout="block" styleClass="d-flex flex-column gap-4">
+                <h:panelGroup rendered="#{cartView.hasNoItems}" layout="block">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body p-5 text-center">
+                            <div class="display-6 text-primary mb-3">🛒</div>
+                            <h2 class="h4 fw-semibold mb-2">Your cart is empty</h2>
+                            <p class="text-muted mb-4">Browse our catalog to add identity services tailored to your organisation.</p>
+                            <h:link outcome="/index" styleClass="btn btn-primary px-4 py-2">Continue shopping</h:link>
+                        </div>
+                    </div>
+                </h:panelGroup>
+
+                <h:panelGroup rendered="#{not cartView.hasNoItems}" layout="block">
+                    <div class="row g-4 align-items-start">
+                        <div class="col-12 col-lg-8">
+                            <div class="d-flex flex-column gap-3">
+                                <ui:repeat value="#{cartView.lines}" var="line">
+                                    <div class="card border-0 shadow-sm h-100">
+                                        <div class="card-body p-4">
+                                            <div class="d-flex flex-column flex-md-row justify-content-between gap-3 mb-3">
+                                                <div>
+                                                    <h2 class="h5 fw-semibold mb-1">#{line.name}</h2>
+                                                    <p class="text-muted small mb-1">SKU #{line.sku}</p>
+                                                    <p class="text-muted small mb-0">Unit price #{line.priceFormatted}</p>
+                                                </div>
+                                                <div class="text-md-end">
+                                                    <span class="fw-semibold d-block fs-5">#{line.totalFormatted}</span>
+                                                    <span class="text-muted small">Line total</span>
+                                                </div>
+                                            </div>
+                                            <div class="d-flex flex-column flex-sm-row align-items-sm-center gap-3">
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <h:outputLabel for="qty" value="Quantity" styleClass="small fw-semibold text-muted mb-0" />
+                                                    <h:inputText id="qty"
+                                                                 value="#{line.qty}"
+                                                                 styleClass="form-control"
+                                                                 style="width: 5rem;"
+                                                                 pt:type="number"
+                                                                 pt:min="1"
+                                                                 pt:max="10"
+                                                                 pt:step="1"
+                                                                 pt:aria-label="Set quantity for #{line.name}">
+                                                        <f:convertNumber integerOnly="true" />
+                                                    </h:inputText>
+                                                    <h:commandButton value="Update"
+                                                                     action="#{cartView.updateLineQuantity(line.sku, line.qty)}"
+                                                                     styleClass="btn btn-outline-primary">
+                                                        <f:ajax execute="qty @this" render="cartForm:cartContent :cartToggle" />
+                                                    </h:commandButton>
+                                                </div>
+                                                <div class="ms-sm-auto">
+                                                    <h:commandButton value="Remove"
+                                                                     action="#{cartView.removeLine(line.sku)}"
+                                                                     styleClass="btn btn-outline-secondary"
+                                                                     pt:aria-label="Remove #{line.name} from cart">
+                                                        <f:ajax render="cartForm:cartContent :cartToggle" />
+                                                    </h:commandButton>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </ui:repeat>
+                            </div>
+                        </div>
+                        <div class="col-12 col-lg-4">
+                            <aside class="card border-0 shadow-sm">
+                                <div class="card-body p-4">
+                                    <h2 class="h5 fw-semibold mb-3">Order summary</h2>
+                                    <ui:repeat value="#{cartView.totalsByCurrency.entrySet()}" var="total">
+                                        <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                                            <span class="text-muted fw-medium">#{total.key}</span>
+                                            <span class="fw-semibold">#{total.value}</span>
+                                        </div>
+                                    </ui:repeat>
+                                    <p class="small text-muted mt-3">Totals reflect the combined amount due per currency.</p>
+                                    <div class="d-grid gap-2 mt-4">
+                                        <h:commandButton value="Proceed to checkout"
+                                                         action="#{cartView.goToCheckout}"
+                                                         styleClass="btn btn-primary btn-lg" />
+                                        <h:link outcome="/index" styleClass="btn btn-outline-secondary">Continue shopping</h:link>
+                                    </div>
+                                </div>
+                            </aside>
+                        </div>
+                    </div>
+                </h:panelGroup>
+            </h:panelGroup>
+        </h:form>
+    </ui:define>
+</ui:composition>

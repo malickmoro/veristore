@@ -123,7 +123,7 @@
                                              action="#{pinPurchaseView.addToCart}"
                                              styleClass="btn btn-dark btn-lg rounded-4"
                                              rendered="#{pinPurchaseView.eligible}">
-                                <f:ajax execute="@form" render="pinForm:messages :cartToggle :cartDrawer" />
+                                <f:ajax execute="@form" render="pinForm:messages :cartToggle" />
                             </h:commandButton>
                         </h:panelGroup>
                         <h:link outcome="/index" styleClass="btn btn-outline-secondary btn-lg">Back to storefront</h:link>

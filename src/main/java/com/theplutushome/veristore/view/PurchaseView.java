@@ -29,9 +29,14 @@ import java.io.Serializable;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Named
 @ViewScoped
@@ -65,6 +70,7 @@ public class PurchaseView implements Serializable {
     private CitizenTier citizenTier;
     private UpdateType updateType;
     private String selectedSku;
+    private final Map<String, Number> variantQuantities = new ConcurrentHashMap<>();
     private int qty;
     private String email;
     private String msisdn;
@@ -121,7 +127,7 @@ public class PurchaseView implements Serializable {
             if (appType != ApplicationType.UPDATE) {
                 this.updateType = null;
             }
-            this.selectedSku = null;
+            resetVariantSelections();
             wizardStep = 1;
             normalizeWizardStep();
         }
@@ -134,7 +140,7 @@ public class PurchaseView implements Serializable {
     public void setCitizenTier(CitizenTier citizenTier) {
         if (!Objects.equals(this.citizenTier, citizenTier)) {
             this.citizenTier = citizenTier;
-            this.selectedSku = null;
+            resetVariantSelections();
             normalizeWizardStep();
         }
     }
@@ -146,7 +152,7 @@ public class PurchaseView implements Serializable {
     public void setUpdateType(UpdateType updateType) {
         if (!Objects.equals(this.updateType, updateType)) {
             this.updateType = updateType;
-            this.selectedSku = null;
+            resetVariantSelections();
             normalizeWizardStep();
         }
     }
@@ -166,18 +172,13 @@ public class PurchaseView implements Serializable {
         return switch (appType) {
             case FIRST_ISSUANCE -> List.of(WizardStep.CITIZENSHIP, WizardStep.PACKAGE);
             case RENEWAL -> List.of(WizardStep.CITIZENSHIP, WizardStep.PACKAGE);
-            case REPLACEMENT -> {
-                if (citizenship == null || citizenship == CitizenshipType.CITIZEN) {
-                    yield List.of(WizardStep.CITIZENSHIP, WizardStep.TIER, WizardStep.PACKAGE);
-                }
-                yield List.of(WizardStep.CITIZENSHIP, WizardStep.PACKAGE);
-            }
+            case REPLACEMENT -> List.of(WizardStep.CITIZENSHIP, WizardStep.PACKAGE);
             case UPDATE -> {
                 boolean tierNeeded = citizenship == null || citizenship == CitizenshipType.CITIZEN;
                 if (tierNeeded) {
-                    yield List.of(WizardStep.CITIZENSHIP, WizardStep.TIER, WizardStep.UPDATE_TYPE, WizardStep.PACKAGE);
+                    yield List.of(WizardStep.CITIZENSHIP, WizardStep.TIER, WizardStep.PACKAGE);
                 }
-                yield List.of(WizardStep.CITIZENSHIP, WizardStep.UPDATE_TYPE, WizardStep.PACKAGE);
+                yield List.of(WizardStep.CITIZENSHIP, WizardStep.PACKAGE);
             }
             case VERIFICATION -> List.of(WizardStep.PACKAGE);
         };
@@ -350,13 +351,7 @@ public class PurchaseView implements Serializable {
     }
 
     public void setQty(int qty) {
-        if (qty < 1) {
-            this.qty = 1;
-        } else if (qty > 10) {
-            this.qty = 10;
-        } else {
-            this.qty = qty;
-        }
+        this.qty = clampQuantity(qty);
     }
 
     public String getEmail() {
@@ -453,21 +448,8 @@ public class PurchaseView implements Serializable {
         if (citizenship == null) {
             return List.of();
         }
-        // For renewals and first issuance, tier is not required - show all packages
-        // For replacements and updates, tier is required for citizens only
-        if (appType != ApplicationType.RENEWAL && appType != ApplicationType.FIRST_ISSUANCE) {
-            if (appType == ApplicationType.UPDATE || appType == ApplicationType.REPLACEMENT) {
-                // For updates and replacements, only require tier for citizens
-                if (citizenship == CitizenshipType.CITIZEN && citizenTier == null) {
-                    return List.of();
-                }
-            } else {
-                // For other types, use the standard tier requirement logic
-                if (citizenship == CitizenshipType.CITIZEN && isTierRequired() && citizenTier == null) {
-                    return List.of();
-                }
-            }
-        }
+        // For renewals and first issuance, tier is not required
+        // For replacements and updates, tier is no longer required (show all packages)
         List<EnrollmentSku> variants = switch (appType) {
             case FIRST_ISSUANCE ->
                 EnrollmentSku.filter(citizenship, ApplicationType.FIRST_ISSUANCE, null, citizenTier);
@@ -482,6 +464,7 @@ public class PurchaseView implements Serializable {
             case VERIFICATION ->
                 List.of();
         };
+        syncVariantQuantities(variants);
         syncSelectedSku(variants.stream().map(sku -> sku.sku).toList());
         return variants;
     }
@@ -501,6 +484,10 @@ public class PurchaseView implements Serializable {
         if (sku != null && !sku.isBlank()) {
             this.selectedSku = sku;
         }
+    }
+
+    public Map<String, Number> getVariantQuantities() {
+        return variantQuantities;
     }
 
     public boolean isSkuSelected(String sku) {
@@ -772,15 +759,35 @@ public class PurchaseView implements Serializable {
             if (!finalizeValidation(validateEnrollmentSelections())) {
                 return null;
             }
-            added = addSelectionToCartWithDefaults(new ProductKey(ProductFamily.ENROLLMENT, selectedSku));
+            added = addSelectionToCartWithDefaults(new ProductKey(ProductFamily.ENROLLMENT, selectedSku), qty);
+            if (added && selectedSku != null) {
+                variantQuantities.put(selectedSku, qty);
+            }
         }
         if (added) {
-            String productName = getUnitLabel();
-            String message = qty > 1
-                    ? String.format("%s (×%d) added to cart.", productName, qty)
-                    : String.format("%s added to cart.", productName);
-            queueMessage(FacesMessage.SEVERITY_INFO, message);
-            return "/index?faces-redirect=true";
+            notifyCartAddition(qty);
+        }
+        return null;
+    }
+
+    public String addVariantToCart(String sku) {
+        if (!isEnrollmentFlow()) {
+            return null;
+        }
+        if (sku == null || sku.isBlank()) {
+            addMessage(componentId("variant"), FacesMessage.SEVERITY_ERROR, "Choose a package.");
+            return null;
+        }
+        selectSku(sku);
+        if (!finalizeValidation(validateEnrollmentSelections())) {
+            return null;
+        }
+        int quantity = resolveVariantQuantity(sku);
+        variantQuantities.put(sku, quantity);
+        setQty(quantity);
+        boolean added = addSelectionToCartWithDefaults(new ProductKey(ProductFamily.ENROLLMENT, selectedSku), quantity);
+        if (added) {
+            notifyCartAddition(quantity);
         }
         return null;
     }
@@ -914,6 +921,14 @@ public class PurchaseView implements Serializable {
         }
     }
 
+    private void syncVariantQuantities(List<EnrollmentSku> variants) {
+        Set<String> available = variants.stream()
+            .map(sku -> sku.sku)
+            .collect(Collectors.toCollection(HashSet::new));
+        variantQuantities.keySet().removeIf(sku -> !available.contains(sku));
+        available.forEach(sku -> variantQuantities.putIfAbsent(sku, 1));
+    }
+
     public boolean hasSelectedSku() {
         if (appType != ApplicationType.VERIFICATION && (selectedSku == null || selectedSku.isBlank())) {
             getVariants();
@@ -1034,7 +1049,7 @@ public class PurchaseView implements Serializable {
         return true;
     }
 
-    private boolean addSelectionToCartWithDefaults(ProductKey key) {
+    private boolean addSelectionToCartWithDefaults(ProductKey key, int quantity) {
         Price unitPrice = getUnitPrice();
         if (unitPrice == null) {
             addMessage(componentId("variant"), FacesMessage.SEVERITY_ERROR, "Select a package.");
@@ -1042,14 +1057,14 @@ public class PurchaseView implements Serializable {
         }
         // Use default values for add-to-cart flow - user will configure during checkout
         cartView.addOrUpdateLine(key,
-                getUnitLabel(),
-                unitPrice,
-                1, // Default quantity
-                PaymentMode.PAY_NOW, // Default payment mode
-                true, // Default to email delivery
-                false, // Default to no SMS
-                "", // Empty email - will be configured at checkout
-                ""); // Empty phone - will be configured at checkout
+            getUnitLabel(),
+            unitPrice,
+            quantity,
+            PaymentMode.PAY_NOW, // Default payment mode
+            true, // Default to email delivery
+            false, // Default to no SMS
+            "", // Empty email - will be configured at checkout
+            ""); // Empty phone - will be configured at checkout
         return true;
     }
 
@@ -1132,9 +1147,44 @@ public class PurchaseView implements Serializable {
                     this.updateType = null;
                 }
             }
-            this.selectedSku = null;
+            resetVariantSelections();
             wizardStep = 1;
             normalizeWizardStep();
         }
+    }
+
+    private void resetVariantSelections() {
+        this.selectedSku = null;
+        variantQuantities.clear();
+    }
+
+    private int resolveVariantQuantity(String sku) {
+        Number requested = variantQuantities.get(sku);
+        if (requested == null) {
+            return qty > 0 ? qty : 1;
+        }
+        int value = requested.intValue();
+        return clampQuantity(value);
+    }
+
+    private int clampQuantity(int value) {
+        if (value < 1) {
+            return 1;
+        }
+        if (value > 10) {
+            return 10;
+        }
+        return value;
+    }
+
+    private void notifyCartAddition(int quantity) {
+        String productName = getUnitLabel();
+        if (productName == null || productName.isBlank()) {
+            productName = "Item";
+        }
+        String message = quantity > 1
+            ? String.format("%s (×%d) added to cart.", productName, quantity)
+            : String.format("%s added to cart.", productName);
+        queueMessage(FacesMessage.SEVERITY_INFO, message);
     }
 }
