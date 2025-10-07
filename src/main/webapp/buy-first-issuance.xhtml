@@ -9,6 +9,31 @@
         <f:viewAction action="#{purchaseView.prepareFirstIssuance}" />
     </f:metadata>
     <ui:define name="title">First issuance – Veristore</ui:define>
+    <ui:define name="scripts">
+        <script>
+            function bindCitizenshipCards() {
+                document.querySelectorAll('.choice-card .stretched-link').forEach(link => {
+                    link.addEventListener('click', e => {
+                        document.querySelectorAll('.choice-card').forEach(card => card.classList.remove('selected'));
+                        e.target.closest('.choice-card').classList.add('selected');
+                    });
+                });
+            }
+
+            // Run on initial page load
+            document.addEventListener('DOMContentLoaded', bindCitizenshipCards);
+
+            // Re-run after any JSF partial update
+            if (window.jsf &amp;&amp; jsf.ajax) {
+                jsf.ajax.addOnEvent(function (data) {
+                    if (data.status === 'success') {
+                        bindCitizenshipCards();
+                    }
+                });
+            }
+        </script>
+    </ui:define>
+
     <ui:define name="content">
         <div class="row justify-content-center g-5">
             <div class="col-12 col-xl-10 col-xxl-8">

@@ -453,11 +453,11 @@ public class PurchaseView implements Serializable {
         if (citizenship == null) {
             return List.of();
         }
-        // For renewals, replacements, and first issuance, tier is not required - show all packages
-        // For updates, tier is required for citizens only
-        if (appType != ApplicationType.RENEWAL && appType != ApplicationType.REPLACEMENT && appType != ApplicationType.FIRST_ISSUANCE) {
-            if (appType == ApplicationType.UPDATE) {
-                // For updates, only require tier for citizens
+        // For renewals and first issuance, tier is not required - show all packages
+        // For replacements and updates, tier is required for citizens only
+        if (appType != ApplicationType.RENEWAL && appType != ApplicationType.FIRST_ISSUANCE) {
+            if (appType == ApplicationType.UPDATE || appType == ApplicationType.REPLACEMENT) {
+                // For updates and replacements, only require tier for citizens
                 if (citizenship == CitizenshipType.CITIZEN && citizenTier == null) {
                     return List.of();
                 }
@@ -469,14 +469,18 @@ public class PurchaseView implements Serializable {
             }
         }
         List<EnrollmentSku> variants = switch (appType) {
-            case FIRST_ISSUANCE -> EnrollmentSku.filter(citizenship, ApplicationType.FIRST_ISSUANCE, null, citizenTier);
-            case RENEWAL -> EnrollmentSku.renewalsFor(citizenship);
-            case REPLACEMENT -> EnrollmentSku.filter(citizenship, ApplicationType.REPLACEMENT, null, citizenTier);
+            case FIRST_ISSUANCE ->
+                EnrollmentSku.filter(citizenship, ApplicationType.FIRST_ISSUANCE, null, citizenTier);
+            case RENEWAL ->
+                EnrollmentSku.renewalsFor(citizenship);
+            case REPLACEMENT ->
+                EnrollmentSku.filter(citizenship, ApplicationType.REPLACEMENT, null, citizenTier);
             case UPDATE -> {
                 // Update type is no longer required - show all update packages
                 yield EnrollmentSku.filter(citizenship, ApplicationType.UPDATE, null, citizenTier);
             }
-            case VERIFICATION -> List.of();
+            case VERIFICATION ->
+                List.of();
         };
         syncVariantQuantities(variants);
         syncSelectedSku(variants.stream().map(sku -> sku.sku).toList());
@@ -488,8 +492,8 @@ public class PurchaseView implements Serializable {
             return List.of();
         }
         List<VerificationSku> variants = Arrays.stream(VerificationSku.values())
-            .filter(variant -> variant.getCategory() == VerificationSku.VerificationSkuCategory.DURATION)
-            .toList();
+                .filter(variant -> variant.getCategory() == VerificationSku.VerificationSkuCategory.DURATION)
+                .toList();
         syncSelectedSku(variants.stream().map(sku -> sku.sku).toList());
         return variants;
     }
@@ -514,15 +518,15 @@ public class PurchaseView implements Serializable {
         }
         if (appType == ApplicationType.VERIFICATION) {
             return VerificationSku.bySku(selectedSku)
-                .map(VerificationSku::price)
-                .orElse(null);
+                    .map(VerificationSku::price)
+                    .orElse(null);
         }
         if (appType == null) {
             return null;
         }
         return EnrollmentSku.bySku(selectedSku)
-            .map(EnrollmentSku::price)
-            .orElse(null);
+                .map(EnrollmentSku::price)
+                .orElse(null);
     }
 
     public String getUnitPriceFormatted() {
@@ -540,15 +544,15 @@ public class PurchaseView implements Serializable {
         }
         if (appType == ApplicationType.VERIFICATION) {
             return VerificationSku.bySku(selectedSku)
-                .map(sku -> sku.displayName)
-                .orElse(selectedSku);
+                    .map(sku -> sku.displayName)
+                    .orElse(selectedSku);
         }
         if (appType == null) {
             return "";
         }
         return EnrollmentSku.bySku(selectedSku)
-            .map(sku -> sku.displayName)
-            .orElse(selectedSku);
+                .map(sku -> sku.displayName)
+                .orElse(selectedSku);
     }
 
     public String getTotalFormatted() {
@@ -582,9 +586,12 @@ public class PurchaseView implements Serializable {
 
     public String labelForCitizenship(CitizenshipType type) {
         return switch (type) {
-            case CITIZEN -> "Citizen";
-            case NON_CITIZEN -> "Non-citizen";
-            case REFUGEE -> "Refugee";
+            case CITIZEN ->
+                "Citizen";
+            case NON_CITIZEN ->
+                "Non-citizen";
+            case REFUGEE ->
+                "Refugee";
         };
     }
 
@@ -601,9 +608,12 @@ public class PurchaseView implements Serializable {
             return "";
         }
         return switch (type) {
-            case CITIZEN -> "Ghanaian applicants enrolling for their first national ID.";
-            case NON_CITIZEN -> "Foreign residents completing registration in Ghana.";
-            case REFUGEE -> "Refugee programme participants issued by NIA.";
+            case CITIZEN ->
+                "Ghanaian applicants enrolling for their first national ID.";
+            case NON_CITIZEN ->
+                "Foreign residents completing registration in Ghana.";
+            case REFUGEE ->
+                "Refugee programme participants issued by NIA.";
         };
     }
 
@@ -612,8 +622,10 @@ public class PurchaseView implements Serializable {
             return "";
         }
         return switch (tier) {
-            case STANDARD -> "Simple, standard service – affordable.";
-            case PREMIUM -> "Priority processing – instant issuance.";
+            case STANDARD ->
+                "Simple, standard service – affordable.";
+            case PREMIUM ->
+                "Priority processing – instant issuance.";
         };
     }
 
@@ -629,21 +641,29 @@ public class PurchaseView implements Serializable {
             return "";
         }
         return switch (sku.appType) {
-            case FIRST_ISSUANCE -> switch (sku.citizenship) {
-                case CITIZEN -> sku.citizenTier == CitizenTier.PREMIUM
-                    ? "Premium citizen package with priority fulfilment."
-                    : "Regular citizen package for first-time enrolment.";
-                case NON_CITIZEN -> "First issuance for foreign residents.";
-                case REFUGEE -> "First issuance for registered refugees.";
-            };
-            case RENEWAL -> sku.durationYears > 0
+            case FIRST_ISSUANCE ->
+                switch (sku.citizenship) {
+                    case CITIZEN ->
+                        sku.citizenTier == CitizenTier.PREMIUM
+                        ? "Premium citizen package with priority fulfilment."
+                        : "Regular citizen package for first-time enrolment.";
+                    case NON_CITIZEN ->
+                        "First issuance for foreign residents.";
+                    case REFUGEE ->
+                        "First issuance for registered refugees.";
+                };
+            case RENEWAL ->
+                sku.durationYears > 0
                 ? (sku.durationYears == 1 ? "Valid for 1 year." : "Valid for " + sku.durationYears + " years.")
                 : "Single renewal issuance.";
-            case REPLACEMENT -> "Replacement PIN for lost or damaged cards.";
-            case UPDATE -> sku.updateType == null
+            case REPLACEMENT ->
+                "Replacement PIN for lost or damaged cards.";
+            case UPDATE ->
+                sku.updateType == null
                 ? "Update existing enrollment details."
                 : CatalogLabels.updateLabel(sku.updateType) + " update.";
-            case VERIFICATION -> "";
+            case VERIFICATION ->
+                "";
         };
     }
 
@@ -652,19 +672,27 @@ public class PurchaseView implements Serializable {
             return "";
         }
         return switch (sku.appType) {
-            case FIRST_ISSUANCE -> switch (sku.citizenship) {
-                case CITIZEN -> sku.citizenTier == CitizenTier.PREMIUM
-                    ? "Citizen • Premium First Issuance"
-                    : "Citizen • Regular First Issuance";
-                case NON_CITIZEN -> "Non-citizen • First Issuance";
-                case REFUGEE -> "Refugee • First Issuance";
-            };
-            case RENEWAL -> (sku.durationYears > 0
+            case FIRST_ISSUANCE ->
+                switch (sku.citizenship) {
+                    case CITIZEN ->
+                        sku.citizenTier == CitizenTier.PREMIUM
+                        ? "Citizen • Premium First Issuance"
+                        : "Citizen • Regular First Issuance";
+                    case NON_CITIZEN ->
+                        "Non-citizen • First Issuance";
+                    case REFUGEE ->
+                        "Refugee • First Issuance";
+                };
+            case RENEWAL ->
+                (sku.durationYears > 0
                 ? labelForCitizenship(sku.citizenship) + " • Renewal (" + sku.durationYears + (sku.durationYears == 1 ? " year)" : " years)")
                 : labelForCitizenship(sku.citizenship) + " • Renewal");
-            case REPLACEMENT -> labelForCitizenship(sku.citizenship) + " • Replacement";
-            case UPDATE -> labelForCitizenship(sku.citizenship) + " • " + CatalogLabels.updateLabel(sku.updateType);
-            case VERIFICATION -> "Verification";
+            case REPLACEMENT ->
+                labelForCitizenship(sku.citizenship) + " • Replacement";
+            case UPDATE ->
+                labelForCitizenship(sku.citizenship) + " • " + CatalogLabels.updateLabel(sku.updateType);
+            case VERIFICATION ->
+                "Verification";
         };
     }
 
@@ -673,11 +701,16 @@ public class PurchaseView implements Serializable {
             return "";
         }
         return switch (sku) {
-            case Y1 -> "12 months of verification access.";
-            case Y2 -> "24 months of verification access.";
-            case Y3 -> "36 months of verification access.";
-            case MOBILE -> "Bundle of mobile verification PINs for on-device checks.";
-            case WEB -> "Bundle of web verification PINs for browser-based checks.";
+            case Y1 ->
+                "12 months of verification access.";
+            case Y2 ->
+                "24 months of verification access.";
+            case Y3 ->
+                "36 months of verification access.";
+            case MOBILE ->
+                "Bundle of mobile verification PINs for on-device checks.";
+            case WEB ->
+                "Bundle of web verification PINs for browser-based checks.";
         };
     }
 
@@ -698,8 +731,10 @@ public class PurchaseView implements Serializable {
             return "";
         }
         return switch (modeOption) {
-            case PAY_NOW -> "Pay now";
-            case PAY_LATER -> "Pay later";
+            case PAY_NOW ->
+                "Pay now";
+            case PAY_LATER ->
+                "Pay later";
         };
     }
 
@@ -708,8 +743,10 @@ public class PurchaseView implements Serializable {
             return "";
         }
         return switch (modeOption) {
-            case PAY_NOW -> "Checkout instantly and receive masked PINs immediately.";
-            case PAY_LATER -> "Generate an invoice for bank payment and redeem later.";
+            case PAY_NOW ->
+                "Checkout instantly and receive masked PINs immediately.";
+            case PAY_LATER ->
+                "Generate an invoice for bank payment and redeem later.";
         };
     }
 
@@ -787,11 +824,11 @@ public class PurchaseView implements Serializable {
             addMessage(componentId("citizenship"), FacesMessage.SEVERITY_ERROR, "Select a citizenship.");
             valid = false;
         }
-        // For renewals, replacements, and first issuance, tier is not required
-        // For updates, tier is required for citizens only
-        if (appType != ApplicationType.RENEWAL && appType != ApplicationType.REPLACEMENT && appType != ApplicationType.FIRST_ISSUANCE) {
-            if (appType == ApplicationType.UPDATE) {
-                // For updates, only require tier for citizens
+        // For renewals and first issuance, tier is not required
+        // For replacements and updates, tier is required for citizens only
+        if (appType != ApplicationType.RENEWAL && appType != ApplicationType.FIRST_ISSUANCE) {
+            if (appType == ApplicationType.UPDATE || appType == ApplicationType.REPLACEMENT) {
+                // For updates and replacements, only require tier for citizens
                 if (citizenship == CitizenshipType.CITIZEN && citizenTier == null) {
                     addMessage(componentId("tier"), FacesMessage.SEVERITY_ERROR, "Select a citizen tier.");
                     valid = false;
@@ -974,10 +1011,14 @@ public class PurchaseView implements Serializable {
         if (type == null) {
             return "";
         }
+        System.out.println("The citizen type is >>>" + type.name());
         return switch (type) {
-            case CITIZEN -> "🇬🇭";
-            case NON_CITIZEN -> "🌍";
-            case REFUGEE -> "🕊️";
+            case CITIZEN ->
+                "🇬🇭";
+            case NON_CITIZEN ->
+                "🌍";
+            case REFUGEE ->
+                "🕊️";
         };
     }
 
@@ -986,11 +1027,11 @@ public class PurchaseView implements Serializable {
             return "";
         }
         return EnrollmentSku.filter(CitizenshipType.CITIZEN, ApplicationType.FIRST_ISSUANCE, null, tier)
-            .stream()
-            .findFirst()
-            .map(EnrollmentSku::price)
-            .map(this::formatPrice)
-            .orElse("");
+                .stream()
+                .findFirst()
+                .map(EnrollmentSku::price)
+                .map(this::formatPrice)
+                .orElse("");
     }
 
     private String componentId(String id) {
@@ -1015,14 +1056,14 @@ public class PurchaseView implements Serializable {
             return false;
         }
         cartView.addOrUpdateLine(key,
-            getUnitLabel(),
-            unitPrice,
-            qty,
-            mode,
-            deliverEmail,
-            deliverSms,
-            email,
-            msisdn);
+                getUnitLabel(),
+                unitPrice,
+                qty,
+                mode,
+                deliverEmail,
+                deliverSms,
+                email,
+                msisdn);
         return true;
     }
 
@@ -1060,11 +1101,11 @@ public class PurchaseView implements Serializable {
         if (citizenship == null) {
             return false;
         }
-        // For renewals, replacements, and first issuance, tier is not required
-        // For updates, tier is required for citizens only
-        if (appType != ApplicationType.RENEWAL && appType != ApplicationType.REPLACEMENT && appType != ApplicationType.FIRST_ISSUANCE) {
-            if (appType == ApplicationType.UPDATE) {
-                // For updates, only require tier for citizens
+        // For renewals and first issuance, tier is not required
+        // For replacements and updates, tier is required for citizens only
+        if (appType != ApplicationType.RENEWAL && appType != ApplicationType.FIRST_ISSUANCE) {
+            if (appType == ApplicationType.UPDATE || appType == ApplicationType.REPLACEMENT) {
+                // For updates and replacements, only require tier for citizens
                 if (citizenship == CitizenshipType.CITIZEN && citizenTier == null) {
                     return false;
                 }

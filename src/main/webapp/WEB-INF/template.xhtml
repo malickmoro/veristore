@@ -227,6 +227,17 @@
                 </div>
             </main>
 
+            <!-- Loading Indicator -->
+            <div id="loadingIndicator" class="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" 
+                 style="background-color: rgba(0, 0, 0, 0.5); z-index: 9999; display: none !important;">
+                <div class="bg-white rounded-4 p-4 text-center shadow-lg">
+                    <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <div class="text-muted">Processing your request...</div>
+                </div>
+            </div>
+
             <ui:include src="/WEB-INF/partials/footer.xhtml" />
 
             <h:outputScript target="body">
