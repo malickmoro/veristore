@@ -29,13 +29,25 @@ import java.io.Serializable;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Named
 @ViewScoped
 public class PurchaseView implements Serializable {
+
+    public enum WizardStep {
+        CITIZENSHIP,
+        TIER,
+        UPDATE_TYPE,
+        PACKAGE
+    }
 
     @Serial
     private static final long serialVersionUID = 1L;
@@ -58,12 +70,14 @@ public class PurchaseView implements Serializable {
     private CitizenTier citizenTier;
     private UpdateType updateType;
     private String selectedSku;
+    private final Map<String, Integer> variantQuantities = new ConcurrentHashMap<>();
     private int qty;
     private String email;
     private String msisdn;
     private boolean deliverEmail;
     private boolean deliverSms;
     private PaymentMode mode;
+    private int wizardStep;
 
     @PostConstruct
     public void init() {
@@ -73,6 +87,7 @@ public class PurchaseView implements Serializable {
         deliverEmail = true;
         deliverSms = false;
         mode = PaymentMode.PAY_NOW;
+        wizardStep = 1;
     }
 
     public void prepareFirstIssuance() {
@@ -112,7 +127,9 @@ public class PurchaseView implements Serializable {
             if (appType != ApplicationType.UPDATE) {
                 this.updateType = null;
             }
-            this.selectedSku = null;
+            resetVariantSelections();
+            wizardStep = 1;
+            normalizeWizardStep();
         }
     }
 
@@ -123,7 +140,8 @@ public class PurchaseView implements Serializable {
     public void setCitizenTier(CitizenTier citizenTier) {
         if (!Objects.equals(this.citizenTier, citizenTier)) {
             this.citizenTier = citizenTier;
-            this.selectedSku = null;
+            resetVariantSelections();
+            normalizeWizardStep();
         }
     }
 
@@ -134,7 +152,8 @@ public class PurchaseView implements Serializable {
     public void setUpdateType(UpdateType updateType) {
         if (!Objects.equals(this.updateType, updateType)) {
             this.updateType = updateType;
-            this.selectedSku = null;
+            resetVariantSelections();
+            normalizeWizardStep();
         }
     }
 
@@ -146,18 +165,198 @@ public class PurchaseView implements Serializable {
         this.selectedSku = selectedSku;
     }
 
+    public List<WizardStep> getWizardSteps() {
+        if (appType == null) {
+            return List.of();
+        }
+        return switch (appType) {
+            case FIRST_ISSUANCE -> List.of(WizardStep.CITIZENSHIP, WizardStep.PACKAGE);
+            case RENEWAL -> List.of(WizardStep.CITIZENSHIP, WizardStep.PACKAGE);
+            case REPLACEMENT -> {
+                if (citizenship == null || citizenship == CitizenshipType.CITIZEN) {
+                    yield List.of(WizardStep.CITIZENSHIP, WizardStep.TIER, WizardStep.PACKAGE);
+                }
+                yield List.of(WizardStep.CITIZENSHIP, WizardStep.PACKAGE);
+            };
+            case UPDATE -> {
+                boolean tierNeeded = citizenship == null || citizenship == CitizenshipType.CITIZEN;
+                if (tierNeeded) {
+                    yield List.of(WizardStep.CITIZENSHIP, WizardStep.TIER, WizardStep.UPDATE_TYPE, WizardStep.PACKAGE);
+                }
+                yield List.of(WizardStep.CITIZENSHIP, WizardStep.UPDATE_TYPE, WizardStep.PACKAGE);
+            };
+            case VERIFICATION -> List.of(WizardStep.PACKAGE);
+        };
+    }
+
+    public WizardStep getCurrentWizardStep() {
+        List<WizardStep> steps = getWizardSteps();
+        if (steps.isEmpty() || wizardStep < 1) {
+            return null;
+        }
+        int index = Math.min(wizardStep - 1, steps.size() - 1);
+        return steps.get(index);
+    }
+
+    public WizardStep getCitizenshipStep() {
+        return WizardStep.CITIZENSHIP;
+    }
+
+    public WizardStep getTierStep() {
+        return WizardStep.TIER;
+    }
+
+    public WizardStep getUpdateTypeStep() {
+        return WizardStep.UPDATE_TYPE;
+    }
+
+    public WizardStep getPackageStep() {
+        return WizardStep.PACKAGE;
+    }
+
+    public boolean isCurrentStep(WizardStep step) {
+        if (step == null) {
+            return false;
+        }
+        WizardStep current = getCurrentWizardStep();
+        return current != null && current == step;
+    }
+
+    public boolean isStepComplete(WizardStep step) {
+        List<WizardStep> steps = getWizardSteps();
+        int index = steps.indexOf(step);
+        if (index < 0) {
+            return false;
+        }
+        return index < wizardStep - 1 && isStepSatisfied(step);
+    }
+
+    public boolean isStepSatisfied(WizardStep step) {
+        if (step == null) {
+            return false;
+        }
+        return switch (step) {
+            case CITIZENSHIP -> citizenship != null;
+            case TIER -> citizenTier != null;
+            case UPDATE_TYPE -> updateType != null;
+            case PACKAGE -> selectedSku != null && !selectedSku.isBlank();
+        };
+    }
+
+    public String wizardStepTitle(WizardStep step) {
+        if (step == null) {
+            return "";
+        }
+        return switch (step) {
+            case CITIZENSHIP -> "Applicant category";
+            case TIER -> "Service tier";
+            case UPDATE_TYPE -> "Update type";
+            case PACKAGE -> "Package";
+        };
+    }
+
+    public String wizardStepCss(WizardStep step) {
+        String base = "btn wizard-step w-100 flex-grow-1 text-start text-md-center";
+        if (isCurrentStep(step)) {
+            return base + " btn-primary";
+        }
+        if (isStepComplete(step)) {
+            return base + " btn-success";
+        }
+        return base + " btn-outline-secondary";
+    }
+
+    public void nextWizardStep() {
+        List<WizardStep> steps = getWizardSteps();
+        if (steps.isEmpty()) {
+            return;
+        }
+        int index = Math.min(wizardStep - 1, steps.size() - 1);
+        WizardStep current = steps.get(index);
+        if (!isStepSatisfied(current)) {
+            showStepValidationMessage(current);
+            return;
+        }
+        if (index < steps.size() - 1) {
+            wizardStep = index + 2;
+        }
+    }
+
+    public void previousWizardStep() {
+        if (wizardStep > 1) {
+            wizardStep--;
+        }
+    }
+
+    public void goToWizardStep(WizardStep step) {
+        List<WizardStep> steps = getWizardSteps();
+        int targetIndex = steps.indexOf(step);
+        if (targetIndex < 0) {
+            return;
+        }
+        if (targetIndex < wizardStep - 1) {
+            wizardStep = targetIndex + 1;
+            return;
+        }
+        for (int i = 0; i <= targetIndex; i++) {
+            WizardStep candidate = steps.get(i);
+            if (!isStepSatisfied(candidate)) {
+                wizardStep = i + 1;
+                showStepValidationMessage(candidate);
+                return;
+            }
+        }
+        wizardStep = targetIndex + 1;
+    }
+
+    private void showStepValidationMessage(WizardStep step) {
+        if (step == null) {
+            return;
+        }
+        String message;
+        String targetComponent;
+        switch (step) {
+            case CITIZENSHIP -> {
+                message = "Choose an applicant category to continue.";
+                targetComponent = componentId("citizenship");
+            }
+            case TIER -> {
+                message = "Select a service tier to continue.";
+                targetComponent = componentId("tier");
+            }
+            case UPDATE_TYPE -> {
+                message = "Pick an update type to continue.";
+                targetComponent = componentId("updateType");
+            }
+            case PACKAGE -> {
+                message = "Choose a package to continue.";
+                targetComponent = componentId("variant");
+            }
+            default -> throw new IllegalStateException("Unexpected step: " + step);
+        }
+        addMessage(targetComponent, FacesMessage.SEVERITY_ERROR, message);
+    }
+
+    private void normalizeWizardStep() {
+        List<WizardStep> steps = getWizardSteps();
+        if (steps.isEmpty()) {
+            wizardStep = 1;
+            return;
+        }
+        if (wizardStep < 1) {
+            wizardStep = 1;
+        }
+        if (wizardStep > steps.size()) {
+            wizardStep = steps.size();
+        }
+    }
+
     public int getQty() {
         return qty;
     }
 
     public void setQty(int qty) {
-        if (qty < 1) {
-            this.qty = 1;
-        } else if (qty > 10) {
-            this.qty = 10;
-        } else {
-            this.qty = qty;
-        }
+        this.qty = clampQuantity(qty);
     }
 
     public String getEmail() {
@@ -279,6 +478,7 @@ public class PurchaseView implements Serializable {
             }
             case VERIFICATION -> List.of();
         };
+        syncVariantQuantities(variants);
         syncSelectedSku(variants.stream().map(sku -> sku.sku).toList());
         return variants;
     }
@@ -298,6 +498,10 @@ public class PurchaseView implements Serializable {
         if (sku != null && !sku.isBlank()) {
             this.selectedSku = sku;
         }
+    }
+
+    public Map<String, Integer> getVariantQuantities() {
+        return variantQuantities;
     }
 
     public boolean isSkuSelected(String sku) {
@@ -536,15 +740,35 @@ public class PurchaseView implements Serializable {
             if (!finalizeValidation(validateEnrollmentSelections())) {
                 return null;
             }
-            added = addSelectionToCartWithDefaults(new ProductKey(ProductFamily.ENROLLMENT, selectedSku));
+            added = addSelectionToCartWithDefaults(new ProductKey(ProductFamily.ENROLLMENT, selectedSku), qty);
+            if (added && selectedSku != null) {
+                variantQuantities.put(selectedSku, qty);
+            }
         }
         if (added) {
-            String productName = getUnitLabel();
-            String message = qty > 1 
-                ? String.format("%s (×%d) added to cart.", productName, qty)
-                : String.format("%s added to cart.", productName);
-            queueMessage(FacesMessage.SEVERITY_INFO, message);
-            return "/index?faces-redirect=true";
+            notifyCartAddition(qty);
+        }
+        return null;
+    }
+
+    public String addVariantToCart(String sku) {
+        if (!isEnrollmentFlow()) {
+            return null;
+        }
+        if (sku == null || sku.isBlank()) {
+            addMessage(componentId("variant"), FacesMessage.SEVERITY_ERROR, "Choose a package.");
+            return null;
+        }
+        selectSku(sku);
+        if (!finalizeValidation(validateEnrollmentSelections())) {
+            return null;
+        }
+        int quantity = resolveVariantQuantity(sku);
+        variantQuantities.put(sku, quantity);
+        setQty(quantity);
+        boolean added = addSelectionToCartWithDefaults(new ProductKey(ProductFamily.ENROLLMENT, selectedSku), quantity);
+        if (added) {
+            notifyCartAddition(quantity);
         }
         return null;
     }
@@ -678,6 +902,14 @@ public class PurchaseView implements Serializable {
         }
     }
 
+    private void syncVariantQuantities(List<EnrollmentSku> variants) {
+        Set<String> available = variants.stream()
+            .map(sku -> sku.sku)
+            .collect(Collectors.toCollection(HashSet::new));
+        variantQuantities.keySet().removeIf(sku -> !available.contains(sku));
+        available.forEach(sku -> variantQuantities.putIfAbsent(sku, 1));
+    }
+
     public boolean hasSelectedSku() {
         if (appType != ApplicationType.VERIFICATION && (selectedSku == null || selectedSku.isBlank())) {
             getVariants();
@@ -794,7 +1026,7 @@ public class PurchaseView implements Serializable {
         return true;
     }
 
-    private boolean addSelectionToCartWithDefaults(ProductKey key) {
+    private boolean addSelectionToCartWithDefaults(ProductKey key, int quantity) {
         Price unitPrice = getUnitPrice();
         if (unitPrice == null) {
             addMessage(componentId("variant"), FacesMessage.SEVERITY_ERROR, "Select a package.");
@@ -804,7 +1036,7 @@ public class PurchaseView implements Serializable {
         cartView.addOrUpdateLine(key,
             getUnitLabel(),
             unitPrice,
-            1, // Default quantity
+            quantity,
             PaymentMode.PAY_NOW, // Default payment mode
             true, // Default to email delivery
             false, // Default to no SMS
@@ -892,7 +1124,43 @@ public class PurchaseView implements Serializable {
                     this.updateType = null;
                 }
             }
-            this.selectedSku = null;
+            resetVariantSelections();
+            wizardStep = 1;
+            normalizeWizardStep();
         }
+    }
+
+    private void resetVariantSelections() {
+        this.selectedSku = null;
+        variantQuantities.clear();
+    }
+
+    private int resolveVariantQuantity(String sku) {
+        Integer requested = variantQuantities.get(sku);
+        if (requested == null) {
+            return qty > 0 ? qty : 1;
+        }
+        return clampQuantity(requested);
+    }
+
+    private int clampQuantity(int value) {
+        if (value < 1) {
+            return 1;
+        }
+        if (value > 10) {
+            return 10;
+        }
+        return value;
+    }
+
+    private void notifyCartAddition(int quantity) {
+        String productName = getUnitLabel();
+        if (productName == null || productName.isBlank()) {
+            productName = "Item";
+        }
+        String message = quantity > 1
+            ? String.format("%s (×%d) added to cart.", productName, quantity)
+            : String.format("%s added to cart.", productName);
+        queueMessage(FacesMessage.SEVERITY_INFO, message);
     }
 }

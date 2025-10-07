@@ -11,41 +11,52 @@
     <ui:define name="title">Checkout – Veristore</ui:define>
     <ui:define name="content">
         <h:panelGroup rendered="#{checkoutView.missing}" layout="block" styleClass="text-center py-5">
-            <h1 class="h3 mb-3">Cart item not found</h1>
-            <p class="text-muted mb-4">The selection you tried to checkout is no longer in your cart. Add it again from the storefront.</p>
+            <h1 class="h3 mb-3">Your cart is empty</h1>
+            <p class="text-muted mb-4">Add items to your cart before proceeding to checkout.</p>
             <div class="d-flex flex-column flex-sm-row gap-2 justify-content-center">
                 <h:link outcome="/index" styleClass="btn btn-primary">Back to storefront</h:link>
             </div>
         </h:panelGroup>
 
         <h:panelGroup rendered="#{not checkoutView.missing}" layout="block">
-            <div class="row g-5 align-items-start">
-                <div class="col-12 col-xl-7 col-xxl-8">
-                    <h:form id="checkoutForm" styleClass="d-flex flex-column gap-4">
-                        <h:messages id="messages"
-                                    globalOnly="true"
-                                    styleClass="alert alert-warning"
-                                    rendered="#{not empty facesContext.messageList}"
-                                    errorClass="alert-danger"
-                                    infoClass="alert-info" />
+            <h1 class="h3 fw-bold mb-4">Review and checkout</h1>
+            <h:form id="checkoutForm" styleClass="d-flex flex-column gap-4">
+                <h:messages id="messages"
+                            globalOnly="true"
+                            styleClass="alert alert-warning"
+                            rendered="#{not empty facesContext.messageList}"
+                            errorClass="alert-danger"
+                            infoClass="alert-info" />
 
+                <div class="row g-4 align-items-start">
+                    <div class="col-12 col-xl-7 col-xxl-8">
+                        <div class="card shadow-sm h-100">
+                            <div class="card-body">
+                                <h2 class="h5 fw-semibold mb-4">Items in your cart</h2>
+                                <ui:repeat value="#{checkoutView.lines}" var="line" varStatus="status">
+                                    <div class="d-flex flex-column flex-sm-row justify-content-between gap-3 pb-3 #{status.last ? '' : 'mb-3 border-bottom'}">
+                                        <div class="flex-fill">
+                                            <h3 class="h6 fw-semibold mb-1">#{line.name}</h3>
+                                            <p class="text-muted small mb-1">SKU #{line.sku}</p>
+                                            <p class="text-muted small mb-0">Quantity: #{line.qty}</p>
+                                        </div>
+                                        <div class="text-sm-end">
+                                            <p class="text-muted small mb-1">Unit price</p>
+                                            <p class="fw-semibold mb-2">#{line.priceFormatted}</p>
+                                            <p class="text-muted small mb-1">Line total</p>
+                                            <p class="fw-bold fs-6 mb-0">#{line.totalFormatted}</p>
+                                        </div>
+                                    </div>
+                                </ui:repeat>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-xl-5 col-xxl-4 d-flex flex-column gap-4">
                         <div class="card shadow-sm">
                             <div class="card-body">
-                                <h2 class="h5 fw-semibold mb-4">Delivery preferences</h2>
+                                <h2 class="h5 fw-semibold mb-4">Delivery &amp; payment options</h2>
                                 <div class="row g-3">
-                                    <div class="col-12 col-sm-6">
-                                        <label for="checkoutForm:quantity" class="form-label">Quantity</label>
-                                        <h:inputText id="quantity"
-                                                     value="#{checkoutView.qty}"
-                                                     styleClass="form-control"
-                                                     pt:type="number"
-                                                     pt:min="1"
-                                                     pt:max="10">
-                                            <f:ajax render="checkoutForm:summary" />
-                                        </h:inputText>
-                                        <h:message for="quantity" styleClass="text-danger small mt-1 d-block" />
-                                    </div>
-                                    <div class="col-12 col-sm-6">
+                                    <div class="col-12">
                                         <span class="form-label d-block">Payment option</span>
                                         <h:selectOneRadio id="paymentMode"
                                                           value="#{checkoutView.paymentMode}"
@@ -56,7 +67,7 @@
                                                            itemValue="#{modeOpt}" />
                                         </h:selectOneRadio>
                                         <h:panelGroup id="paymentModeChoices" layout="block">
-                                            <div class="row row-cols-1 row-cols-sm-2 g-3">
+                                            <div class="row row-cols-1 g-3">
                                                 <ui:repeat value="#{checkoutView.paymentModes}" var="modeOpt">
                                                     <div class="col">
                                                         <div class="selectable-card h-100 #{checkoutView.isPaymentModeSelected(modeOpt) ? 'selected' : ''}">
@@ -98,7 +109,7 @@
                                         </h:panelGroup>
                                         <h:message for="deliveryOptions" styleClass="text-danger small mt-1 d-block" />
                                     </div>
-                                    <div class="col-12 col-md-6">
+                                    <div class="col-12">
                                         <label for="checkoutForm:email" class="form-label">Email address</label>
                                         <h:inputText id="email"
                                                      value="#{checkoutView.email}"
@@ -109,7 +120,7 @@
                                         </h:inputText>
                                         <h:message id="emailMessage" for="email" styleClass="text-danger small mt-1 d-block" />
                                     </div>
-                                    <div class="col-12 col-md-6">
+                                    <div class="col-12">
                                         <label for="checkoutForm:msisdn" class="form-label">Phone number</label>
                                         <h:inputText id="msisdn"
                                                      value="#{checkoutView.msisdn}"
@@ -123,44 +134,54 @@
                             </div>
                         </div>
 
-                        <div class="d-flex flex-column flex-sm-row gap-3">
-                            <h:commandButton value="#{checkoutView.submitLabel}"
-                                             action="#{checkoutView.submit}"
-                                             styleClass="btn btn-primary btn-lg" />
-                            <h:commandLink action="#{checkoutView.cancel}"
-                                           styleClass="btn btn-outline-secondary btn-lg"
-                                           value="Back to storefront" />
-                        </div>
-                    </h:form>
-                </div>
-                <div class="col-12 col-xl-5 col-xxl-4">
-                    <div class="position-sticky top-0">
                         <h:panelGroup id="summary" layout="block" pt:aria-live="polite" pt:aria-atomic="true">
                             <div class="card shadow-sm">
                                 <div class="card-body">
                                     <h2 class="h6 text-uppercase text-muted mb-3">Order summary</h2>
-                                    <dl class="row mb-0 small">
-                                        <dt class="col-5">Product</dt>
-                                        <dd class="col-7 fw-semibold">#{checkoutView.line.name}</dd>
-                                        <dt class="col-5">SKU</dt>
-                                        <dd class="col-7">#{checkoutView.line.sku}</dd>
-                                        <dt class="col-5">Unit price</dt>
-                                        <dd class="col-7">#{checkoutView.unitPriceFormatted}</dd>
-                                        <dt class="col-5">Quantity</dt>
-                                        <dd class="col-7">#{checkoutView.qty}</dd>
-                                        <dt class="col-5">Payment</dt>
-                                        <dd class="col-7">#{checkoutView.paymentModeTitle(checkoutView.paymentMode)}</dd>
-                                        <dt class="col-5">Delivery</dt>
-                                        <dd class="col-7">#{checkoutView.deliverySummary}</dd>
-                                        <dt class="col-5">Total</dt>
-                                        <dd class="col-7 fw-bold fs-5">#{checkoutView.totalPriceFormatted}</dd>
-                                    </dl>
+                                    <p class="d-flex justify-content-between small mb-2">
+                                        <span class="text-muted">Items</span>
+                                        <span class="fw-semibold">#{checkoutView.itemCount}</span>
+                                    </p>
+                                    <ui:repeat value="#{checkoutView.totalsByCurrency.entrySet()}" var="total">
+                                        <p class="d-flex justify-content-between small mb-1">
+                                            <span class="text-muted">Total (#{total.key})</span>
+                                            <span class="fw-semibold">#{total.value}</span>
+                                        </p>
+                                    </ui:repeat>
+                                    <p class="d-flex justify-content-between small mb-1">
+                                        <span class="text-muted">Payment</span>
+                                        <span class="fw-semibold">#{checkoutView.paymentModeTitle(checkoutView.paymentMode)}</span>
+                                    </p>
+                                    <p class="d-flex justify-content-between small mb-1">
+                                        <span class="text-muted">Delivery</span>
+                                        <span class="fw-semibold">#{checkoutView.deliverySummary}</span>
+                                    </p>
+                                    <p class="d-flex justify-content-between small mb-0">
+                                        <span class="text-muted">Contact</span>
+                                        <span class="fw-semibold text-end">
+                                            <ui:fragment rendered="#{not empty checkoutView.email}">
+                                                #{checkoutView.email}
+                                                <ui:fragment rendered="#{not empty checkoutView.msisdn}"><br /></ui:fragment>
+                                            </ui:fragment>
+                                            <ui:fragment rendered="#{not empty checkoutView.msisdn}">#{checkoutView.msisdn}</ui:fragment>
+                                            <ui:fragment rendered="#{empty checkoutView.email and empty checkoutView.msisdn}">—</ui:fragment>
+                                        </span>
+                                    </p>
                                 </div>
                             </div>
                         </h:panelGroup>
+
+                        <div class="d-flex flex-column flex-sm-row gap-3">
+                            <h:commandButton value="#{checkoutView.submitLabel}"
+                                             action="#{checkoutView.submit}"
+                                             styleClass="btn btn-primary btn-lg flex-fill" />
+                            <h:commandLink action="#{checkoutView.cancel}"
+                                           styleClass="btn btn-outline-secondary btn-lg flex-fill"
+                                           value="Back to storefront" />
+                        </div>
                     </div>
                 </div>
-            </div>
+            </h:form>
         </h:panelGroup>
     </ui:define>
 </ui:composition>
