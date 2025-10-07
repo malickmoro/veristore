@@ -62,11 +62,14 @@
                                                                  pt:type="number"
                                                                  pt:min="1"
                                                                  pt:max="10"
-                                                                 pt:aria-label="Set quantity for #{line.name}" />
+                                                                 pt:step="1"
+                                                                 pt:aria-label="Set quantity for #{line.name}">
+                                                        <f:convertNumber integerOnly="true" />
+                                                    </h:inputText>
                                                     <h:commandButton value="Update"
                                                                      action="#{cartView.updateLineQuantity(line.sku, line.qty)}"
                                                                      styleClass="btn btn-outline-primary">
-                                                        <f:ajax execute="@parent" render="cartForm:cartContent :cartToggle" />
+                                                        <f:ajax execute="qty @this" render="cartForm:cartContent :cartToggle" />
                                                     </h:commandButton>
                                                 </div>
                                                 <div class="ms-sm-auto">
