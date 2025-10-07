@@ -77,15 +77,29 @@
                                     <div class="d-flex justify-content-between align-items-start mb-2">
                                         <div>
                                             <h6 class="fw-semibold mb-1">#{line.name}</h6>
-                                            <p class="text-muted small mb-0">SKU #{line.sku} · Qty #{line.qty}</p>
+                                            <p class="text-muted small mb-1">SKU #{line.sku}</p>
+                                            <p class="text-muted small mb-0">Unit price #{line.priceFormatted}</p>
                                         </div>
-                                        <span class="fw-semibold">#{line.totalFormatted}</span>
+                                        <div class="text-end">
+                                            <span class="fw-semibold d-block">#{line.totalFormatted}</span>
+                                            <span class="text-muted small">Total</span>
+                                        </div>
                                     </div>
-                                    <p class="small text-muted mb-3">#{line.priceFormatted} per unit · #{cartView.paymentModeLabel(line.paymentMode)}</p>
+                                    <div class="d-flex align-items-center gap-2 mb-3">
+                                        <h:outputLabel for="qty" value="Qty" styleClass="small mb-0" />
+                                        <h:inputText id="qty"
+                                                     value="#{line.qty}"
+                                                     styleClass="form-control form-control-sm"
+                                                     pt:type="number"
+                                                     pt:min="1"
+                                                     pt:max="10" />
+                                        <h:commandButton value="Update"
+                                                         action="#{cartView.updateLineQuantity(line.sku, line.qty)}"
+                                                         styleClass="btn btn-outline-primary btn-sm">
+                                            <f:ajax execute="@parent" render=":cartToggle :cartDrawer" />
+                                        </h:commandButton>
+                                    </div>
                                     <div class="d-flex flex-wrap gap-2">
-                                        <h:commandButton value="#{cartView.checkoutButtonLabel(line.paymentMode)}"
-                                                         action="#{cartView.goToCheckout(line.sku)}"
-                                                         styleClass="btn btn-primary btn-sm" />
                                         <h:commandButton value="Remove"
                                                          action="#{cartView.removeLine(line.sku)}"
                                                          styleClass="btn btn-outline-secondary btn-sm">
@@ -104,6 +118,9 @@
                                 </div>
                             </ui:repeat>
                         </div>
+                        <h:commandButton value="Checkout all"
+                                         action="#{cartView.goToCheckout}"
+                                         styleClass="btn btn-primary w-100" />
                     </h:panelGroup>
                 </h:form>
             </div>
