@@ -56,8 +56,8 @@ public class CheckoutView implements Serializable {
         email = "";
         msisdn = "";
         paymentMode = PaymentMode.PAY_NOW;
-        deliverEmail = false;
-        deliverSms = false;
+        deliverEmail = true;
+        deliverSms = true;
     }
 
     public void load() {
@@ -73,8 +73,8 @@ public class CheckoutView implements Serializable {
         }
         CartLineDTO first = lines.get(0);
         paymentMode = Optional.ofNullable(first.getPaymentMode()).orElse(PaymentMode.PAY_NOW);
-        deliverEmail = lines.stream().anyMatch(CartLineDTO::isDeliverEmail);
-        deliverSms = lines.stream().anyMatch(CartLineDTO::isDeliverSms);
+        deliverEmail = true;
+        deliverSms = true;
         email = Optional.ofNullable(first.getEmail()).orElse("");
         msisdn = Optional.ofNullable(first.getMsisdn()).orElse("");
     }
@@ -226,27 +226,19 @@ public class CheckoutView implements Serializable {
             addMessage(null, FacesMessage.SEVERITY_ERROR, "Your cart is empty.");
             valid = false;
         }
-        if (!deliverEmail && !deliverSms) {
-            addMessage(componentId("deliveryOptions"), FacesMessage.SEVERITY_ERROR, "Choose at least one delivery channel.");
+        if (email == null || email.isBlank()) {
+            addMessage(componentId("email"), FacesMessage.SEVERITY_ERROR, "Enter an email address for delivery.");
+            valid = false;
+        } else if (!EMAIL_PATTERN.matcher(email).matches()) {
+            addMessage(componentId("email"), FacesMessage.SEVERITY_ERROR, "Enter a valid email address.");
             valid = false;
         }
-        if (deliverEmail) {
-            if (email == null || email.isBlank()) {
-                addMessage(componentId("email"), FacesMessage.SEVERITY_ERROR, "Enter an email address for delivery.");
-                valid = false;
-            } else if (!EMAIL_PATTERN.matcher(email).matches()) {
-                addMessage(componentId("email"), FacesMessage.SEVERITY_ERROR, "Enter a valid email address.");
-                valid = false;
-            }
-        }
-        if (deliverSms) {
-            if (msisdn == null || msisdn.isBlank()) {
-                addMessage(componentId("msisdn"), FacesMessage.SEVERITY_ERROR, "Enter a phone number including country code.");
-                valid = false;
-            } else if (!PHONE_PATTERN.matcher(msisdn).matches()) {
-                addMessage(componentId("msisdn"), FacesMessage.SEVERITY_ERROR, "Use international format starting with + and digits.");
-                valid = false;
-            }
+        if (msisdn == null || msisdn.isBlank()) {
+            addMessage(componentId("msisdn"), FacesMessage.SEVERITY_ERROR, "Enter a phone number including country code.");
+            valid = false;
+        } else if (!PHONE_PATTERN.matcher(msisdn).matches()) {
+            addMessage(componentId("msisdn"), FacesMessage.SEVERITY_ERROR, "Use international format starting with + and digits.");
+            valid = false;
         }
         if (!valid) {
             FacesContext context = FacesContext.getCurrentInstance();
