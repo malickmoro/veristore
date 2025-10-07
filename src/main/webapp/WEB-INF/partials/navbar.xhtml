@@ -36,12 +36,9 @@
                     </li>
                     <li class="nav-item ms-lg-3">
                         <h:panelGroup id="cartToggle" layout="block">
-                            <button class="btn btn-primary position-relative px-4 py-2 rounded-pill d-flex align-items-center gap-2"
-                                    type="button"
-                                    data-bs-toggle="offcanvas"
-                                    data-bs-target="#cartDrawerPanel"
-                                    aria-controls="cartDrawerPanel"
-                                    aria-label="View cart">
+                            <h:link outcome="/cart"
+                                    styleClass="btn btn-primary position-relative px-4 py-2 rounded-pill d-flex align-items-center gap-2"
+                                    pt:aria-label="View cart">
                                 <svg width="18" height="18" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
                                     <path d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 13 12H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5zM3.102 4l1.313 7h8.17l1.313-7H3.102zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-7 1a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm7 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
                                 </svg>
@@ -52,78 +49,11 @@
                                     #{cartView.itemCount}
                                     <span class="visually-hidden">items in cart</span>
                                 </h:panelGroup>
-                            </button>
+                            </h:link>
                         </h:panelGroup>
                     </li>
                 </ul>
             </div>
         </div>
     </nav>
-    <h:panelGroup id="cartDrawer" layout="block">
-        <div class="offcanvas offcanvas-end" tabindex="-1" id="cartDrawerPanel" aria-labelledby="cartDrawerLabel">
-            <div class="offcanvas-header">
-                <h5 class="offcanvas-title" id="cartDrawerLabel">Your cart</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-            </div>
-            <div class="offcanvas-body">
-                <h:form id="cartForm" styleClass="d-flex flex-column gap-3">
-                    <h:panelGroup rendered="#{cartView.hasNoItems}" layout="block">
-                        <p class="text-muted mb-0">Your cart is empty. Add a package to begin checkout.</p>
-                    </h:panelGroup>
-                    <h:panelGroup rendered="#{not cartView.hasNoItems}" layout="block" styleClass="d-flex flex-column gap-3">
-                        <ui:repeat value="#{cartView.lines}" var="line">
-                            <div class="card shadow-sm">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-start mb-2">
-                                        <div>
-                                            <h6 class="fw-semibold mb-1">#{line.name}</h6>
-                                            <p class="text-muted small mb-1">SKU #{line.sku}</p>
-                                            <p class="text-muted small mb-0">Unit price #{line.priceFormatted}</p>
-                                        </div>
-                                        <div class="text-end">
-                                            <span class="fw-semibold d-block">#{line.totalFormatted}</span>
-                                            <span class="text-muted small">Total</span>
-                                        </div>
-                                    </div>
-                                    <div class="d-flex align-items-center gap-2 mb-3">
-                                        <h:outputLabel for="qty" value="Qty" styleClass="small mb-0" />
-                                        <h:inputText id="qty"
-                                                     value="#{line.qty}"
-                                                     styleClass="form-control form-control-sm"
-                                                     pt:type="number"
-                                                     pt:min="1"
-                                                     pt:max="10" />
-                                        <h:commandButton value="Update"
-                                                         action="#{cartView.updateLineQuantity(line.sku, line.qty)}"
-                                                         styleClass="btn btn-outline-primary btn-sm">
-                                            <f:ajax execute="@parent" render=":cartToggle :cartDrawer" />
-                                        </h:commandButton>
-                                    </div>
-                                    <div class="d-flex flex-wrap gap-2">
-                                        <h:commandButton value="Remove"
-                                                         action="#{cartView.removeLine(line.sku)}"
-                                                         styleClass="btn btn-outline-secondary btn-sm">
-                                            <f:ajax render=":cartToggle :cartDrawer" />
-                                        </h:commandButton>
-                                    </div>
-                                </div>
-                            </div>
-                        </ui:repeat>
-                        <div class="border-top pt-3">
-                            <h6 class="fw-semibold mb-2">Totals</h6>
-                            <ui:repeat value="#{cartView.totalsByCurrency.entrySet()}" var="total">
-                                <div class="d-flex justify-content-between small">
-                                    <span class="text-muted">#{total.key}</span>
-                                    <span class="fw-semibold">#{total.value}</span>
-                                </div>
-                            </ui:repeat>
-                        </div>
-                        <h:commandButton value="Proceed to Checkout"
-                                         action="#{cartView.goToCheckout}"
-                                         styleClass="btn btn-primary w-100" />
-                    </h:panelGroup>
-                </h:form>
-            </div>
-        </div>
-    </h:panelGroup>
 </ui:composition>
