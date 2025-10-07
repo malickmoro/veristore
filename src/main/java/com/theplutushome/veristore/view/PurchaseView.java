@@ -171,14 +171,14 @@ public class PurchaseView implements Serializable {
                     yield List.of(WizardStep.CITIZENSHIP, WizardStep.TIER, WizardStep.PACKAGE);
                 }
                 yield List.of(WizardStep.CITIZENSHIP, WizardStep.PACKAGE);
-            };
+            }
             case UPDATE -> {
                 boolean tierNeeded = citizenship == null || citizenship == CitizenshipType.CITIZEN;
                 if (tierNeeded) {
                     yield List.of(WizardStep.CITIZENSHIP, WizardStep.TIER, WizardStep.UPDATE_TYPE, WizardStep.PACKAGE);
                 }
                 yield List.of(WizardStep.CITIZENSHIP, WizardStep.UPDATE_TYPE, WizardStep.PACKAGE);
-            };
+            }
             case VERIFICATION -> List.of(WizardStep.PACKAGE);
         };
     }
