@@ -4,7 +4,8 @@
                 xmlns:f="http://xmlns.jcp.org/jsf/core"
                 xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
                 xmlns:pt="http://xmlns.jcp.org/jsf/passthrough"
-                template="/WEB-INF/template.xhtml">
+                template="/WEB-INF/template.xhtml"
+                xmlns:p="http://primefaces.org/ui">
     <f:metadata>
         <f:viewAction action="#{checkoutView.load}" />
     </f:metadata>
@@ -75,9 +76,9 @@
                                                                 <h3 class="h6 fw-semibold mb-1">#{checkoutView.paymentModeTitle(modeOpt)}</h3>
                                                                 <p class="text-muted small mb-0">#{checkoutView.describePaymentMode(modeOpt)}</p>
                                                                 <h:commandLink action="#{checkoutView.selectPaymentMode(modeOpt)}"
-                                                                              styleClass="stretched-link"
-                                                                              value=""
-                                                                              title="#{checkoutView.paymentModeTitle(modeOpt)}">
+                                                                               styleClass="stretched-link"
+                                                                               value=""
+                                                                               title="#{checkoutView.paymentModeTitle(modeOpt)}">
                                                                     <f:ajax render="checkoutForm:paymentMode checkoutForm:paymentModeChoices checkoutForm:summary" />
                                                                 </h:commandLink>
                                                             </div>
@@ -161,12 +162,13 @@
                             <h:commandButton value="#{checkoutView.submitLabel}"
                                              action="#{checkoutView.submit}"
                                              styleClass="btn btn-primary btn-lg flex-fill" />
-                            <h:commandLink action="#{checkoutView.cancel}"
-                                           styleClass="btn btn-outline-secondary btn-lg flex-fill"
-                                           value="Back to storefront" />
+                            <h:button outcome="/index" onclick="cancel()"
+                                      styleClass="btn btn-outline-secondary btn-lg flex-fill"
+                                      value="Back to storefront" />
                         </div>
                     </div>
                 </div>
+                <p:remoteCommand name="cancel" action="#{checkoutView.cancel()}"/>
             </h:form>
         </h:panelGroup>
     </ui:define>

@@ -142,7 +142,7 @@
                                                         </div>
                                                         <div class="shimmer-hover">
                                                             <h:commandLink action="#{purchaseView.selectCitizenTier(tierOpt)}"
-                                                                          styleClass="btn btn-dark btn-lg w-100 rounded-4"
+                                                                          styleClass="btn btn-primary btn-lg w-100 rounded-4"
                                                                           value="#{purchaseView.isCitizenTierSelected(tierOpt) ? 'Selected' : 'Select'}">
                                                                 <f:ajax execute="@this"
                                                                         render="purchaseForm:tier purchaseForm:wizardProgress purchaseForm:stepPanels purchaseForm:messages" />
@@ -219,7 +219,7 @@
                                                                 </div>
                                                                 <h:commandButton value="Add to cart"
                                                                                  action="#{purchaseView.addVariantToCart(variant.sku)}"
-                                                                                 styleClass="btn btn-dark w-100"
+                                                                                 styleClass="btn btn-primary w-100"
                                                                                  style="position: relative; z-index: 2;">
                                                                     <f:ajax execute="@form"
                                                                             render="purchaseForm:messages purchaseForm:variantChoices :cartToggle :cartDrawer" />
