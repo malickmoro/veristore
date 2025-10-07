@@ -89,32 +89,16 @@
                                     </div>
                                     <div class="col-12">
                                         <span class="form-label d-block">Delivery channels</span>
-                                        <h:panelGroup id="deliveryOptions" layout="block" styleClass="d-flex flex-wrap gap-3">
-                                            <div class="form-check form-switch">
-                                                <h:selectBooleanCheckbox id="emailDelivery"
-                                                                         value="#{checkoutView.deliverEmail}"
-                                                                         styleClass="form-check-input">
-                                                    <f:ajax render="checkoutForm:summary checkoutForm:email checkoutForm:emailMessage" />
-                                                </h:selectBooleanCheckbox>
-                                                <label class="form-check-label" for="checkoutForm:emailDelivery">Email delivery</label>
-                                            </div>
-                                            <div class="form-check form-switch">
-                                                <h:selectBooleanCheckbox id="smsDelivery"
-                                                                         value="#{checkoutView.deliverSms}"
-                                                                         styleClass="form-check-input">
-                                                    <f:ajax render="checkoutForm:summary checkoutForm:msisdn checkoutForm:msisdnMessage" />
-                                                </h:selectBooleanCheckbox>
-                                                <label class="form-check-label" for="checkoutForm:smsDelivery">SMS delivery</label>
-                                            </div>
-                                        </h:panelGroup>
-                                        <h:message for="deliveryOptions" styleClass="text-danger small mt-1 d-block" />
+                                        <p class="text-muted small mb-0">PINs will be delivered via both email and SMS.</p>
                                     </div>
                                     <div class="col-12">
                                         <label for="checkoutForm:email" class="form-label">Email address</label>
                                         <h:inputText id="email"
                                                      value="#{checkoutView.email}"
                                                      styleClass="form-control"
+                                                     required="true"
                                                      pt:type="email"
+                                                     pt:required="true"
                                                      pt:placeholder="name@example.com">
                                             <f:ajax render="checkoutForm:summary" />
                                         </h:inputText>
@@ -125,6 +109,8 @@
                                         <h:inputText id="msisdn"
                                                      value="#{checkoutView.msisdn}"
                                                      styleClass="form-control"
+                                                     required="true"
+                                                     pt:required="true"
                                                      pt:placeholder="+233XXXXXXXXX">
                                             <f:ajax render="checkoutForm:summary" />
                                         </h:inputText>
