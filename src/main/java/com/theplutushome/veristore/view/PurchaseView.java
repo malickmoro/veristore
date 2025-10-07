@@ -70,7 +70,7 @@ public class PurchaseView implements Serializable {
     private CitizenTier citizenTier;
     private UpdateType updateType;
     private String selectedSku;
-    private final Map<String, Integer> variantQuantities = new ConcurrentHashMap<>();
+    private final Map<String, Number> variantQuantities = new ConcurrentHashMap<>();
     private int qty;
     private String email;
     private String msisdn;
@@ -172,19 +172,14 @@ public class PurchaseView implements Serializable {
         return switch (appType) {
             case FIRST_ISSUANCE -> List.of(WizardStep.CITIZENSHIP, WizardStep.PACKAGE);
             case RENEWAL -> List.of(WizardStep.CITIZENSHIP, WizardStep.PACKAGE);
-            case REPLACEMENT -> {
-                if (citizenship == null || citizenship == CitizenshipType.CITIZEN) {
-                    yield List.of(WizardStep.CITIZENSHIP, WizardStep.TIER, WizardStep.PACKAGE);
-                }
-                yield List.of(WizardStep.CITIZENSHIP, WizardStep.PACKAGE);
-            };
+            case REPLACEMENT -> List.of(WizardStep.CITIZENSHIP, WizardStep.PACKAGE);
             case UPDATE -> {
                 boolean tierNeeded = citizenship == null || citizenship == CitizenshipType.CITIZEN;
                 if (tierNeeded) {
-                    yield List.of(WizardStep.CITIZENSHIP, WizardStep.TIER, WizardStep.UPDATE_TYPE, WizardStep.PACKAGE);
+                    yield List.of(WizardStep.CITIZENSHIP, WizardStep.TIER, WizardStep.PACKAGE);
                 }
-                yield List.of(WizardStep.CITIZENSHIP, WizardStep.UPDATE_TYPE, WizardStep.PACKAGE);
-            };
+                yield List.of(WizardStep.CITIZENSHIP, WizardStep.PACKAGE);
+            }
             case VERIFICATION -> List.of(WizardStep.PACKAGE);
         };
     }
@@ -453,21 +448,8 @@ public class PurchaseView implements Serializable {
         if (citizenship == null) {
             return List.of();
         }
-        // For renewals and first issuance, tier is not required - show all packages
-        // For replacements and updates, tier is required for citizens only
-        if (appType != ApplicationType.RENEWAL && appType != ApplicationType.FIRST_ISSUANCE) {
-            if (appType == ApplicationType.UPDATE || appType == ApplicationType.REPLACEMENT) {
-                // For updates and replacements, only require tier for citizens
-                if (citizenship == CitizenshipType.CITIZEN && citizenTier == null) {
-                    return List.of();
-                }
-            } else {
-                // For other types, use the standard tier requirement logic
-                if (citizenship == CitizenshipType.CITIZEN && isTierRequired() && citizenTier == null) {
-                    return List.of();
-                }
-            }
-        }
+        // For renewals and first issuance, tier is not required
+        // For replacements and updates, tier is no longer required (show all packages)
         List<EnrollmentSku> variants = switch (appType) {
             case FIRST_ISSUANCE ->
                 EnrollmentSku.filter(citizenship, ApplicationType.FIRST_ISSUANCE, null, citizenTier);
@@ -504,7 +486,7 @@ public class PurchaseView implements Serializable {
         }
     }
 
-    public Map<String, Integer> getVariantQuantities() {
+    public Map<String, Number> getVariantQuantities() {
         return variantQuantities;
     }
 
@@ -1177,11 +1159,12 @@ public class PurchaseView implements Serializable {
     }
 
     private int resolveVariantQuantity(String sku) {
-        Integer requested = variantQuantities.get(sku);
+        Number requested = variantQuantities.get(sku);
         if (requested == null) {
             return qty > 0 ? qty : 1;
         }
-        return clampQuantity(requested);
+        int value = requested.intValue();
+        return clampQuantity(value);
     }
 
     private int clampQuantity(int value) {

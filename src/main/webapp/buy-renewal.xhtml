@@ -41,9 +41,8 @@
                     <h:messages id="messages"
                                 globalOnly="true"
                                 styleClass="alert alert-warning"
-                                rendered="#{not empty facesContext.messageList}"
                                 errorClass="alert-danger"
-                                infoClass="alert-info" />
+                                infoClass="alert-info px-2 ps-3" />
 
                     <h:panelGroup id="wizardProgress" layout="block">
                         <div class="card">
@@ -133,7 +132,7 @@
                                         <div class="row row-cols-1 row-cols-md-2 g-3">
                                             <ui:repeat value="#{purchaseView.variants}" var="variant">
                                                 <div class="col">
-                                                    <div class="product-card h-100 #{purchaseView.isSkuSelected(variant.sku) ? 'selected' : ''}">
+                                                    <div class="product-card h-100">
                                                         <div class="card-body d-flex flex-column gap-3 position-relative">
                                                             <div>
                                                                 <span class="badge bg-primary-subtle text-primary-emphasis mb-2">#{purchaseView.labelForCitizenship(variant.citizenship)}</span>
@@ -144,7 +143,7 @@
                                                                 <div class="d-flex justify-content-between align-items-center">
                                                                     <span class="fw-semibold fs-5 mb-0">#{purchaseView.formatPrice(variant.price())}</span>
                                                                 </div>
-                                                                <div class="input-group input-group-sm">
+                                                                <div class="input-group input-group-sm" style="position: relative; z-index: 2;">
                                                                     <span class="input-group-text">Qty</span>
                                                                     <h:inputText id="quantity"
                                                                                 value="#{purchaseView.variantQuantities[variant.sku]}"
@@ -152,6 +151,7 @@
                                                                                 pt:type="number"
                                                                                 pt:min="1"
                                                                                 pt:max="10">
+                                                                        <f:convertNumber integerOnly="true" />
                                                                         <f:ajax event="change"
                                                                                 execute="@this"
                                                                                 render="purchaseForm:variantChoices" />
@@ -159,17 +159,13 @@
                                                                 </div>
                                                                 <h:commandButton value="Add to cart"
                                                                                  action="#{purchaseView.addVariantToCart(variant.sku)}"
-                                                                                 styleClass="btn btn-dark w-100">
+                                                                                 styleClass="btn btn-dark w-100"
+                                                                                 style="position: relative; z-index: 2;">
                                                                     <f:ajax execute="@form"
                                                                             render="purchaseForm:messages purchaseForm:variantChoices :cartToggle :cartDrawer" />
                                                                 </h:commandButton>
                                                             </div>
-                                                            <h:commandLink action="#{purchaseView.selectSku(variant.sku)}"
-                                                                          styleClass="stretched-link">
-                                                                <span class="visually-hidden">Select #{variant.displayName}</span>
-                                                                <f:ajax execute="@this"
-                                                                        render="purchaseForm:variant purchaseForm:variantChoices purchaseForm:messages" />
-                                                            </h:commandLink>
+                                                            
                                                         </div>
                                                     </div>
                                                 </div>
