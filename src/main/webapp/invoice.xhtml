@@ -14,7 +14,9 @@
             <header class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3 mb-4" aria-labelledby="invoiceHeading">
                 <div>
                     <h1 id="invoiceHeading" class="display-6 fw-bold mb-2">Invoice #{invoiceView.invoiceNo}</h1>
-                    <p class="text-muted mb-0">Created on #{invoiceView.invoice.created}</p>
+                    <p class="text-muted mb-0">Created on <h:outputText value="#{invoiceView.getCreatedLocalDateTime()}">
+                        <f:convertDateTime type="localDateTime" pattern="yyyy-MM-dd HH:mm" />
+                    </h:outputText></p>
                 </div>
                 <div class="d-flex gap-2">
                     <span class="badge #{invoiceView.invoice.status eq 'PAID' ? 'bg-success' : 'bg-warning text-dark'}">#{invoiceView.invoice.status}</span>

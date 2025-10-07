@@ -55,7 +55,7 @@
                                                 <td>#{historyView.describeService(order)}</td>
                                                 <td>#{order.qty}</td>
                                                 <td>#{historyView.formatTotal(order)}</td>
-                                                <td><h:outputText value="#{order.created}">
+                                                <td><h:outputText value="#{historyView.getCreatedLocalDateTime(order)}">
                                                     <f:convertDateTime type="localDateTime" pattern="yyyy-MM-dd HH:mm" />
                                                 </h:outputText></td>
                                                 <td>
