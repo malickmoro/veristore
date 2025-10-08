@@ -57,17 +57,32 @@ public class OrderStore implements Serializable {
                                 Contact contact,
                                 DeliveryPrefs deliveryPrefs,
                                 long totalMinor,
-                                Currency currency) {
+                                Currency currency,
+                                String invoiceNo,
+                                String checkoutUrl) {
         Objects.requireNonNull(key, "key");
         Objects.requireNonNull(contact, "contact");
         Objects.requireNonNull(deliveryPrefs, "deliveryPrefs");
         if (quantity <= 0) {
             throw new IllegalArgumentException("quantity must be positive");
         }
-        String invoiceNo = nextInvoiceNo();
-        Invoice invoice = new Invoice(invoiceNo, key, quantity, contact, deliveryPrefs, totalMinor, currency, InvoiceStatus.PENDING, Instant.now(), Collections.emptyList());
-        invoicesByNo.put(invoiceNo, invoice);
-        return invoiceNo;
+        String number = invoiceNo == null || invoiceNo.isBlank() ? nextInvoiceNo() : invoiceNo.trim();
+        if (invoicesByNo.containsKey(number)) {
+            throw new IllegalArgumentException("Invoice already exists: " + number);
+        }
+        Invoice invoice = new Invoice(number,
+                key,
+                quantity,
+                contact,
+                deliveryPrefs,
+                totalMinor,
+                currency,
+                InvoiceStatus.PENDING,
+                Instant.now(),
+                checkoutUrl,
+                Collections.emptyList());
+        invoicesByNo.put(number, invoice);
+        return number;
     }
 
     public Optional<Invoice> findInvoice(String invoiceNo) {
@@ -233,6 +248,7 @@ public class OrderStore implements Serializable {
         private final long totalMinor;
         private final Currency currency;
         private InvoiceStatus status;
+        private final String checkoutUrl;
         private final Instant created;
         private List<String> codesIfDelivered;
 
@@ -245,6 +261,7 @@ public class OrderStore implements Serializable {
                 Currency currency,
                 InvoiceStatus status,
                 Instant created,
+                String checkoutUrl,
                 List<String> codesIfDelivered) {
             this.invoiceNo = Objects.requireNonNull(invoiceNo, "invoiceNo");
             this.key = Objects.requireNonNull(key, "key");
@@ -255,6 +272,7 @@ public class OrderStore implements Serializable {
             this.currency = Objects.requireNonNull(currency, "currency");
             this.status = Objects.requireNonNull(status, "status");
             this.created = Objects.requireNonNull(created, "created");
+            this.checkoutUrl = checkoutUrl;
             this.codesIfDelivered = List.copyOf(Objects.requireNonNull(codesIfDelivered, "codesIfDelivered"));
         }
 
@@ -304,6 +322,10 @@ public class OrderStore implements Serializable {
 
         void setCodesIfDelivered(List<String> codesIfDelivered) {
             this.codesIfDelivered = List.copyOf(Objects.requireNonNull(codesIfDelivered, "codesIfDelivered"));
+        }
+
+        public String getCheckoutUrl() {
+            return checkoutUrl;
         }
     }
 }

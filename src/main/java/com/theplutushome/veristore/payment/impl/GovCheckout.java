@@ -12,8 +12,7 @@ import com.theplutushome.veristore.payload.request.CreateInvoiceRequest;
 import com.theplutushome.veristore.payload.request.InvoiceCheckRequest;
 import com.theplutushome.veristore.payload.response.CreateInvoiceResponse;
 import com.theplutushome.veristore.payload.response.PaymentResponse;
-import com.theplutushome.veristore.payment.PaymentService;
-import jakarta.ejb.Stateless;
+import jakarta.enterprise.context.ApplicationScoped;
 import kong.unirest.HttpResponse;
 import kong.unirest.Unirest;
 import kong.unirest.UnirestInstance;
@@ -23,8 +22,8 @@ import kong.unirest.UnirestInstance;
  * @author MalickMoro-Samah
  */
 @GOV
-@Stateless
-public class GovCheckout implements PaymentService {
+@ApplicationScoped
+public class GovCheckout {
 
     private final String BASE_URL = "https://www.govgh.org/api/v1.0/";
     private final String DIRECT_ENPOINT = BASE_URL + "checkout/direct.php";
@@ -42,7 +41,6 @@ public class GovCheckout implements PaymentService {
                 .verifySsl(false); // <-- disable hostname/SAN verification
     }
 
-    @Override
     public CreateInvoiceResponse initiateCheckout(CreateInvoiceRequest request) {
         try {
             String json = new ObjectMapper().writeValueAsString(request);
@@ -62,7 +60,6 @@ public class GovCheckout implements PaymentService {
         }
     }
 
-    @Override
     public PaymentResponse checkInvoiceStatus(InvoiceCheckRequest request) {
         try {
             System.out.println("The request for invoice check>>>> " + request.toString());
