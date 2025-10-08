@@ -37,7 +37,7 @@ public class EmailService implements Serializable {
     private Session session;
 
     private final String USERNAME = "";
-    private final String PASSWORD = "M.";
+    private final String PASSWORD = "";
     private final String SMTP_HOST = "smtp.office365.com";
     private final String SMTP_PORT = "587";
     private final String TIMEOUT = "30000";
@@ -152,25 +152,30 @@ public class EmailService implements Serializable {
         return false;
     }
 
-    public boolean sendPinsEmail(String recipient, String reference, List<String> pins) {
+    public boolean sendPinsEmail(String recipient, String reference, List<String> pins, String productDescription) {
         if (recipient == null || recipient.isBlank() || pins == null || pins.isEmpty()) {
             return false;
         }
         String subject = String.format("Your Veristore PINs for %s", reference);
-        String htmlBody = buildPinsHtmlBody(reference, pins);
+        String htmlBody = buildPinsHtmlBody(reference, pins, productDescription);
         if (sendEmailAsHtml(subject, recipient, htmlBody)) {
             return true;
         }
-        String textBody = buildPinsTextBody(reference, pins);
+        String textBody = buildPinsTextBody(reference, pins, productDescription);
         return sendEmailAsText(subject, recipient, textBody);
     }
 
-    private String buildPinsHtmlBody(String reference, List<String> pins) {
+    private String buildPinsHtmlBody(String reference, List<String> pins, String productDescription) {
         StringBuilder builder = new StringBuilder();
         builder.append("<p>Hello,</p>");
         builder.append("<p>Thank you for your purchase. Here are your PINs for reference <strong>")
                 .append(reference)
                 .append("</strong>:</p>");
+        
+        if (productDescription != null && !productDescription.isBlank()) {
+            builder.append("<p><strong>Product:</strong> ").append(productDescription).append("</p>");
+        }
+        
         builder.append("<ul>");
         for (String pin : pins) {
             builder.append("<li><strong>")
@@ -183,12 +188,17 @@ public class EmailService implements Serializable {
         return builder.toString();
     }
 
-    private String buildPinsTextBody(String reference, List<String> pins) {
+    private String buildPinsTextBody(String reference, List<String> pins, String productDescription) {
         StringBuilder builder = new StringBuilder();
         builder.append("Hello,\n\n");
         builder.append("Thank you for your purchase. Here are your PINs for reference ")
                 .append(reference)
                 .append(":\n");
+        
+        if (productDescription != null && !productDescription.isBlank()) {
+            builder.append("Product: ").append(productDescription).append("\n\n");
+        }
+        
         for (String pin : pins) {
             builder.append(" - ").append(pin).append('\n');
         }

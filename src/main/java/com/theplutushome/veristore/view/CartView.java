@@ -9,6 +9,7 @@ import com.theplutushome.veristore.domain.PaymentMode;
 import com.theplutushome.veristore.domain.Price;
 import com.theplutushome.veristore.dto.CartLineDTO;
 import com.theplutushome.veristore.payment.PaymentService;
+import com.theplutushome.veristore.service.OrderStore;
 import com.theplutushome.veristore.service.PricingService;
 
 import jakarta.enterprise.context.SessionScoped;
@@ -42,6 +43,9 @@ public class CartView implements Serializable {
 
     @Inject
     private PaymentService paymentService;
+
+    @Inject
+    private OrderStore orderStore;
 
     private final List<CartLineDTO> lines = new ArrayList<>();
     private final Map<String, CheckoutResult> checkoutResults = new HashMap<>();
@@ -261,6 +265,35 @@ public class CartView implements Serializable {
             return null;
         }
         lines.clear();
+        
+        // For Pay Later with single invoice, check if we should redirect to Gov checkout URL
+        if (mode == PaymentMode.PAY_LATER && references.size() == 1) {
+            CheckoutReference reference = references.get(0);
+            if (reference.getType() == CheckoutReference.Type.INVOICE) {
+                Optional<OrderStore.Invoice> invoiceOpt = orderStore.findInvoice(reference.getReference());
+                if (invoiceOpt.isPresent()) {
+                    OrderStore.Invoice invoice = invoiceOpt.get();
+                    String checkoutUrl = invoice.getCheckoutUrl();
+                    if (checkoutUrl != null && !checkoutUrl.isBlank()) {
+                        // Redirect directly to Gov checkout URL
+                        System.out.println("Redirecting to Gov checkout URL: " + checkoutUrl);
+                        return "redirect:" + checkoutUrl;
+                    } else {
+                        // Log the issue with checkout URL
+                        System.err.println("ERROR: Checkout URL is null or blank for invoice " + invoice.getInvoiceNo());
+                        System.err.println("Checkout URL value: '" + checkoutUrl + "'");
+                        System.err.println("This means the Gov checkout response did not include a valid checkout URL");
+                    }
+                } else {
+                    System.err.println("ERROR: Invoice not found for reference: " + reference.getReference());
+                }
+            } else {
+                System.err.println("ERROR: Expected INVOICE reference type, but got: " + reference.getType());
+            }
+        } else if (mode == PaymentMode.PAY_LATER && references.size() != 1) {
+            System.out.println("INFO: Multiple items in cart (" + references.size() + "), using normal checkout-result flow instead of direct Gov redirect");
+        }
+        
         String token = storeCheckoutResult(new CheckoutResult(mode, references));
         return "/checkout-result?faces-redirect=true&token=" + URLEncoder.encode(token, StandardCharsets.UTF_8);
     }

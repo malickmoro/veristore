@@ -73,7 +73,8 @@ public class PaymentService implements Serializable {
                 totalMinor,
                 price.currency(),
                 codes);
-        deliver(orderId, contact, deliveryPrefs, codes);
+        String productDescription = VariantDescriptions.describe(key.family(), key.sku());
+        deliver(orderId, contact, deliveryPrefs, codes, productDescription);
         LOGGER.log(Level.INFO, () -> String.format("Completed pay-now order %s for %s", orderId, contact.email()));
         return orderId;
     }
@@ -94,17 +95,19 @@ public class PaymentService implements Serializable {
         }
 
         String invoiceNo = response.getInvoiceNumber().trim();
+        String checkoutUrl = response.getCheckoutUrl();
         String storedInvoice = orderStore.createInvoice(key,
                 quantity,
                 contact,
                 deliveryPrefs,
                 totalMinor,
                 price.currency(),
-                invoiceNo);
+                invoiceNo,
+                checkoutUrl);
 
         LOGGER.log(Level.INFO, () -> String.format("Created GOV invoice %s for %s", storedInvoice, contact.email()));
-        if (response.getCheckoutUrl() != null && !response.getCheckoutUrl().isBlank()) {
-            LOGGER.log(Level.INFO, () -> "Checkout URL: " + response.getCheckoutUrl());
+        if (checkoutUrl != null && !checkoutUrl.isBlank()) {
+            LOGGER.log(Level.INFO, () -> "Checkout URL: " + checkoutUrl);
         }
         return storedInvoice;
     }
@@ -181,7 +184,8 @@ public class PaymentService implements Serializable {
                     invoice.getTotalMinor(),
                     invoice.getCurrency(),
                     codes);
-            deliver(orderId, invoice.getContact(), invoice.getDeliveryPrefs(), codes);
+            String productDescription = VariantDescriptions.describe(invoice.getKey().family(), invoice.getKey().sku());
+            deliver(orderId, invoice.getContact(), invoice.getDeliveryPrefs(), codes, productDescription);
             LOGGER.log(Level.INFO, () -> String.format("Redeemed invoice %s as order %s", invoice.getInvoiceNo(), orderId));
         }
     }
@@ -235,12 +239,12 @@ public class PaymentService implements Serializable {
         return InvoiceStatus.PENDING;
     }
 
-    private void deliver(String reference, Contact contact, DeliveryPrefs deliveryPrefs, List<String> codes) {
+    private void deliver(String reference, Contact contact, DeliveryPrefs deliveryPrefs, List<String> codes, String productDescription) {
         if (codes.isEmpty()) {
             return;
         }
         if (deliveryPrefs.byEmail() && contact.email() != null && !contact.email().isBlank()) {
-            boolean sent = emailService.sendPinsEmail(contact.email(), reference, codes);
+            boolean sent = emailService.sendPinsEmail(contact.email(), reference, codes, productDescription);
             if (!sent) {
                 LOGGER.log(Level.WARNING, () -> "Failed to send PIN email to " + contact.email());
             }

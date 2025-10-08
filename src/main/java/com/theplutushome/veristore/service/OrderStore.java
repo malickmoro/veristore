@@ -58,7 +58,8 @@ public class OrderStore implements Serializable {
                                 DeliveryPrefs deliveryPrefs,
                                 long totalMinor,
                                 Currency currency,
-                                String invoiceNo) {
+                                String invoiceNo,
+                                String checkoutUrl) {
         Objects.requireNonNull(key, "key");
         Objects.requireNonNull(contact, "contact");
         Objects.requireNonNull(deliveryPrefs, "deliveryPrefs");
@@ -69,7 +70,7 @@ public class OrderStore implements Serializable {
         if (invoicesByNo.containsKey(number)) {
             throw new IllegalArgumentException("Invoice already exists: " + number);
         }
-        Invoice invoice = new Invoice(number, key, quantity, contact, deliveryPrefs, totalMinor, currency, InvoiceStatus.PENDING, Instant.now(), Collections.emptyList());
+        Invoice invoice = new Invoice(number, key, quantity, contact, deliveryPrefs, totalMinor, currency, InvoiceStatus.PENDING, Instant.now(), checkoutUrl, Collections.emptyList());
         invoicesByNo.put(number, invoice);
         return number;
     }
