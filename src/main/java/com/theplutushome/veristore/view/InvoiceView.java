@@ -118,4 +118,17 @@ public class InvoiceView implements Serializable {
         ExternalContext externalContext = FacesContext.getCurrentInstance().getExternalContext();
         return externalContext.getRequestContextPath() + "/api/mock/hubtel/callback?invoice=" + encoded + "&paid=true";
     }
+
+    public boolean hasCheckoutUrl() {
+        return invoice != null
+                && invoice.getCheckoutUrl() != null
+                && !invoice.getCheckoutUrl().isBlank();
+    }
+
+    public String getCheckoutUrl() {
+        if (!hasCheckoutUrl()) {
+            return "";
+        }
+        return invoice.getCheckoutUrl();
+    }
 }

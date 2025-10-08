@@ -237,6 +237,7 @@ public class OrderStore implements Serializable {
         private final long totalMinor;
         private final Currency currency;
         private InvoiceStatus status;
+        private final String checkoutUrl;
         private final Instant created;
         private List<String> codesIfDelivered;
 
@@ -249,6 +250,7 @@ public class OrderStore implements Serializable {
                 Currency currency,
                 InvoiceStatus status,
                 Instant created,
+                String checkoutUrl,
                 List<String> codesIfDelivered) {
             this.invoiceNo = Objects.requireNonNull(invoiceNo, "invoiceNo");
             this.key = Objects.requireNonNull(key, "key");
@@ -259,6 +261,7 @@ public class OrderStore implements Serializable {
             this.currency = Objects.requireNonNull(currency, "currency");
             this.status = Objects.requireNonNull(status, "status");
             this.created = Objects.requireNonNull(created, "created");
+            this.checkoutUrl = checkoutUrl;
             this.codesIfDelivered = List.copyOf(Objects.requireNonNull(codesIfDelivered, "codesIfDelivered"));
         }
 
@@ -308,6 +311,10 @@ public class OrderStore implements Serializable {
 
         void setCodesIfDelivered(List<String> codesIfDelivered) {
             this.codesIfDelivered = List.copyOf(Objects.requireNonNull(codesIfDelivered, "codesIfDelivered"));
+        }
+
+        public String getCheckoutUrl() {
+            return checkoutUrl;
         }
     }
 }

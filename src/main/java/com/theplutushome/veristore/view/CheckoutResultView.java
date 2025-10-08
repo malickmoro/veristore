@@ -158,6 +158,7 @@ public class CheckoutResultView implements Serializable {
         private final long totalMinor;
         private final List<String> maskedCodes;
         private final String status;
+        private final String checkoutUrl;
 
         private ResultLine(String reference,
                             String referenceLabel,
@@ -167,7 +168,8 @@ public class CheckoutResultView implements Serializable {
                             com.theplutushome.veristore.domain.Currency currency,
                             long totalMinor,
                             List<String> maskedCodes,
-                            String status) {
+                            String status,
+                            String checkoutUrl) {
             this.reference = reference;
             this.referenceLabel = referenceLabel;
             this.service = service;
@@ -177,6 +179,7 @@ public class CheckoutResultView implements Serializable {
             this.totalMinor = totalMinor;
             this.maskedCodes = List.copyOf(maskedCodes);
             this.status = status;
+            this.checkoutUrl = checkoutUrl;
         }
 
         static ResultLine fromOrder(OrderStore.Order order, PricingService pricingService) {
@@ -191,6 +194,7 @@ public class CheckoutResultView implements Serializable {
                     order.getCurrency(),
                     order.getTotalMinor(),
                     masked,
+                    null,
                     null);
         }
 
@@ -211,7 +215,8 @@ public class CheckoutResultView implements Serializable {
                     invoice.getCurrency(),
                     invoice.getTotalMinor(),
                     masked,
-                    status);
+                    status,
+                    invoice.getCheckoutUrl());
         }
 
         public String getReference() {
@@ -256,6 +261,14 @@ public class CheckoutResultView implements Serializable {
 
         public boolean hasStatus() {
             return status != null && !status.isBlank();
+        }
+
+        public boolean hasCheckoutUrl() {
+            return checkoutUrl != null && !checkoutUrl.isBlank();
+        }
+
+        public String getCheckoutUrl() {
+            return checkoutUrl;
         }
     }
 }

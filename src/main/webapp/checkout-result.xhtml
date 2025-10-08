@@ -36,6 +36,14 @@
                                             <h:panelGroup rendered="#{line.hasStatus()}" layout="block" styleClass="mt-2">
                                                 <span class="badge bg-light text-dark">#{line.status}</span>
                                             </h:panelGroup>
+                                            <h:panelGroup rendered="#{line.hasCheckoutUrl()}" layout="block" styleClass="mt-3">
+                                                <h:outputLink value="#{line.checkoutUrl}"
+                                                              styleClass="btn btn-primary btn-sm"
+                                                              pt:target="_blank"
+                                                              pt:rel="noopener">
+                                                    Pay now
+                                                </h:outputLink>
+                                            </h:panelGroup>
                                         </div>
                                         <div class="text-md-end">
                                             <p class="text-muted small mb-1">Total</p>

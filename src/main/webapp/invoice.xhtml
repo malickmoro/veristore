@@ -28,7 +28,7 @@
                     <div class="card border-0 shadow-sm h-100">
                         <div class="card-body">
                             <h2 class="h5 mb-3">Payment instructions</h2>
-                            <p class="text-muted">Present this invoice number at a participating bank or trigger the mock Hubtel callback. Once payment is confirmed, redeem the invoice or follow the simulated callback to receive masked codes.</p>
+                            <p class="text-muted">Use the pay now button to visit the GOV checkout page or present this invoice number at a participating bank. Once payment is confirmed, redeem the invoice to receive masked codes.</p>
                             <dl class="row small mb-3">
                                 <dt class="col-5 text-muted">Invoice number</dt>
                                 <dd class="col-7">#{invoiceView.invoice.invoiceNo}</dd>
@@ -44,6 +44,13 @@
                                 <dd class="col-7">#{invoiceView.invoice.contact.msisdn}</dd>
                             </dl>
                             <div class="d-flex flex-column flex-sm-row gap-2">
+                                <h:outputLink value="#{invoiceView.checkoutUrl}"
+                                              rendered="#{invoiceView.hasCheckoutUrl}"
+                                              styleClass="btn btn-primary"
+                                              pt:target="_blank"
+                                              pt:rel="noopener">
+                                    Pay now
+                                </h:outputLink>
                                 <h:link outcome="/redeem" styleClass="btn btn-outline-primary">Redeem after bank payment</h:link>
                                 <h:outputLink value="#{invoiceView.simulatePaymentUrl}" styleClass="btn btn-secondary">Simulate payment (mock)</h:outputLink>
                             </div>
@@ -63,7 +70,7 @@
                                 </ul>
                             </h:panelGroup>
                             <h:panelGroup rendered="#{invoiceView.invoice.status ne 'PAID'}">
-                                <p class="text-muted small mb-0">Awaiting payment confirmation. Use the simulate button to mark this invoice paid instantly.</p>
+                                <p class="text-muted small mb-0">Awaiting payment confirmation. Use the pay now button above or the simulate button to mark this invoice paid instantly.</p>
                             </h:panelGroup>
                         </div>
                     </div>
