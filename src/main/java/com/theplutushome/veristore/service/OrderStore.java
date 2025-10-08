@@ -57,17 +57,21 @@ public class OrderStore implements Serializable {
                                 Contact contact,
                                 DeliveryPrefs deliveryPrefs,
                                 long totalMinor,
-                                Currency currency) {
+                                Currency currency,
+                                String invoiceNo) {
         Objects.requireNonNull(key, "key");
         Objects.requireNonNull(contact, "contact");
         Objects.requireNonNull(deliveryPrefs, "deliveryPrefs");
         if (quantity <= 0) {
             throw new IllegalArgumentException("quantity must be positive");
         }
-        String invoiceNo = nextInvoiceNo();
-        Invoice invoice = new Invoice(invoiceNo, key, quantity, contact, deliveryPrefs, totalMinor, currency, InvoiceStatus.PENDING, Instant.now(), Collections.emptyList());
-        invoicesByNo.put(invoiceNo, invoice);
-        return invoiceNo;
+        String number = invoiceNo == null || invoiceNo.isBlank() ? nextInvoiceNo() : invoiceNo.trim();
+        if (invoicesByNo.containsKey(number)) {
+            throw new IllegalArgumentException("Invoice already exists: " + number);
+        }
+        Invoice invoice = new Invoice(number, key, quantity, contact, deliveryPrefs, totalMinor, currency, InvoiceStatus.PENDING, Instant.now(), Collections.emptyList());
+        invoicesByNo.put(number, invoice);
+        return number;
     }
 
     public Optional<Invoice> findInvoice(String invoiceNo) {

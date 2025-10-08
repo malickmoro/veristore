@@ -4,11 +4,16 @@
  */
 package com.theplutushome.veristore.payment;
 
+import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -17,17 +22,30 @@ import jakarta.ws.rs.core.Response;
 @Path("/payment/callback")
 public class PaymentCallback {
 
-    @Consumes(value = "application/x-www-form-urlencoded")
+    private static final Logger LOGGER = Logger.getLogger(PaymentCallback.class.getName());
+
+    @Inject
+    private PaymentService paymentService;
+
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     @POST
     public Response processCallback(@QueryParam(value = "invoice_number") String invoiceNumber) {
-        System.out.println("The invoice number received is >>>>>>> " + invoiceNumber);
-        try {          
-        } catch (Exception e) {
-            System.out.println("ERROR FROM CALLBACK PROCESS >>>>>>>>>>>>> " + e.getMessage());
-            return Response.status(400).build();
+        if (invoiceNumber == null || invoiceNumber.isBlank()) {
+            LOGGER.warning("Payment callback received without invoice number");
+            return Response.status(Response.Status.BAD_REQUEST).entity("invoice_number is required").build();
         }
-
-        return Response.status(400).build();
+        String normalized = invoiceNumber.trim();
+        LOGGER.log(Level.INFO, () -> "Processing payment callback for invoice " + normalized);
+        try {
+            boolean fulfilled = paymentService.processGatewayCallback(normalized);
+            if (fulfilled) {
+                return Response.ok().build();
+            }
+            return Response.status(Response.Status.ACCEPTED).build();
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Error processing payment callback", e);
+            return Response.serverError().build();
+        }
     }
 
 }

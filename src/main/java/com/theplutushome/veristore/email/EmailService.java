@@ -151,4 +151,49 @@ public class EmailService implements Serializable {
         }
         return false;
     }
+
+    public boolean sendPinsEmail(String recipient, String reference, List<String> pins) {
+        if (recipient == null || recipient.isBlank() || pins == null || pins.isEmpty()) {
+            return false;
+        }
+        String subject = String.format("Your Veristore PINs for %s", reference);
+        String htmlBody = buildPinsHtmlBody(reference, pins);
+        if (sendEmailAsHtml(subject, recipient, htmlBody)) {
+            return true;
+        }
+        String textBody = buildPinsTextBody(reference, pins);
+        return sendEmailAsText(subject, recipient, textBody);
+    }
+
+    private String buildPinsHtmlBody(String reference, List<String> pins) {
+        StringBuilder builder = new StringBuilder();
+        builder.append("<p>Hello,</p>");
+        builder.append("<p>Thank you for your purchase. Here are your PINs for reference <strong>")
+                .append(reference)
+                .append("</strong>:</p>");
+        builder.append("<ul>");
+        for (String pin : pins) {
+            builder.append("<li><strong>")
+                    .append(pin)
+                    .append("</strong></li>");
+        }
+        builder.append("</ul>");
+        builder.append("<p>Please keep these codes safe.\nIf you did not request this delivery, contact our support team immediately.</p>");
+        builder.append("<p>Regards,<br/>Veristore Team</p>");
+        return builder.toString();
+    }
+
+    private String buildPinsTextBody(String reference, List<String> pins) {
+        StringBuilder builder = new StringBuilder();
+        builder.append("Hello,\n\n");
+        builder.append("Thank you for your purchase. Here are your PINs for reference ")
+                .append(reference)
+                .append(":\n");
+        for (String pin : pins) {
+            builder.append(" - ").append(pin).append('\n');
+        }
+        builder.append("\nPlease keep these codes safe. If you did not request this delivery, contact our support team immediately.\n\n");
+        builder.append("Regards,\nVeristore Team");
+        return builder.toString();
+    }
 }
