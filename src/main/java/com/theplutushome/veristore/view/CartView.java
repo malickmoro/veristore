@@ -9,7 +9,6 @@ import com.theplutushome.veristore.domain.PaymentMode;
 import com.theplutushome.veristore.domain.Price;
 import com.theplutushome.veristore.dto.CartLineDTO;
 import com.theplutushome.veristore.payment.PaymentService;
-import com.theplutushome.veristore.service.OrderStore;
 import com.theplutushome.veristore.service.PricingService;
 
 import jakarta.enterprise.context.SessionScoped;
@@ -43,9 +42,6 @@ public class CartView implements Serializable {
 
     @Inject
     private PaymentService paymentService;
-
-    @Inject
-    private OrderStore orderStore;
 
     private final List<CartLineDTO> lines = new ArrayList<>();
     private final Map<String, CheckoutResult> checkoutResults = new HashMap<>();
@@ -241,22 +237,24 @@ public class CartView implements Serializable {
         Contact contact = new Contact(normalizedEmail, normalizedMsisdn);
         DeliveryPrefs prefs = new DeliveryPrefs(deliverEmail, deliverSms);
         List<CheckoutReference> references = new ArrayList<>();
+        List<PaymentService.Purchase> purchases = new ArrayList<>();
+        List<CartLineDTO> snapshot = new ArrayList<>(lines);
         try {
-            for (CartLineDTO line : new ArrayList<>(lines)) {
+            for (CartLineDTO line : snapshot) {
                 line.setPaymentMode(mode);
                 line.setDeliverEmail(deliverEmail);
                 line.setDeliverSms(deliverSms);
                 line.setEmail(normalizedEmail);
                 line.setMsisdn(normalizedMsisdn);
                 ProductKey key = new ProductKey(Optional.ofNullable(line.getFamily()).orElse(ProductFamily.ENROLLMENT), line.getSku());
-                if (mode == PaymentMode.PAY_NOW) {
-                    String orderId = paymentService.payNow(key, line.getQty(), contact, prefs);
-                    references.add(new CheckoutReference(CheckoutReference.Type.ORDER, orderId));
-                } else {
-                    String invoiceNo = paymentService.payLater(key, line.getQty(), contact, prefs);
-                    references.add(new CheckoutReference(CheckoutReference.Type.INVOICE, invoiceNo));
-                }
+                purchases.add(new PaymentService.Purchase(key, line.getQty()));
             }
+            PaymentService.CheckoutInitiation initiation = mode == PaymentMode.PAY_NOW
+                    ? paymentService.payNow(purchases, contact, prefs)
+                    : paymentService.payLater(purchases, contact, prefs);
+            references.add(new CheckoutReference(CheckoutReference.Type.INVOICE,
+                    initiation.getInvoiceNo(),
+                    initiation.getCheckoutUrl()));
         } catch (Exception ex) {
             FacesContext context = FacesContext.getCurrentInstance();
             if (context != null) {
@@ -265,35 +263,14 @@ public class CartView implements Serializable {
             return null;
         }
         lines.clear();
-        
-        // For Pay Later with single invoice, check if we should redirect to Gov checkout URL
-        if (mode == PaymentMode.PAY_LATER && references.size() == 1) {
+
+        if (references.size() == 1) {
             CheckoutReference reference = references.get(0);
-            if (reference.getType() == CheckoutReference.Type.INVOICE) {
-                Optional<OrderStore.Invoice> invoiceOpt = orderStore.findInvoice(reference.getReference());
-                if (invoiceOpt.isPresent()) {
-                    OrderStore.Invoice invoice = invoiceOpt.get();
-                    String checkoutUrl = invoice.getCheckoutUrl();
-                    if (checkoutUrl != null && !checkoutUrl.isBlank()) {
-                        // Redirect directly to Gov checkout URL
-                        System.out.println("Redirecting to Gov checkout URL: " + checkoutUrl);
-                        return "redirect:" + checkoutUrl;
-                    } else {
-                        // Log the issue with checkout URL
-                        System.err.println("ERROR: Checkout URL is null or blank for invoice " + invoice.getInvoiceNo());
-                        System.err.println("Checkout URL value: '" + checkoutUrl + "'");
-                        System.err.println("This means the Gov checkout response did not include a valid checkout URL");
-                    }
-                } else {
-                    System.err.println("ERROR: Invoice not found for reference: " + reference.getReference());
-                }
-            } else {
-                System.err.println("ERROR: Expected INVOICE reference type, but got: " + reference.getType());
+            if (reference.hasCheckoutUrl()) {
+                return "redirect:" + reference.getCheckoutUrl();
             }
-        } else if (mode == PaymentMode.PAY_LATER && references.size() != 1) {
-            System.out.println("INFO: Multiple items in cart (" + references.size() + "), using normal checkout-result flow instead of direct Gov redirect");
         }
-        
+
         String token = storeCheckoutResult(new CheckoutResult(mode, references));
         return "/checkout-result?faces-redirect=true&token=" + URLEncoder.encode(token, StandardCharsets.UTF_8);
     }
@@ -349,10 +326,16 @@ public class CartView implements Serializable {
 
         private final Type type;
         private final String reference;
+        private final String checkoutUrl;
 
         public CheckoutReference(Type type, String reference) {
+            this(type, reference, null);
+        }
+
+        public CheckoutReference(Type type, String reference, String checkoutUrl) {
             this.type = Objects.requireNonNull(type, "type");
             this.reference = Objects.requireNonNull(reference, "reference");
+            this.checkoutUrl = checkoutUrl;
         }
 
         public Type getType() {
@@ -361,6 +344,14 @@ public class CartView implements Serializable {
 
         public String getReference() {
             return reference;
+        }
+
+        public String getCheckoutUrl() {
+            return checkoutUrl;
+        }
+
+        public boolean hasCheckoutUrl() {
+            return checkoutUrl != null && !checkoutUrl.isBlank();
         }
     }
 

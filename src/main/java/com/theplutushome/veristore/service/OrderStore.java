@@ -39,15 +39,23 @@ public class OrderStore implements Serializable {
                               long totalMinor,
                               Currency currency,
                               List<String> codes) {
-        Objects.requireNonNull(key, "key");
+        OrderLine line = new OrderLine(key, quantity, totalMinor, currency, codes);
+        return createOrder(List.of(line), contact, deliveryPrefs);
+    }
+
+    public String createOrder(List<OrderLine> lines,
+                              Contact contact,
+                              DeliveryPrefs deliveryPrefs) {
+        Objects.requireNonNull(lines, "lines");
         Objects.requireNonNull(contact, "contact");
         Objects.requireNonNull(deliveryPrefs, "deliveryPrefs");
-        Objects.requireNonNull(codes, "codes");
-        if (quantity <= 0) {
-            throw new IllegalArgumentException("quantity must be positive");
+        if (lines.isEmpty()) {
+            throw new IllegalArgumentException("lines must not be empty");
         }
+        Currency currency = ensureCommonCurrency(lines.stream().map(OrderLine::getCurrency).toList());
+        long totalMinor = lines.stream().mapToLong(OrderLine::getTotalMinor).sum();
         String id = nextOrderId();
-        Order order = new Order(id, key, quantity, contact, deliveryPrefs, totalMinor, currency, Instant.now(), codes);
+        Order order = new Order(id, contact, deliveryPrefs, totalMinor, currency, Instant.now(), lines);
         ordersById.put(id, order);
         return id;
     }
@@ -60,17 +68,28 @@ public class OrderStore implements Serializable {
                                 Currency currency,
                                 String invoiceNo,
                                 String checkoutUrl) {
-        Objects.requireNonNull(key, "key");
+        InvoiceLine line = new InvoiceLine(key, quantity, totalMinor, currency, Collections.emptyList());
+        return createInvoice(List.of(line), contact, deliveryPrefs, invoiceNo, checkoutUrl);
+    }
+
+    public String createInvoice(List<InvoiceLine> lines,
+                                Contact contact,
+                                DeliveryPrefs deliveryPrefs,
+                                String invoiceNo,
+                                String checkoutUrl) {
+        Objects.requireNonNull(lines, "lines");
         Objects.requireNonNull(contact, "contact");
         Objects.requireNonNull(deliveryPrefs, "deliveryPrefs");
-        if (quantity <= 0) {
-            throw new IllegalArgumentException("quantity must be positive");
+        if (lines.isEmpty()) {
+            throw new IllegalArgumentException("lines must not be empty");
         }
+        Currency currency = ensureCommonCurrency(lines.stream().map(InvoiceLine::getCurrency).toList());
+        long totalMinor = lines.stream().mapToLong(InvoiceLine::getTotalMinor).sum();
         String number = invoiceNo == null || invoiceNo.isBlank() ? nextInvoiceNo() : invoiceNo.trim();
         if (invoicesByNo.containsKey(number)) {
             throw new IllegalArgumentException("Invoice already exists: " + number);
         }
-        Invoice invoice = new Invoice(number, key, quantity, contact, deliveryPrefs, totalMinor, currency, InvoiceStatus.PENDING, Instant.now(), checkoutUrl, Collections.emptyList());
+        Invoice invoice = new Invoice(number, contact, deliveryPrefs, totalMinor, currency, InvoiceStatus.PENDING, Instant.now(), checkoutUrl, lines);
         invoicesByNo.put(number, invoice);
         return number;
     }
@@ -101,13 +120,13 @@ public class OrderStore implements Serializable {
         return List.copyOf(matches);
     }
 
-    public Optional<Invoice> markInvoicePaid(String invoiceNo, List<String> deliveredCodes) {
+    public Optional<Invoice> markInvoicePaid(String invoiceNo, Map<ProductKey, List<String>> deliveredCodes) {
         Objects.requireNonNull(deliveredCodes, "deliveredCodes");
         return findInvoice(invoiceNo).map(invoice -> {
             synchronized (invoice) {
                 if (invoice.getStatus() != InvoiceStatus.PAID) {
                     invoice.setStatus(InvoiceStatus.PAID);
-                    invoice.setCodesIfDelivered(List.copyOf(deliveredCodes));
+                    invoice.setDeliveredCodes(deliveredCodes);
                 }
             }
             return invoice;
@@ -153,51 +172,49 @@ public class OrderStore implements Serializable {
         return String.format("INV-%d-%05d", Year.now().getValue(), sequence);
     }
 
+    private Currency ensureCommonCurrency(List<Currency> currencies) {
+        if (currencies.isEmpty()) {
+            throw new IllegalArgumentException("At least one currency required");
+        }
+        Currency first = currencies.get(0);
+        boolean mismatch = currencies.stream().anyMatch(currency -> currency != first);
+        if (mismatch) {
+            throw new IllegalArgumentException("All lines must share the same currency");
+        }
+        return first;
+    }
+
     public static final class Order implements Serializable {
 
         @Serial
         private static final long serialVersionUID = 1L;
 
         private final String id;
-        private final ProductKey key;
-        private final int qty;
         private final Contact contact;
         private final DeliveryPrefs deliveryPrefs;
+        private final Instant created;
         private final long totalMinor;
         private final Currency currency;
-        private final Instant created;
-        private final List<String> codes;
+        private final List<OrderLine> lines;
 
         Order(String id,
-              ProductKey key,
-              int qty,
               Contact contact,
               DeliveryPrefs deliveryPrefs,
               long totalMinor,
               Currency currency,
               Instant created,
-              List<String> codes) {
+              List<OrderLine> lines) {
             this.id = Objects.requireNonNull(id, "id");
-            this.key = Objects.requireNonNull(key, "key");
-            this.qty = qty;
             this.contact = Objects.requireNonNull(contact, "contact");
             this.deliveryPrefs = Objects.requireNonNull(deliveryPrefs, "deliveryPrefs");
+            this.created = Objects.requireNonNull(created, "created");
             this.totalMinor = totalMinor;
             this.currency = Objects.requireNonNull(currency, "currency");
-            this.created = Objects.requireNonNull(created, "created");
-            this.codes = List.copyOf(Objects.requireNonNull(codes, "codes"));
+            this.lines = List.copyOf(Objects.requireNonNull(lines, "lines"));
         }
 
         public String getId() {
             return id;
-        }
-
-        public ProductKey getKey() {
-            return key;
-        }
-
-        public int getQty() {
-            return qty;
         }
 
         public Contact getContact() {
@@ -220,8 +237,18 @@ public class OrderStore implements Serializable {
             return created;
         }
 
+        public List<OrderLine> getLines() {
+            return lines;
+        }
+
+        public int getQty() {
+            return lines.stream().mapToInt(OrderLine::getQuantity).sum();
+        }
+
         public List<String> getCodes() {
-            return codes;
+            return lines.stream()
+                    .flatMap(line -> line.getCodes().stream())
+                    .toList();
         }
     }
 
@@ -231,20 +258,16 @@ public class OrderStore implements Serializable {
         private static final long serialVersionUID = 1L;
 
         private final String invoiceNo;
-        private final ProductKey key;
-        private final int qty;
         private final Contact contact;
         private final DeliveryPrefs deliveryPrefs;
-        private final long totalMinor;
-        private final Currency currency;
         private InvoiceStatus status;
         private final String checkoutUrl;
         private final Instant created;
-        private List<String> codesIfDelivered;
+        private final long totalMinor;
+        private final Currency currency;
+        private final List<InvoiceLine> lines;
 
         Invoice(String invoiceNo,
-                ProductKey key,
-                int qty,
                 Contact contact,
                 DeliveryPrefs deliveryPrefs,
                 long totalMinor,
@@ -252,30 +275,20 @@ public class OrderStore implements Serializable {
                 InvoiceStatus status,
                 Instant created,
                 String checkoutUrl,
-                List<String> codesIfDelivered) {
+                List<InvoiceLine> lines) {
             this.invoiceNo = Objects.requireNonNull(invoiceNo, "invoiceNo");
-            this.key = Objects.requireNonNull(key, "key");
-            this.qty = qty;
             this.contact = Objects.requireNonNull(contact, "contact");
             this.deliveryPrefs = Objects.requireNonNull(deliveryPrefs, "deliveryPrefs");
-            this.totalMinor = totalMinor;
-            this.currency = Objects.requireNonNull(currency, "currency");
             this.status = Objects.requireNonNull(status, "status");
             this.created = Objects.requireNonNull(created, "created");
             this.checkoutUrl = checkoutUrl;
-            this.codesIfDelivered = List.copyOf(Objects.requireNonNull(codesIfDelivered, "codesIfDelivered"));
+            this.totalMinor = totalMinor;
+            this.currency = Objects.requireNonNull(currency, "currency");
+            this.lines = new ArrayList<>(Objects.requireNonNull(lines, "lines"));
         }
 
         public String getInvoiceNo() {
             return invoiceNo;
-        }
-
-        public ProductKey getKey() {
-            return key;
-        }
-
-        public int getQty() {
-            return qty;
         }
 
         public Contact getContact() {
@@ -306,16 +319,128 @@ public class OrderStore implements Serializable {
             return created;
         }
 
-        public List<String> getCodesIfDelivered() {
-            return codesIfDelivered;
+        public List<InvoiceLine> getLines() {
+            return List.copyOf(lines);
         }
 
-        void setCodesIfDelivered(List<String> codesIfDelivered) {
-            this.codesIfDelivered = List.copyOf(Objects.requireNonNull(codesIfDelivered, "codesIfDelivered"));
+        public int getQty() {
+            return lines.stream().mapToInt(InvoiceLine::getQuantity).sum();
+        }
+
+        public List<String> getCodesIfDelivered() {
+            return lines.stream()
+                    .flatMap(line -> line.getDeliveredCodes().stream())
+                    .toList();
+        }
+
+        void setDeliveredCodes(Map<ProductKey, List<String>> deliveredCodes) {
+            Objects.requireNonNull(deliveredCodes, "deliveredCodes");
+            for (InvoiceLine line : lines) {
+                List<String> codes = deliveredCodes.getOrDefault(line.getKey(), List.of());
+                line.setDeliveredCodes(codes);
+            }
         }
 
         public String getCheckoutUrl() {
             return checkoutUrl;
+        }
+    }
+
+    public static final class OrderLine implements Serializable {
+
+        @Serial
+        private static final long serialVersionUID = 1L;
+
+        private final ProductKey key;
+        private final int quantity;
+        private final long totalMinor;
+        private final Currency currency;
+        private final List<String> codes;
+
+        public OrderLine(ProductKey key,
+                         int quantity,
+                         long totalMinor,
+                         Currency currency,
+                         List<String> codes) {
+            this.key = Objects.requireNonNull(key, "key");
+            if (quantity <= 0) {
+                throw new IllegalArgumentException("quantity must be positive");
+            }
+            this.quantity = quantity;
+            this.totalMinor = totalMinor;
+            this.currency = Objects.requireNonNull(currency, "currency");
+            this.codes = List.copyOf(Objects.requireNonNull(codes, "codes"));
+        }
+
+        public ProductKey getKey() {
+            return key;
+        }
+
+        public int getQuantity() {
+            return quantity;
+        }
+
+        public long getTotalMinor() {
+            return totalMinor;
+        }
+
+        public Currency getCurrency() {
+            return currency;
+        }
+
+        public List<String> getCodes() {
+            return codes;
+        }
+    }
+
+    public static final class InvoiceLine implements Serializable {
+
+        @Serial
+        private static final long serialVersionUID = 1L;
+
+        private final ProductKey key;
+        private final int quantity;
+        private final long totalMinor;
+        private final Currency currency;
+        private List<String> deliveredCodes;
+
+        public InvoiceLine(ProductKey key,
+                           int quantity,
+                           long totalMinor,
+                           Currency currency,
+                           List<String> deliveredCodes) {
+            this.key = Objects.requireNonNull(key, "key");
+            if (quantity <= 0) {
+                throw new IllegalArgumentException("quantity must be positive");
+            }
+            this.quantity = quantity;
+            this.totalMinor = totalMinor;
+            this.currency = Objects.requireNonNull(currency, "currency");
+            this.deliveredCodes = List.copyOf(Objects.requireNonNull(deliveredCodes, "deliveredCodes"));
+        }
+
+        public ProductKey getKey() {
+            return key;
+        }
+
+        public int getQuantity() {
+            return quantity;
+        }
+
+        public long getTotalMinor() {
+            return totalMinor;
+        }
+
+        public Currency getCurrency() {
+            return currency;
+        }
+
+        public List<String> getDeliveredCodes() {
+            return deliveredCodes;
+        }
+
+        void setDeliveredCodes(List<String> deliveredCodes) {
+            this.deliveredCodes = List.copyOf(Objects.requireNonNull(deliveredCodes, "deliveredCodes"));
         }
     }
 }
