@@ -94,22 +94,17 @@ public class PaymentService implements Serializable {
         }
 
         String invoiceNo = response.getInvoiceNumber().trim();
-        String checkoutUrl = Optional.ofNullable(response.getCheckoutUrl())
-                .map(String::trim)
-                .filter(value -> !value.isEmpty())
-                .orElse(null);
         String storedInvoice = orderStore.createInvoice(key,
                 quantity,
                 contact,
                 deliveryPrefs,
                 totalMinor,
                 price.currency(),
-                invoiceNo,
-                checkoutUrl);
+                invoiceNo);
 
         LOGGER.log(Level.INFO, () -> String.format("Created GOV invoice %s for %s", storedInvoice, contact.email()));
-        if (checkoutUrl != null) {
-            LOGGER.log(Level.INFO, () -> "Checkout URL: " + checkoutUrl);
+        if (response.getCheckoutUrl() != null && !response.getCheckoutUrl().isBlank()) {
+            LOGGER.log(Level.INFO, () -> "Checkout URL: " + response.getCheckoutUrl());
         }
         return storedInvoice;
     }
