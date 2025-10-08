@@ -92,7 +92,13 @@ public class HistoryView implements Serializable {
     }
 
     public String describeService(OrderStore.Order order) {
-        return VariantDescriptions.describe(order.getKey().family(), order.getKey().sku());
+        if (order.getLines().isEmpty()) {
+            return "";
+        }
+        return order.getLines().stream()
+                .map(line -> VariantDescriptions.describe(line.getKey().family(), line.getKey().sku())
+                        + " x" + line.getQuantity())
+                .collect(Collectors.joining(", "));
     }
 
     public LocalDateTime getCreatedLocalDateTime(OrderStore.Order order) {

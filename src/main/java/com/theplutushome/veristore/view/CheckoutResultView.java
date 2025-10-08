@@ -23,6 +23,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Named
 @ViewScoped
@@ -183,7 +184,7 @@ public class CheckoutResultView implements Serializable {
         }
 
         static ResultLine fromOrder(OrderStore.Order order, PricingService pricingService) {
-            String service = VariantDescriptions.describe(order.getKey().family(), order.getKey().sku());
+            String service = summarizeOrderLines(order.getLines());
             String total = pricingService.format(new Price(order.getCurrency(), order.getTotalMinor()));
             List<String> masked = order.getCodes().stream().map(Masker::mask).toList();
             return new ResultLine(order.getId(),
@@ -199,7 +200,7 @@ public class CheckoutResultView implements Serializable {
         }
 
         static ResultLine fromInvoice(OrderStore.Invoice invoice, PricingService pricingService) {
-            String service = VariantDescriptions.describe(invoice.getKey().family(), invoice.getKey().sku());
+            String service = summarizeInvoiceLines(invoice.getLines());
             String total = pricingService.format(new Price(invoice.getCurrency(), invoice.getTotalMinor()));
             List<String> masked = invoice.getCodesIfDelivered().stream().map(Masker::mask).toList();
             String status = switch (invoice.getStatus()) {
@@ -217,6 +218,26 @@ public class CheckoutResultView implements Serializable {
                     masked,
                     status,
                     invoice.getCheckoutUrl());
+        }
+
+        private static String summarizeOrderLines(List<OrderStore.OrderLine> lines) {
+            if (lines.isEmpty()) {
+                return "";
+            }
+            return lines.stream()
+                    .map(line -> VariantDescriptions.describe(line.getKey().family(), line.getKey().sku())
+                            + " x" + line.getQuantity())
+                    .collect(Collectors.joining(", "));
+        }
+
+        private static String summarizeInvoiceLines(List<OrderStore.InvoiceLine> lines) {
+            if (lines.isEmpty()) {
+                return "";
+            }
+            return lines.stream()
+                    .map(line -> VariantDescriptions.describe(line.getKey().family(), line.getKey().sku())
+                            + " x" + line.getQuantity())
+                    .collect(Collectors.joining(", "));
         }
 
         public String getReference() {

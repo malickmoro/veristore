@@ -21,7 +21,9 @@ import jakarta.mail.Message;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Locale;
 
@@ -152,57 +154,77 @@ public class EmailService implements Serializable {
         return false;
     }
 
-    public boolean sendPinsEmail(String recipient, String reference, List<String> pins, String productDescription) {
-        if (recipient == null || recipient.isBlank() || pins == null || pins.isEmpty()) {
+    public boolean sendPinsEmail(String recipient, String reference, Map<String, List<String>> pinsByProduct) {
+        if (recipient == null || recipient.isBlank() || pinsByProduct == null || pinsByProduct.isEmpty()) {
+            return false;
+        }
+        Map<String, List<String>> sanitized = new LinkedHashMap<>();
+        for (Map.Entry<String, List<String>> entry : pinsByProduct.entrySet()) {
+            List<String> codes = entry.getValue();
+            if (codes == null || codes.isEmpty()) {
+                continue;
+            }
+            sanitized.put(entry.getKey(), List.copyOf(codes));
+        }
+        if (sanitized.isEmpty()) {
             return false;
         }
         String subject = String.format("Your Veristore PINs for %s", reference);
-        String htmlBody = buildPinsHtmlBody(reference, pins, productDescription);
+        String htmlBody = buildPinsHtmlBody(reference, sanitized);
         if (sendEmailAsHtml(subject, recipient, htmlBody)) {
             return true;
         }
-        String textBody = buildPinsTextBody(reference, pins, productDescription);
+        String textBody = buildPinsTextBody(reference, sanitized);
         return sendEmailAsText(subject, recipient, textBody);
     }
 
-    private String buildPinsHtmlBody(String reference, List<String> pins, String productDescription) {
+    private String buildPinsHtmlBody(String reference, Map<String, List<String>> pinsByProduct) {
         StringBuilder builder = new StringBuilder();
         builder.append("<p>Hello,</p>");
         builder.append("<p>Thank you for your purchase. Here are your PINs for reference <strong>")
                 .append(reference)
                 .append("</strong>:</p>");
-        
-        if (productDescription != null && !productDescription.isBlank()) {
-            builder.append("<p><strong>Product:</strong> ").append(productDescription).append("</p>");
+
+        for (Map.Entry<String, List<String>> entry : pinsByProduct.entrySet()) {
+            String description = entry.getKey();
+            List<String> pins = entry.getValue();
+            builder.append("<p><strong>Product:</strong> ")
+                    .append(description == null || description.isBlank() ? "Veristore product" : description)
+                    .append("</p>");
+            builder.append("<ul>");
+            for (String pin : pins) {
+                builder.append("<li><strong>")
+                        .append(pin)
+                        .append("</strong></li>");
+            }
+            builder.append("</ul>");
         }
-        
-        builder.append("<ul>");
-        for (String pin : pins) {
-            builder.append("<li><strong>")
-                    .append(pin)
-                    .append("</strong></li>");
-        }
-        builder.append("</ul>");
         builder.append("<p>Please keep these codes safe.\nIf you did not request this delivery, contact our support team immediately.</p>");
         builder.append("<p>Regards,<br/>Veristore Team</p>");
         return builder.toString();
     }
 
-    private String buildPinsTextBody(String reference, List<String> pins, String productDescription) {
+    private String buildPinsTextBody(String reference, Map<String, List<String>> pinsByProduct) {
         StringBuilder builder = new StringBuilder();
         builder.append("Hello,\n\n");
         builder.append("Thank you for your purchase. Here are your PINs for reference ")
                 .append(reference)
                 .append(":\n");
-        
-        if (productDescription != null && !productDescription.isBlank()) {
-            builder.append("Product: ").append(productDescription).append("\n\n");
+
+        for (Map.Entry<String, List<String>> entry : pinsByProduct.entrySet()) {
+            String description = entry.getKey();
+            List<String> pins = entry.getValue();
+            builder.append("\nProduct: ")
+                    .append(description == null || description.isBlank() ? "Veristore product" : description)
+                    .append("\n");
+            for (String pin : pins) {
+                builder.append(" - ")
+                        .append(pin)
+                        .append('\n');
+            }
+            builder.append('\n');
         }
-        
-        for (String pin : pins) {
-            builder.append(" - ").append(pin).append('\n');
-        }
-        builder.append("\nPlease keep these codes safe. If you did not request this delivery, contact our support team immediately.\n\n");
+        builder.append("Please keep these codes safe. If you did not request this delivery, contact our support team immediately.\n\n");
         builder.append("Regards,\nVeristore Team");
         return builder.toString();
     }

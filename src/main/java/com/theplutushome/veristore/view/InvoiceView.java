@@ -78,15 +78,7 @@ public class InvoiceView implements Serializable {
         if (invoice == null) {
             return "";
         }
-        return VariantDescriptions.describe(invoice.getKey().family(), invoice.getKey().sku());
-    }
-
-    public String getUnitPrice() {
-        if (invoice == null) {
-            return "";
-        }
-        Price unit = pricingService.get(invoice.getKey());
-        return pricingService.format(unit);
+        return summarizeInvoice(invoice);
     }
 
     public String getTotal() {
@@ -130,5 +122,15 @@ public class InvoiceView implements Serializable {
             return "";
         }
         return invoice.getCheckoutUrl();
+    }
+
+    private String summarizeInvoice(OrderStore.Invoice value) {
+        if (value.getLines().isEmpty()) {
+            return "";
+        }
+        return value.getLines().stream()
+                .map(line -> VariantDescriptions.describe(line.getKey().family(), line.getKey().sku())
+                        + " x" + line.getQuantity())
+                .collect(Collectors.joining(", "));
     }
 }

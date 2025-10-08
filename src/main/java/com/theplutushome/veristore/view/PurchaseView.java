@@ -898,13 +898,19 @@ public class PurchaseView implements Serializable {
             Contact contact = new Contact(email, msisdn);
             DeliveryPrefs deliveryPrefs = new DeliveryPrefs(deliverEmail, deliverSms);
             if (mode == PaymentMode.PAY_NOW) {
-                String orderId = paymentService.payNow(key, qty, contact, deliveryPrefs);
-                queueMessage(FacesMessage.SEVERITY_INFO, "Order " + orderId + " completed successfully.");
-                return redirectTo("success", "orderId", orderId);
+                PaymentService.CheckoutInitiation initiation = paymentService.payNow(key, qty, contact, deliveryPrefs);
+                queueMessage(FacesMessage.SEVERITY_INFO, "Invoice " + initiation.getInvoiceNo() + " generated.");
+                if (initiation.getCheckoutUrl() != null && !initiation.getCheckoutUrl().isBlank()) {
+                    return "redirect:" + initiation.getCheckoutUrl();
+                }
+                return redirectTo("invoice", "no", initiation.getInvoiceNo());
             }
-            String invoiceNo = paymentService.payLater(key, qty, contact, deliveryPrefs);
-            queueMessage(FacesMessage.SEVERITY_INFO, "Invoice " + invoiceNo + " generated.");
-            return redirectTo("invoice", "no", invoiceNo);
+            PaymentService.CheckoutInitiation initiation = paymentService.payLater(key, qty, contact, deliveryPrefs);
+            queueMessage(FacesMessage.SEVERITY_INFO, "Invoice " + initiation.getInvoiceNo() + " generated.");
+            if (initiation.getCheckoutUrl() != null && !initiation.getCheckoutUrl().isBlank()) {
+                return "redirect:" + initiation.getCheckoutUrl();
+            }
+            return redirectTo("invoice", "no", initiation.getInvoiceNo());
         } catch (Exception ex) {
             addMessage(null, FacesMessage.SEVERITY_ERROR, ex.getMessage());
             return null;

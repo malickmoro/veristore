@@ -112,10 +112,10 @@ public class SuccessView implements Serializable {
 
     public String getServiceLabel() {
         if (order != null) {
-            return VariantDescriptions.describe(order.getKey().family(), order.getKey().sku());
+            return summarizeOrder(order);
         }
         if (invoice != null) {
-            return VariantDescriptions.describe(invoice.getKey().family(), invoice.getKey().sku());
+            return summarizeInvoice(invoice);
         }
         return "";
     }
@@ -128,5 +128,25 @@ public class SuccessView implements Serializable {
             return invoice.getCodesIfDelivered().stream().map(Masker::mask).collect(Collectors.toList());
         }
         return Collections.emptyList();
+    }
+
+    private String summarizeOrder(OrderStore.Order value) {
+        if (value.getLines().isEmpty()) {
+            return "";
+        }
+        return value.getLines().stream()
+                .map(line -> VariantDescriptions.describe(line.getKey().family(), line.getKey().sku())
+                        + " x" + line.getQuantity())
+                .collect(Collectors.joining(", "));
+    }
+
+    private String summarizeInvoice(OrderStore.Invoice value) {
+        if (value.getLines().isEmpty()) {
+            return "";
+        }
+        return value.getLines().stream()
+                .map(line -> VariantDescriptions.describe(line.getKey().family(), line.getKey().sku())
+                        + " x" + line.getQuantity())
+                .collect(Collectors.joining(", "));
     }
 }
