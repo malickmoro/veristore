@@ -37,11 +37,17 @@
         <div class="row justify-content-center g-5">
             <div class="col-12 col-xl-10 col-xxl-8">
                 <h:form id="purchaseForm" prependId="true" styleClass="d-flex flex-column gap-4">
-                    <h:messages id="messages"
+                        <h:messages id="messages"
+                                showSummary="true"
+                                showDetail="false"
+                                layout="list"
+                                styleClass="list-unstyled d-flex flex-column gap-3 mb-0"
                                 globalOnly="true"
-                                styleClass="alert alert-warning"
-                                errorClass="alert-danger"
-                                infoClass="alert-info px-2 ps-3" />
+                                infoClass="alert alert-info alert-dismissible fade show mb-0"
+                                warnClass="alert alert-warning alert-dismissible fade show mb-0"
+                                errorClass="alert alert-danger alert-dismissible fade show mb-0"
+                                fatalClass="alert alert-danger alert-dismissible fade show mb-0"
+                                pt:role="alert" />
 
                     <h:panelGroup id="wizardProgress" layout="block">
                         <div class="card">

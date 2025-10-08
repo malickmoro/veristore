@@ -24,7 +24,7 @@
             document.addEventListener('DOMContentLoaded', bindCitizenshipCards);
 
             // Re-run after any JSF partial update
-            if (window.jsf &amp;&amp; jsf.ajax) {
+            if (window.jsf &amp; &amp; jsf.ajax) {
                 jsf.ajax.addOnEvent(function (data) {
                     if (data.status === 'success') {
                         bindCitizenshipCards();
@@ -38,216 +38,222 @@
             <div class="col-12 col-xl-10 col-xxl-8">
                 <h:form id="purchaseForm" prependId="true" styleClass="d-flex flex-column gap-4">
                     <h:messages id="messages"
+                                showSummary="true"
+                                showDetail="false"
+                                layout="list"
+                                styleClass="list-unstyled d-flex flex-column gap-3 mb-0"
                                 globalOnly="true"
-                                styleClass="alert alert-warning"
-                                errorClass="alert-danger"
-                                infoClass="alert-info px-2 ps-3" />
+                                infoClass="alert alert-info alert-dismissible fade show mb-0"
+                                warnClass="alert alert-warning alert-dismissible fade show mb-0"
+                                errorClass="alert alert-danger alert-dismissible fade show mb-0"
+                                fatalClass="alert alert-danger alert-dismissible fade show mb-0"
+                                pt:role="alert" />
 
-                    <h:panelGroup id="wizardProgress" layout="block">
-                        <div class="card">
-                            <div class="card-body py-3">
-                                <div class="d-flex flex-column flex-md-row gap-2">
-                                    <ui:repeat value="#{purchaseView.wizardSteps}" var="step" varStatus="status">
-                                        <h:commandButton value="#{status.index + 1}. #{purchaseView.wizardStepTitle(step)}"
-                                                         action="#{purchaseView.goToWizardStep(step)}"
-                                                         styleClass="#{purchaseView.wizardStepCss(step)}"
-                                                         disabled="#{not (purchaseView.isStepComplete(step) or purchaseView.isCurrentStep(step))}">
-                                            <f:ajax execute="@this"
-                                                    render="purchaseForm:wizardProgress purchaseForm:stepPanels purchaseForm:messages" />
-                                        </h:commandButton>
-                                    </ui:repeat>
-                                </div>
-                            </div>
-                        </div>
-                    </h:panelGroup>
-
-                    <h:panelGroup id="stepPanels" layout="block">
-                        <h:panelGroup id="citizenshipStep" layout="block" rendered="#{purchaseView.isCurrentStep(purchaseView.citizenshipStep)}">
-                            <div class="product-detail-card">
-                                <div class="card-body">
-                                    <h2 class="h4 fw-semibold mb-3">Choose applicant category</h2>
-                                    <p class="text-muted mb-4">Updating an ID? Begin by picking the applicant’s citizenship group so we can match the correct product codes and pricing.</p>
-                                    <h:selectOneMenu id="citizenship"
-                                                     value="#{purchaseView.citizenship}"
-                                                     styleClass="d-none">
-                                        <f:selectItem itemLabel="" itemValue="" noSelectionOption="true" />
-                                        <f:selectItems value="#{purchaseView.citizenshipsForApp}"
-                                                       var="cit"
-                                                       itemValue="#{cit}"
-                                                       itemLabel="#{purchaseView.labelForCitizenship(cit)}" />
-                                    </h:selectOneMenu>
-                                    <h:panelGroup id="citizenshipChoices" layout="block">
-                                        <div class="row row-cols-1 row-cols-md-3 g-3">
-                                            <ui:repeat value="#{purchaseView.citizenshipsForApp}" var="cit">
-                                                <div class="col">
-                                                    <div class="choice-card h-100 #{purchaseView.isCitizenshipSelected(cit) ? 'selected' : ''}">
-                                                        <div class="card-body text-center">
-                                                            <span class="choice-card-icon" aria-hidden="true">
-                                                                <h:outputText value="#{purchaseView.iconForCitizenship(cit)}" />
-                                                            </span>
-                                                            <h3 class="h5 fw-semibold mb-2">#{purchaseView.labelForCitizenship(cit)}</h3>
-                                                            <p class="text-muted small mb-0">#{purchaseView.describeCitizenshipOption(cit)}</p>
-                                                            <h:commandLink action="#{purchaseView.selectCitizenship(cit)}"
-                                                                          styleClass="stretched-link"
-                                                                          value=""
-                                                                          title="Choose #{purchaseView.labelForCitizenship(cit)}">
-                                                                <f:ajax execute="@this"
-                                                                        render="purchaseForm:citizenship purchaseForm:wizardProgress purchaseForm:stepPanels purchaseForm:messages" />
-                                                            </h:commandLink>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </ui:repeat>
-                                        </div>
-                                    </h:panelGroup>
-                                    <h:message for="citizenship" styleClass="text-danger small mt-2 d-block" />
-                                    <div class="d-flex justify-content-end mt-4">
-                                        <h:commandButton value="Next"
-                                                         action="#{purchaseView.nextWizardStep}"
-                                                         styleClass="btn btn-primary btn-lg rounded-4"
-                                                         disabled="#{not purchaseView.isStepSatisfied(purchaseView.citizenshipStep)}">
-                                            <f:ajax execute="@form"
-                                                    render="purchaseForm:wizardProgress purchaseForm:stepPanels purchaseForm:messages" />
-                                        </h:commandButton>
-                                    </div>
-                                </div>
-                            </div>
-                        </h:panelGroup>
-
-                        <h:panelGroup id="tierStep" layout="block" rendered="#{purchaseView.isCurrentStep(purchaseView.tierStep)}">
-                            <div class="product-detail-card">
-                                <div class="card-body">
-                                    <h2 class="h4 fw-semibold mb-3">Select service tier</h2>
-                                    <p class="text-muted mb-4">Citizen updates can be processed under Standard or Premium service levels.</p>
-                                    <h:selectOneMenu id="tier"
-                                                     value="#{purchaseView.citizenTier}"
-                                                     styleClass="d-none">
-                                        <f:selectItem itemLabel="" itemValue="" noSelectionOption="true" />
-                                        <f:selectItems value="#{purchaseView.tiersForCitizen}"
-                                                       var="tierOpt"
-                                                       itemValue="#{tierOpt}"
-                                                       itemLabel="#{purchaseView.labelForTier(tierOpt)}" />
-                                    </h:selectOneMenu>
-                                    <div class="row row-cols-1 row-cols-md-2 g-3">
-                                        <ui:repeat value="#{purchaseView.tiersForCitizen}" var="tierOpt">
-                                            <div class="col">
-                                                <div class="product-card h-100 #{purchaseView.isCitizenTierSelected(tierOpt) ? 'selected' : ''}">
-                                                    <div class="card-body">
-                                                        <div class="d-flex justify-content-between align-items-start mb-3">
-                                                            <div>
-                                                                <h3 class="h5 fw-semibold mb-1">#{purchaseView.labelForTier(tierOpt)}</h3>
-                                                                <p class="text-muted small mb-0">#{purchaseView.describeTierOption(tierOpt)}</p>
-                                                            </div>
-                                                            <span class="price-tag">#{purchaseView.tierPriceLabel(tierOpt)}</span>
-                                                        </div>
-                                                        <div class="shimmer-hover">
-                                                            <h:commandLink action="#{purchaseView.selectCitizenTier(tierOpt)}"
-                                                                          styleClass="btn btn-primary btn-lg w-100 rounded-4"
-                                                                          value="#{purchaseView.isCitizenTierSelected(tierOpt) ? 'Selected' : 'Select'}">
-                                                                <f:ajax execute="@this"
-                                                                        render="purchaseForm:tier purchaseForm:wizardProgress purchaseForm:stepPanels purchaseForm:messages" />
-                                                            </h:commandLink>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
+                                <h:panelGroup id="wizardProgress" layout="block">
+                            <div class="card">
+                                <div class="card-body py-3">
+                                    <div class="d-flex flex-column flex-md-row gap-2">
+                                        <ui:repeat value="#{purchaseView.wizardSteps}" var="step" varStatus="status">
+                                            <h:commandButton value="#{status.index + 1}. #{purchaseView.wizardStepTitle(step)}"
+                                                             action="#{purchaseView.goToWizardStep(step)}"
+                                                             styleClass="#{purchaseView.wizardStepCss(step)}"
+                                                             disabled="#{not (purchaseView.isStepComplete(step) or purchaseView.isCurrentStep(step))}">
+                                                <f:ajax execute="@this"
+                                                        render="purchaseForm:wizardProgress purchaseForm:stepPanels purchaseForm:messages" />
+                                            </h:commandButton>
                                         </ui:repeat>
                                     </div>
-                                    <h:message for="tier" styleClass="text-danger small mt-3 d-block" />
-                                    <div class="d-flex flex-column flex-sm-row gap-3 mt-4">
-                                        <h:commandButton value="Back"
-                                                         action="#{purchaseView.previousWizardStep}"
-                                                         styleClass="btn btn-outline-secondary btn-lg">
-                                            <f:ajax execute="@this"
-                                                    render="purchaseForm:wizardProgress purchaseForm:stepPanels purchaseForm:messages" />
-                                        </h:commandButton>
-                                        <h:commandButton value="Next"
-                                                         action="#{purchaseView.nextWizardStep}"
-                                                         styleClass="btn btn-primary btn-lg rounded-4"
-                                                         disabled="#{not purchaseView.isStepSatisfied(purchaseView.tierStep)}">
-                                            <f:ajax execute="@form"
-                                                    render="purchaseForm:wizardProgress purchaseForm:stepPanels purchaseForm:messages" />
-                                        </h:commandButton>
-                                    </div>
                                 </div>
                             </div>
                         </h:panelGroup>
 
-                        
+                        <h:panelGroup id="stepPanels" layout="block">
+                            <h:panelGroup id="citizenshipStep" layout="block" rendered="#{purchaseView.isCurrentStep(purchaseView.citizenshipStep)}">
+                                <div class="product-detail-card">
+                                    <div class="card-body">
+                                        <h2 class="h4 fw-semibold mb-3">Choose applicant category</h2>
+                                        <p class="text-muted mb-4">Updating an ID? Begin by picking the applicant’s citizenship group so we can match the correct product codes and pricing.</p>
+                                        <h:selectOneMenu id="citizenship"
+                                                         value="#{purchaseView.citizenship}"
+                                                         styleClass="d-none">
+                                            <f:selectItem itemLabel="" itemValue="" noSelectionOption="true" />
+                                            <f:selectItems value="#{purchaseView.citizenshipsForApp}"
+                                                           var="cit"
+                                                           itemValue="#{cit}"
+                                                           itemLabel="#{purchaseView.labelForCitizenship(cit)}" />
+                                        </h:selectOneMenu>
+                                        <h:panelGroup id="citizenshipChoices" layout="block">
+                                            <div class="row row-cols-1 row-cols-md-3 g-3">
+                                                <ui:repeat value="#{purchaseView.citizenshipsForApp}" var="cit">
+                                                    <div class="col">
+                                                        <div class="choice-card h-100 #{purchaseView.isCitizenshipSelected(cit) ? 'selected' : ''}">
+                                                            <div class="card-body text-center">
+                                                                <span class="choice-card-icon" aria-hidden="true">
+                                                                    <h:outputText value="#{purchaseView.iconForCitizenship(cit)}" />
+                                                                </span>
+                                                                <h3 class="h5 fw-semibold mb-2">#{purchaseView.labelForCitizenship(cit)}</h3>
+                                                                <p class="text-muted small mb-0">#{purchaseView.describeCitizenshipOption(cit)}</p>
+                                                                <h:commandLink action="#{purchaseView.selectCitizenship(cit)}"
+                                                                               styleClass="stretched-link"
+                                                                               value=""
+                                                                               title="Choose #{purchaseView.labelForCitizenship(cit)}">
+                                                                    <f:ajax execute="@this"
+                                                                            render="purchaseForm:citizenship purchaseForm:wizardProgress purchaseForm:stepPanels purchaseForm:messages" />
+                                                                </h:commandLink>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </ui:repeat>
+                                            </div>
+                                        </h:panelGroup>
+                                        <h:message for="citizenship" styleClass="text-danger small mt-2 d-block" />
+                                        <div class="d-flex justify-content-end mt-4">
+                                            <h:commandButton value="Next"
+                                                             action="#{purchaseView.nextWizardStep}"
+                                                             styleClass="btn btn-primary btn-lg rounded-4"
+                                                             disabled="#{not purchaseView.isStepSatisfied(purchaseView.citizenshipStep)}">
+                                                <f:ajax execute="@form"
+                                                        render="purchaseForm:wizardProgress purchaseForm:stepPanels purchaseForm:messages" />
+                                            </h:commandButton>
+                                        </div>
+                                    </div>
+                                </div>
+                            </h:panelGroup>
 
-                        <h:panelGroup id="packageStep" layout="block" rendered="#{purchaseView.isCurrentStep(purchaseView.packageStep)}">
-                            <div class="product-detail-card">
-                                <div class="card-body">
-                                    <h2 class="h4 fw-semibold mb-3">Pick the update package</h2>
-                                    <p class="text-muted mb-4">Every update package includes masked PINs delivered through the channels you’ll configure during checkout.</p>
-                                    <h:selectOneMenu id="variant"
-                                                     value="#{purchaseView.selectedSku}"
-                                                     styleClass="d-none">
-                                        <f:selectItems value="#{purchaseView.variants}"
-                                                       var="variant"
-                                                       itemValue="#{variant.sku}"
-                                                       itemLabel="#{variant.displayName}" />
-                                    </h:selectOneMenu>
-                                    <h:panelGroup id="variantChoices" layout="block">
+                            <h:panelGroup id="tierStep" layout="block" rendered="#{purchaseView.isCurrentStep(purchaseView.tierStep)}">
+                                <div class="product-detail-card">
+                                    <div class="card-body">
+                                        <h2 class="h4 fw-semibold mb-3">Select service tier</h2>
+                                        <p class="text-muted mb-4">Citizen updates can be processed under Standard or Premium service levels.</p>
+                                        <h:selectOneMenu id="tier"
+                                                         value="#{purchaseView.citizenTier}"
+                                                         styleClass="d-none">
+                                            <f:selectItem itemLabel="" itemValue="" noSelectionOption="true" />
+                                            <f:selectItems value="#{purchaseView.tiersForCitizen}"
+                                                           var="tierOpt"
+                                                           itemValue="#{tierOpt}"
+                                                           itemLabel="#{purchaseView.labelForTier(tierOpt)}" />
+                                        </h:selectOneMenu>
                                         <div class="row row-cols-1 row-cols-md-2 g-3">
-                                            <ui:repeat value="#{purchaseView.variants}" var="variant">
+                                            <ui:repeat value="#{purchaseView.tiersForCitizen}" var="tierOpt">
                                                 <div class="col">
-                                                    <div class="product-card h-100">
-                                                        <div class="card-body d-flex flex-column gap-3 position-relative">
-                                                            <div>
-                                                                <span class="badge bg-primary-subtle text-primary-emphasis mb-2">#{purchaseView.labelForCitizenship(variant.citizenship)}</span>
-                                                                <h3 class="h5 fw-semibold mb-1">#{variant.displayName}</h3>
-                                                                <p class="text-muted small mb-0">#{purchaseView.describeVariant(variant)}</p>
-                                                            </div>
-                                                            <div class="mt-auto d-flex flex-column gap-3">
-                                                                <div class="d-flex justify-content-between align-items-center">
-                                                                    <span class="fw-semibold fs-5 mb-0">#{purchaseView.formatPrice(variant.price())}</span>
+                                                    <div class="product-card h-100 #{purchaseView.isCitizenTierSelected(tierOpt) ? 'selected' : ''}">
+                                                        <div class="card-body">
+                                                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                                                <div>
+                                                                    <h3 class="h5 fw-semibold mb-1">#{purchaseView.labelForTier(tierOpt)}</h3>
+                                                                    <p class="text-muted small mb-0">#{purchaseView.describeTierOption(tierOpt)}</p>
                                                                 </div>
-                                                                <div class="input-group input-group-sm" style="position: relative; z-index: 2;">
-                                                                    <span class="input-group-text">Qty</span>
-                                                                    <h:inputText id="quantity"
-                                                                                value="#{purchaseView.variantQuantities[variant.sku]}"
-                                                                                styleClass="form-control"
-                                                                                pt:type="number"
-                                                                                pt:min="1"
-                                                                                pt:max="10">
-                                                                        <f:convertNumber integerOnly="true" />
-                                                                        <f:ajax event="change"
-                                                                                execute="@this"
-                                                                                render="purchaseForm:variantChoices" />
-                                                                    </h:inputText>
-                                                                </div>
-                                                                <h:commandButton value="Add to cart"
-                                                                                 action="#{purchaseView.addVariantToCart(variant.sku)}"
-                                                                                 styleClass="btn btn-primary w-100"
-                                                                                 style="position: relative; z-index: 2;">
-                                                                    <f:ajax execute="@form"
-                                                                            render="purchaseForm:messages purchaseForm:variantChoices :cartToggle :cartDrawer" />
-                                                                </h:commandButton>
+                                                                <span class="price-tag">#{purchaseView.tierPriceLabel(tierOpt)}</span>
                                                             </div>
-                                                            
+                                                            <div class="shimmer-hover">
+                                                                <h:commandLink action="#{purchaseView.selectCitizenTier(tierOpt)}"
+                                                                               styleClass="btn btn-primary btn-lg w-100 rounded-4"
+                                                                               value="#{purchaseView.isCitizenTierSelected(tierOpt) ? 'Selected' : 'Select'}">
+                                                                    <f:ajax execute="@this"
+                                                                            render="purchaseForm:tier purchaseForm:wizardProgress purchaseForm:stepPanels purchaseForm:messages" />
+                                                                </h:commandLink>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
                                             </ui:repeat>
                                         </div>
-                                    </h:panelGroup>
-                                    <h:message for="variant" styleClass="text-danger small mt-3 d-block" />
-                                    <p class="text-muted small mb-4">Adjust quantities directly on each package card and add them to your cart when you’re ready.</p>
-                                    <div class="d-flex justify-content-start">
-                                        <h:commandButton value="Back"
-                                                         action="#{purchaseView.previousWizardStep}"
-                                                         styleClass="btn btn-outline-secondary btn-lg">
-                                            <f:ajax execute="@this"
-                                                    render="purchaseForm:wizardProgress purchaseForm:stepPanels purchaseForm:messages" />
-                                        </h:commandButton>
+                                        <h:message for="tier" styleClass="text-danger small mt-3 d-block" />
+                                        <div class="d-flex flex-column flex-sm-row gap-3 mt-4">
+                                            <h:commandButton value="Back"
+                                                             action="#{purchaseView.previousWizardStep}"
+                                                             styleClass="btn btn-outline-secondary btn-lg">
+                                                <f:ajax execute="@this"
+                                                        render="purchaseForm:wizardProgress purchaseForm:stepPanels purchaseForm:messages" />
+                                            </h:commandButton>
+                                            <h:commandButton value="Next"
+                                                             action="#{purchaseView.nextWizardStep}"
+                                                             styleClass="btn btn-primary btn-lg rounded-4"
+                                                             disabled="#{not purchaseView.isStepSatisfied(purchaseView.tierStep)}">
+                                                <f:ajax execute="@form"
+                                                        render="purchaseForm:wizardProgress purchaseForm:stepPanels purchaseForm:messages" />
+                                            </h:commandButton>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        </h:panelGroup>
-                    </h:panelGroup>
+                            </h:panelGroup>
 
-                    <h:link outcome="/index" styleClass="btn btn-outline-secondary btn-lg align-self-start">Back to storefront</h:link>
+
+
+                            <h:panelGroup id="packageStep" layout="block" rendered="#{purchaseView.isCurrentStep(purchaseView.packageStep)}">
+                                <div class="product-detail-card">
+                                    <div class="card-body">
+                                        <h2 class="h4 fw-semibold mb-3">Pick the update package</h2>
+                                        <p class="text-muted mb-4">Every update package includes masked PINs delivered through the channels you’ll configure during checkout.</p>
+                                        <h:selectOneMenu id="variant"
+                                                         value="#{purchaseView.selectedSku}"
+                                                         styleClass="d-none">
+                                            <f:selectItems value="#{purchaseView.variants}"
+                                                           var="variant"
+                                                           itemValue="#{variant.sku}"
+                                                           itemLabel="#{variant.displayName}" />
+                                        </h:selectOneMenu>
+                                        <h:panelGroup id="variantChoices" layout="block">
+                                            <div class="row row-cols-1 row-cols-md-2 g-3">
+                                                <ui:repeat value="#{purchaseView.variants}" var="variant">
+                                                    <div class="col">
+                                                        <div class="product-card h-100">
+                                                            <div class="card-body d-flex flex-column gap-3 position-relative">
+                                                                <div>
+                                                                    <span class="badge bg-primary-subtle text-primary-emphasis mb-2">#{purchaseView.labelForCitizenship(variant.citizenship)}</span>
+                                                                    <h3 class="h5 fw-semibold mb-1">#{variant.displayName}</h3>
+                                                                    <p class="text-muted small mb-0">#{purchaseView.describeVariant(variant)}</p>
+                                                                </div>
+                                                                <div class="mt-auto d-flex flex-column gap-3">
+                                                                    <div class="d-flex justify-content-between align-items-center">
+                                                                        <span class="fw-semibold fs-5 mb-0">#{purchaseView.formatPrice(variant.price())}</span>
+                                                                    </div>
+                                                                    <div class="input-group input-group-sm" style="position: relative; z-index: 2;">
+                                                                        <span class="input-group-text">Qty</span>
+                                                                        <h:inputText id="quantity"
+                                                                                     value="#{purchaseView.variantQuantities[variant.sku]}"
+                                                                                     styleClass="form-control"
+                                                                                     pt:type="number"
+                                                                                     pt:min="1"
+                                                                                     pt:max="10">
+                                                                            <f:convertNumber integerOnly="true" />
+                                                                            <f:ajax event="change"
+                                                                                    execute="@this"
+                                                                                    render="purchaseForm:variantChoices" />
+                                                                        </h:inputText>
+                                                                    </div>
+                                                                    <h:commandButton value="Add to cart"
+                                                                                     action="#{purchaseView.addVariantToCart(variant.sku)}"
+                                                                                     styleClass="btn btn-primary w-100"
+                                                                                     style="position: relative; z-index: 2;">
+                                                                        <f:ajax execute="@form"
+                                                                                render="purchaseForm:messages purchaseForm:variantChoices :cartToggle :cartDrawer" />
+                                                                    </h:commandButton>
+                                                                </div>
+
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </ui:repeat>
+                                            </div>
+                                        </h:panelGroup>
+                                        <h:message for="variant" styleClass="text-danger small mt-3 d-block" />
+                                        <p class="text-muted small mb-4">Adjust quantities directly on each package card and add them to your cart when you’re ready.</p>
+                                        <div class="d-flex justify-content-start">
+                                            <h:commandButton value="Back"
+                                                             action="#{purchaseView.previousWizardStep}"
+                                                             styleClass="btn btn-outline-secondary btn-lg">
+                                                <f:ajax execute="@this"
+                                                        render="purchaseForm:wizardProgress purchaseForm:stepPanels purchaseForm:messages" />
+                                            </h:commandButton>
+                                        </div>
+                                    </div>
+                                </div>
+                            </h:panelGroup>
+                        </h:panelGroup>
+
+                        <h:link outcome="/index" styleClass="btn btn-outline-secondary btn-lg align-self-start">Back to storefront</h:link>
                 </h:form>
             </div>
         </div>

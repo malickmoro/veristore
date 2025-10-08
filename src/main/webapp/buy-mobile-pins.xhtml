@@ -14,11 +14,18 @@
             <div class="col-12 col-xl-8 col-xxl-7">
                 <h:form id="pinForm" prependId="true" styleClass="d-flex flex-column gap-4">
                     <h:messages id="messages"
+                                showSummary="true"
+                                showDetail="false"
+                                layout="list"
+                                styleClass="list-unstyled d-flex flex-column gap-3 mb-0"
                                 globalOnly="true"
-                                styleClass="alert alert-warning"
-                                rendered="#{not empty facesContext.messageList}"
-                                errorClass="alert-danger"
-                                infoClass="alert-info" />
+                                infoClass="alert alert-info alert-dismissible fade show mb-0"
+                                warnClass="alert alert-warning alert-dismissible fade show mb-0"
+                                errorClass="alert alert-danger alert-dismissible fade show mb-0"
+                                fatalClass="alert alert-danger alert-dismissible fade show mb-0"
+                                pt:role="alert" />
+
+                    
 
                     <div class="product-detail-card">
                         <div class="card-body d-flex flex-column gap-4">
