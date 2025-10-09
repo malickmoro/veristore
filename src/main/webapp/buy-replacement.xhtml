@@ -51,18 +51,33 @@
 
                     <h:panelGroup id="wizardProgress" layout="block">
                         <div class="card">
-                            <div class="card-body py-3">
-                                <div class="d-flex flex-column flex-md-row gap-2">
+                            <div class="card-body py-4">
+                                <ol class="wizard-progress list-unstyled mb-0">
                                     <ui:repeat value="#{purchaseView.wizardSteps}" var="step" varStatus="status">
-                                        <h:commandButton value="#{status.index + 1}. #{purchaseView.wizardStepTitle(step)}"
-                                                         action="#{purchaseView.goToWizardStep(step)}"
-                                                         styleClass="#{purchaseView.wizardStepCss(step)}"
-                                                         disabled="#{not (purchaseView.isStepComplete(step) or purchaseView.isCurrentStep(step))}">
-                                            <f:ajax execute="@this"
-                                                    render="purchaseForm:wizardProgress purchaseForm:stepPanels purchaseForm:messages" />
-                                        </h:commandButton>
+                                        <li class="wizard-progress-item #{purchaseView.wizardStepState(step)}">
+                                            <ui:fragment rendered="#{status.index gt 0}">
+                                                <span class="wizard-progress-connector #{purchaseView.wizardConnectorCss(status.index)}" aria-hidden="true"></span>
+                                            </ui:fragment>
+                                            <h:commandLink action="#{purchaseView.goToWizardStep(step)}"
+                                                           styleClass="#{purchaseView.wizardStepCss(step)}"
+                                                           disabled="#{not (purchaseView.isStepComplete(step) or purchaseView.isCurrentStep(step))}"
+                                                           pt:aria-current="#{purchaseView.isCurrentStep(step) ? 'step' : null}"
+                                                           pt:aria-disabled="#{not (purchaseView.isStepComplete(step) or purchaseView.isCurrentStep(step)) ? 'true' : 'false'}">
+                                                <f:ajax execute="@this"
+                                                        render="purchaseForm:wizardProgress purchaseForm:stepPanels purchaseForm:messages" />
+                                                <span class="wizard-progress-marker" aria-hidden="true">#{status.index + 1}</span>
+                                                <span class="wizard-progress-label">
+                                                    <span class="wizard-progress-title">#{purchaseView.wizardStepTitle(step)}</span>
+                                                    <span class="visually-hidden">
+                                                        <h:outputText value=" - Completed" rendered="#{purchaseView.isStepComplete(step)}" />
+                                                        <h:outputText value=" - Current step" rendered="#{purchaseView.isCurrentStep(step)}" />
+                                                        <h:outputText value=" - Upcoming" rendered="#{not (purchaseView.isStepComplete(step) or purchaseView.isCurrentStep(step))}" />
+                                                    </span>
+                                                </span>
+                                            </h:commandLink>
+                                        </li>
                                     </ui:repeat>
-                                </div>
+                                </ol>
                             </div>
                         </div>
                     </h:panelGroup>
