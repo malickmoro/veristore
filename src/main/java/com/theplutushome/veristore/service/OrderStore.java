@@ -1,10 +1,10 @@
 package com.theplutushome.veristore.service;
 
-import com.theplutushome.veristore.catalog.ProductKey;
-import com.theplutushome.veristore.domain.Contact;
-import com.theplutushome.veristore.domain.Currency;
-import com.theplutushome.veristore.domain.DeliveryPrefs;
-import com.theplutushome.veristore.domain.InvoiceStatus;
+import com.theplutushome.veristore.model.catalog.ProductKey;
+import com.theplutushome.veristore.model.Contact;
+import com.theplutushome.veristore.model.Currency;
+import com.theplutushome.veristore.model.DeliveryPrefs;
+import com.theplutushome.veristore.model.InvoiceStatus;
 
 import jakarta.enterprise.context.ApplicationScoped;
 

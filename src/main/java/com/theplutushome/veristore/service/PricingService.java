@@ -1,10 +1,10 @@
 package com.theplutushome.veristore.service;
 
-import com.theplutushome.veristore.catalog.EnrollmentSku;
-import com.theplutushome.veristore.catalog.ProductKey;
-import com.theplutushome.veristore.catalog.VerificationSku;
-import com.theplutushome.veristore.domain.Currency;
-import com.theplutushome.veristore.domain.Price;
+import com.theplutushome.veristore.model.catalog.EnrollmentSku;
+import com.theplutushome.veristore.model.catalog.ProductKey;
+import com.theplutushome.veristore.model.catalog.VerificationSku;
+import com.theplutushome.veristore.model.Currency;
+import com.theplutushome.veristore.model.Price;
 
 import jakarta.enterprise.context.ApplicationScoped;
 

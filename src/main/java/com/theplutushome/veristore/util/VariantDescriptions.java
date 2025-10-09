@@ -1,8 +1,8 @@
 package com.theplutushome.veristore.util;
 
-import com.theplutushome.veristore.catalog.EnrollmentSku;
-import com.theplutushome.veristore.catalog.ProductFamily;
-import com.theplutushome.veristore.catalog.VerificationSku;
+import com.theplutushome.veristore.model.catalog.EnrollmentSku;
+import com.theplutushome.veristore.model.catalog.ProductFamily;
+import com.theplutushome.veristore.model.catalog.VerificationSku;
 
 import java.util.Locale;
 import java.util.Objects;
