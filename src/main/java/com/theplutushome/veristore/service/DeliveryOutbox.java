@@ -1,6 +1,6 @@
 package com.theplutushome.veristore.service;
 
-import com.theplutushome.veristore.domain.DeliveryRecord;
+import com.theplutushome.veristore.model.DeliveryRecord;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import java.io.Serializable;

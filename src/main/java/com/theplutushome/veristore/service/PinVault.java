@@ -1,9 +1,9 @@
 package com.theplutushome.veristore.service;
 
-import com.theplutushome.veristore.catalog.EnrollmentSku;
-import com.theplutushome.veristore.catalog.ProductFamily;
-import com.theplutushome.veristore.catalog.ProductKey;
-import com.theplutushome.veristore.catalog.VerificationSku;
+import com.theplutushome.veristore.model.catalog.EnrollmentSku;
+import com.theplutushome.veristore.model.catalog.ProductFamily;
+import com.theplutushome.veristore.model.catalog.ProductKey;
+import com.theplutushome.veristore.model.catalog.VerificationSku;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
