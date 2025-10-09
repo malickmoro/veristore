@@ -250,15 +250,43 @@ public class PurchaseView implements Serializable {
         };
     }
 
-    public String wizardStepCss(WizardStep step) {
-        String base = "btn wizard-step w-100 flex-grow-1 text-start text-md-center";
+    public String wizardStepState(WizardStep step) {
         if (isCurrentStep(step)) {
-            return base + " btn-primary";
+            return "is-current";
         }
         if (isStepComplete(step)) {
-            return base + " btn-success";
+            return "is-complete";
         }
-        return base + " btn-outline-secondary";
+        return "is-upcoming";
+    }
+
+    public String wizardStepCss(WizardStep step) {
+        String base = "wizard-progress-button";
+        if (isCurrentStep(step)) {
+            return base + " is-current";
+        }
+        if (isStepComplete(step)) {
+            return base + " is-complete";
+        }
+        return base + " is-upcoming is-disabled";
+    }
+
+    public String wizardConnectorCss(int index) {
+        if (index <= 0) {
+            return "";
+        }
+        List<WizardStep> steps = getWizardSteps();
+        if (index >= steps.size()) {
+            return "";
+        }
+        WizardStep previous = steps.get(index - 1);
+        if (isStepComplete(previous)) {
+            return "is-complete";
+        }
+        if (isCurrentStep(previous)) {
+            return "is-current";
+        }
+        return "";
     }
 
     public void nextWizardStep() {
