@@ -22,12 +22,6 @@
         <h:panelGroup rendered="#{not checkoutView.missing}" layout="block">
             <h1 class="h3 fw-bold mb-4">Review and checkout</h1>
             <h:form id="checkoutForm" styleClass="d-flex flex-column gap-4">
-                <h:messages id="messages"
-                            globalOnly="true"
-                            styleClass="alert alert-warning"
-                            rendered="#{not empty facesContext.messageList}"
-                            errorClass="alert-danger"
-                            infoClass="alert-info" />
 
                 <div class="row g-4 align-items-start">
                     <div class="col-12 col-xl-7 col-xxl-8">

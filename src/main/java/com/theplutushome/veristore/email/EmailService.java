@@ -38,8 +38,8 @@ public class EmailService implements Serializable {
     private EmailTemplateService templateService;
     private Session session;
 
-    private final String USERNAME = "";
-    private final String PASSWORD = "";
+    private final String USERNAME = "gatekeeper@marginsgroup.com";
+    private final String PASSWORD = "M.218338420396an";
     private final String SMTP_HOST = "smtp.office365.com";
     private final String SMTP_PORT = "587";
     private final String TIMEOUT = "30000";
