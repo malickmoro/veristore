@@ -1,4 +1,4 @@
-package com.theplutushome.veristore.controller.view;
+package com.theplutushome.veristore.controller;
 
 import com.theplutushome.veristore.model.catalog.CatalogLabels;
 import com.theplutushome.veristore.model.catalog.EnrollmentSku;

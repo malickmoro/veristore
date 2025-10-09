@@ -1,4 +1,4 @@
-package com.theplutushome.veristore.controller.view;
+package com.theplutushome.veristore.controller;
 
 import com.theplutushome.veristore.model.PaymentMode;
 import com.theplutushome.veristore.model.Price;
@@ -6,8 +6,8 @@ import com.theplutushome.veristore.service.OrderStore;
 import com.theplutushome.veristore.service.PricingService;
 import com.theplutushome.veristore.util.Masker;
 import com.theplutushome.veristore.util.VariantDescriptions;
-import com.theplutushome.veristore.controller.view.CartView.CheckoutReference;
-import com.theplutushome.veristore.controller.view.CartView.CheckoutResult;
+import com.theplutushome.veristore.controller.CartView.CheckoutReference;
+import com.theplutushome.veristore.controller.CartView.CheckoutResult;
 
 import jakarta.faces.application.FacesMessage;
 import jakarta.faces.context.ExternalContext;

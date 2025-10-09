@@ -1,4 +1,4 @@
-package com.theplutushome.veristore.controller.view;
+package com.theplutushome.veristore.controller;
 
 import java.io.Serial;
 import java.io.Serializable;

@@ -1,4 +1,4 @@
-package com.theplutushome.veristore.controller.view;
+package com.theplutushome.veristore.controller;
 
 import com.theplutushome.veristore.model.Currency;
 import com.theplutushome.veristore.model.PaymentMode;
