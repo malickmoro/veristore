@@ -1,6 +1,8 @@
 package com.theplutushome.veristore.model;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Objects;
 
 public record Price(Currency currency, long amountMinor) implements Serializable {
