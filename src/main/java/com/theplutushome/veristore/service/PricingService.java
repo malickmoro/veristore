@@ -48,17 +48,11 @@ public class PricingService implements Serializable {
 
         SubServiceRecord serviceInfo = atlasService.getServiceInfo(enrollment.name());
         if (serviceInfo == null) {
-            LOGGER.log(Level.WARNING, "Falling back to static price for {0}; Atlas returned no data", enrollment.name());
-            return enrollment.price();
+            throw new IllegalStateException("Atlas did not return pricing for " + enrollment.name());
         }
 
         BigDecimal amount = BigDecimal.valueOf(serviceInfo.amount());
-        try {
-            return Price.of(serviceInfo.currency(), amount);
-        } catch (ArithmeticException ex) {
-            LOGGER.log(Level.WARNING, ex, () -> "Unable to parse Atlas price for " + enrollment.name() + ". Falling back to static pricing.");
-            return enrollment.price();
-        }
+        return Price.of(serviceInfo.currency(), amount);
     }
 
     public String format(Price price) {

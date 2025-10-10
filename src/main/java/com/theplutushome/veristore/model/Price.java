@@ -7,7 +7,7 @@ import java.util.Objects;
 
 public record Price(Currency currency, long amountMinor) implements Serializable {
 
-    public Price {
+    public Price  {
         Objects.requireNonNull(currency, "currency");
     }
 
@@ -20,4 +20,11 @@ public record Price(Currency currency, long amountMinor) implements Serializable
         return new Price(currency, majorUnits * 100L);
     }
 
+    public static Price of(Currency currency, BigDecimal majorUnits) {
+        Objects.requireNonNull(currency, "currency");
+        Objects.requireNonNull(majorUnits, "majorUnits");
+        BigDecimal normalized = majorUnits.setScale(2, RoundingMode.HALF_UP);
+        long minorUnits = normalized.movePointRight(2).longValueExact();
+        return new Price(currency, minorUnits);
+    }
 }

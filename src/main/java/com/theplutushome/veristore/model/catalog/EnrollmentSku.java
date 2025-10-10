@@ -24,7 +24,8 @@ public enum EnrollmentSku implements Serializable {
     REGULAR_NATIONALITY_UPDATE("CD", "Regular Nationality Update", Currency.GHS, 70, CitizenshipType.CITIZEN, CitizenTier.STANDARD, ApplicationType.UPDATE, UpdateType.NATIONALITY, 0, true),
     REGULAR_REPLACEMENT("CR", "Regular Replacement", Currency.GHS, 125, CitizenshipType.CITIZEN, CitizenTier.STANDARD, ApplicationType.REPLACEMENT, null, 0, true),
     REGULAR_RENEWAL("CN", "Regular Renewal", Currency.GHS, 60, CitizenshipType.CITIZEN, CitizenTier.STANDARD, ApplicationType.RENEWAL, null, 0, true),
-
+    REGULAR_FIRST_ISSUANCE("CA", "Citizen First Issuance — Regular", Currency.GHS, 60, CitizenshipType.CITIZEN, CitizenTier.STANDARD, ApplicationType.FIRST_ISSUANCE, null, 0, true),
+    
     PREMIUM_SECONDARY_DATA_UPDATE("RU", "Premium Secondary Data Update", Currency.GHS, 310, CitizenshipType.CITIZEN, CitizenTier.PREMIUM, ApplicationType.UPDATE, UpdateType.SECONDARY_DATA, 0, true),
     PREMIUM_PERSONAL_INFORMATION_UPDATE("PU", "Premium Personal Information Update", Currency.GHS, 355, CitizenshipType.CITIZEN, CitizenTier.PREMIUM, ApplicationType.UPDATE, UpdateType.PERSONAL_INFORMATION, 0, true),
     PREMIUM_DOB_UPDATE("PB", "Premium DOB Update", Currency.GHS, 355, CitizenshipType.CITIZEN, CitizenTier.PREMIUM, ApplicationType.UPDATE, UpdateType.DOB, 0, true),
@@ -32,7 +33,8 @@ public enum EnrollmentSku implements Serializable {
     PREMIUM_NATIONALITY_UPDATE("PD", "Premium Nationality Update", Currency.GHS, 365, CitizenshipType.CITIZEN, CitizenTier.PREMIUM, ApplicationType.UPDATE, UpdateType.NATIONALITY, 0, true),
     PREMIUM_REPLACEMENT("PR", "Premium Replacement", Currency.GHS, 420, CitizenshipType.CITIZEN, CitizenTier.PREMIUM, ApplicationType.REPLACEMENT, null, 0, true),
     PREMIUM_RENEWAL("PN", "Premium Renewal", Currency.GHS, 355, CitizenshipType.CITIZEN, CitizenTier.PREMIUM, ApplicationType.RENEWAL, null, 0, true),
-
+    PREMIUM_FIRST_ISSUANCE("PA", "Citizen First Issuance — Premium", Currency.GHS, 355, CitizenshipType.CITIZEN, CitizenTier.PREMIUM, ApplicationType.FIRST_ISSUANCE, null, 0, true),    
+   
     NON_CITIZEN_PERSONAL_INFORMATION_UPDATE("FU", "Non-citizen Personal Information Update", Currency.USD, 60, CitizenshipType.NON_CITIZEN, null, ApplicationType.UPDATE, UpdateType.PERSONAL_INFORMATION, 0, true),
     NON_CITIZEN_DOB_UPDATE("FB", "Non-citizen DOB Update", Currency.USD, 60, CitizenshipType.NON_CITIZEN, null, ApplicationType.UPDATE, UpdateType.DOB, 0, true),
     NON_CITIZEN_NATIONALITY_UPDATE("CF", "Non-citizen Nationality Update", Currency.USD, 120, CitizenshipType.NON_CITIZEN, null, ApplicationType.UPDATE, UpdateType.NATIONALITY, 0, true),
@@ -41,18 +43,15 @@ public enum EnrollmentSku implements Serializable {
     NON_CITIZEN_2_YEAR_RENEWAL("RW", "Non-citizen 2-Year Renewal", Currency.USD, 120, CitizenshipType.NON_CITIZEN, null, ApplicationType.RENEWAL, null, 2, true),
     NON_CITIZEN_3_YEAR_RENEWAL("RH", "Non-citizen 3-Year Renewal", Currency.USD, 180, CitizenshipType.NON_CITIZEN, null, ApplicationType.RENEWAL, null, 3, true),
     NON_CITIZEN_5_YEAR_RENEWAL("RF", "Non-citizen 5-Year Renewal", Currency.USD, 300, CitizenshipType.NON_CITIZEN, null, ApplicationType.RENEWAL, null, 5, true),
-
+    NON_CITIZEN_FIRST_ISSUANCE("FA", "Non-citizen First Issuance", Currency.USD, 60, CitizenshipType.NON_CITIZEN, null, ApplicationType.FIRST_ISSUANCE, null, 0, true),
+   
     REFUGEE_PERSONAL_INFORMATION_UPDATE("ZU", "Refugee Personal Information Update", Currency.USD, 15, CitizenshipType.REFUGEE, null, ApplicationType.UPDATE, UpdateType.PERSONAL_INFORMATION, 0, true),
     REFUGEE_DOB_UPDATE("ZB", "Refugee DOB Update", Currency.USD, 15, CitizenshipType.REFUGEE, null, ApplicationType.UPDATE, UpdateType.DOB, 0, true),
     REFUGEE_NATIONALITY_UPDATE("ZD", "Refugee Nationality Update", Currency.USD, 15, CitizenshipType.REFUGEE, null, ApplicationType.UPDATE, UpdateType.NATIONALITY, 0, true),
     REFUGEE_REPLACEMENT("ZP", "Refugee Replacement", Currency.USD, 15, CitizenshipType.REFUGEE, null, ApplicationType.REPLACEMENT, null, 0, true),
     REFUGEE_5_YEAR_RENEWAL("ZR", "Refugee 5-Year Renewal", Currency.USD, 15, CitizenshipType.REFUGEE, null, ApplicationType.RENEWAL, null, 5, true),
-
-    CITIZEN_FIRST_ISSUANCE_REGULAR("CA", "Citizen First Issuance — Regular", Currency.GHS, 60, CitizenshipType.CITIZEN, CitizenTier.STANDARD, ApplicationType.FIRST_ISSUANCE, null, 0, true),
-    CITIZEN_FIRST_ISSUANCE_PREMIUM("PA", "Citizen First Issuance — Premium", Currency.GHS, 355, CitizenshipType.CITIZEN, CitizenTier.PREMIUM, ApplicationType.FIRST_ISSUANCE, null, 0, true),
-
-    NON_CITIZEN_FIRST_ISSUANCE("FA", "Non-citizen First Issuance", Currency.USD, 60, CitizenshipType.NON_CITIZEN, null, ApplicationType.FIRST_ISSUANCE, null, 0, true),
     REFUGEE_FIRST_ISSUANCE("ZA", "Refugee First Issuance", Currency.USD, 15, CitizenshipType.REFUGEE, null, ApplicationType.FIRST_ISSUANCE, null, 0, true);
+   
 
     public final String sku;
     public final String displayName;
@@ -66,15 +65,15 @@ public enum EnrollmentSku implements Serializable {
     public final boolean active;
 
     EnrollmentSku(String sku,
-                  String displayName,
-                  Currency currency,
-                  int priceMajor,
-                  CitizenshipType citizenship,
-                  @Nullable CitizenTier citizenTier,
-                  ApplicationType appType,
-                  @Nullable UpdateType updateType,
-                  int durationYears,
-                  boolean active) {
+            String displayName,
+            Currency currency,
+            int priceMajor,
+            CitizenshipType citizenship,
+            @Nullable CitizenTier citizenTier,
+            ApplicationType appType,
+            @Nullable UpdateType updateType,
+            int durationYears,
+            boolean active) {
         this.sku = Objects.requireNonNull(sku, "sku");
         this.displayName = Objects.requireNonNull(displayName, "displayName");
         this.currency = Objects.requireNonNull(currency, "currency");
@@ -140,29 +139,29 @@ public enum EnrollmentSku implements Serializable {
     }
 
     private static final Map<String, EnrollmentSku> BY_SKU = Arrays.stream(values())
-        .collect(Collectors.toUnmodifiableMap(e -> e.sku, e -> e, (a, b) -> a));
+            .collect(Collectors.toUnmodifiableMap(e -> e.sku, e -> e, (a, b) -> a));
 
     public static Optional<EnrollmentSku> bySku(String sku) {
         return Optional.ofNullable(BY_SKU.get(sku));
     }
 
     public static List<EnrollmentSku> filter(CitizenshipType citizenshipType,
-                                             ApplicationType applicationType,
-                                             @Nullable UpdateType updateType,
-                                             @Nullable CitizenTier citizenTier) {
+            ApplicationType applicationType,
+            @Nullable UpdateType updateType,
+            @Nullable CitizenTier citizenTier) {
         return Arrays.stream(values())
-            .filter(v -> v.active)
-            .filter(v -> v.citizenship == citizenshipType && v.appType == applicationType)
-            .filter(v -> updateType == null || v.updateType == updateType)
-            .filter(v -> citizenTier == null || v.citizenTier == citizenTier)
-            .sorted(Comparator.comparing(v -> v.displayName))
-            .toList();
+                .filter(v -> v.active)
+                .filter(v -> v.citizenship == citizenshipType && v.appType == applicationType)
+                .filter(v -> updateType == null || v.updateType == updateType)
+                .filter(v -> citizenTier == null || v.citizenTier == citizenTier)
+                .sorted(Comparator.comparing(v -> v.displayName))
+                .toList();
     }
 
     public static List<EnrollmentSku> renewalsFor(CitizenshipType citizenshipType) {
         return Arrays.stream(values())
-            .filter(v -> v.active && v.citizenship == citizenshipType && v.appType == ApplicationType.RENEWAL)
-            .sorted(Comparator.comparingInt(v -> v.durationYears))
-            .toList();
+                .filter(v -> v.active && v.citizenship == citizenshipType && v.appType == ApplicationType.RENEWAL)
+                .sorted(Comparator.comparingInt(v -> v.durationYears))
+                .toList();
     }
 }

@@ -548,6 +548,19 @@ public class PurchaseView implements Serializable {
         return price == null ? "" : pricingService.format(price);
     }
 
+    public String atlasPriceFor(EnrollmentSku variant) {
+        if (variant == null) {
+            return "";
+        }
+        try {
+            Price price = pricingService.get(new ProductKey(ProductFamily.ENROLLMENT, variant.sku));
+            return pricingService.format(price);
+        } catch (RuntimeException ex) {
+            addMessage(componentId("variant"), FacesMessage.SEVERITY_ERROR, "Pricing is temporarily unavailable. Please try again shortly.");
+            return "";
+        }
+    }
+
     public String getUnitLabel() {
         if (selectedSku == null || selectedSku.isBlank()) {
             return "";
