@@ -9,8 +9,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.glassfish.jersey.server.filter.HttpMethodOverrideFilter.Source;
-
 /**
  *
  * @author MalickMoro-Samah
@@ -29,6 +27,6 @@ public class TransactionRequest implements Serializable {
     private String tellerName;
     private String paymentId;
     private String dateOfPayment;
-    private Source source;
+    private String source;
 
 }
