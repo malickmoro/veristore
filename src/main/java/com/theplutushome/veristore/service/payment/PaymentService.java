@@ -1,19 +1,18 @@
 package com.theplutushome.veristore.service.payment;
 
-import com.theplutushome.veristore.config.annotations.GOV;
+import com.theplutushome.veristore.model.PinRecord;
+import com.theplutushome.veristore.model.TransactionRecord;
+import com.theplutushome.veristore.model.catalog.EnrollmentSku;
+import com.theplutushome.veristore.model.catalog.ProductFamily;
 import com.theplutushome.veristore.model.catalog.ProductKey;
 import com.theplutushome.veristore.model.Contact;
 import com.theplutushome.veristore.model.Currency;
 import com.theplutushome.veristore.model.DeliveryPrefs;
 import com.theplutushome.veristore.model.InvoiceStatus;
 import com.theplutushome.veristore.model.Price;
+import com.theplutushome.veristore.payload.request.TransactionRequest;
 import com.theplutushome.veristore.service.email.EmailService;
-import com.theplutushome.veristore.payload.enums.PaymentCurrency;
-import com.theplutushome.veristore.payload.request.CreateInvoiceRequest;
-import com.theplutushome.veristore.payload.request.InvoiceCheckRequest;
-import com.theplutushome.veristore.payload.response.CreateInvoiceResponse;
-import com.theplutushome.veristore.payload.response.PaymentResponse;
-import com.theplutushome.veristore.service.payment.impl.GovCheckout;
+import com.theplutushome.veristore.service.atlas.AtlasService;
 import com.theplutushome.veristore.service.OrderStore;
 import com.theplutushome.veristore.service.PinVault;
 import com.theplutushome.veristore.service.PricingService;
@@ -25,15 +24,18 @@ import jakarta.inject.Inject;
 import java.io.Serial;
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 @ApplicationScoped
 public class PaymentService implements Serializable {
@@ -42,6 +44,10 @@ public class PaymentService implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private static final Logger LOGGER = Logger.getLogger(PaymentService.class.getName());
+    private static final DateTimeFormatter PAYMENT_TIMESTAMP_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy hh:mm:ss a");
+    private static final String DEFAULT_PAYMENT_MODE = "ONLINE";
+    private static final String DEFAULT_SOURCE = "MOBILE_APP";
+    private static final String DEFAULT_TELLER = "Veristore";
 
     @Inject
     private PinVault pinVault;
@@ -53,8 +59,7 @@ public class PaymentService implements Serializable {
     private OrderStore orderStore;
 
     @Inject
-    @GOV
-    private GovCheckout govCheckout;
+    private AtlasService atlasService;
 
     @Inject
     private EmailService emailService;
@@ -64,7 +69,7 @@ public class PaymentService implements Serializable {
     }
 
     public CheckoutInitiation payNow(List<Purchase> purchases, Contact contact, DeliveryPrefs deliveryPrefs) {
-        return initiateInvoice("pay-now", purchases, contact, deliveryPrefs);
+        return initiateInvoice("pay-now", purchases, contact, deliveryPrefs, true);
     }
 
     public CheckoutInitiation payLater(ProductKey key, int quantity, Contact contact, DeliveryPrefs deliveryPrefs) {
@@ -72,7 +77,7 @@ public class PaymentService implements Serializable {
     }
 
     public CheckoutInitiation payLater(List<Purchase> purchases, Contact contact, DeliveryPrefs deliveryPrefs) {
-        return initiateInvoice("pay-later", purchases, contact, deliveryPrefs);
+        return initiateInvoice("pay-later", purchases, contact, deliveryPrefs, false);
     }
 
     public boolean redeemInvoice(String invoiceNo) {
@@ -91,20 +96,8 @@ public class PaymentService implements Serializable {
             return true;
         }
 
-        PaymentResponse response = govCheckout.checkInvoiceStatus(new InvoiceCheckRequest(invoiceNo));
-        InvoiceStatus gatewayStatus = mapStatus(response);
-        if (gatewayStatus == InvoiceStatus.CANCELLED) {
-            orderStore.markInvoiceCancelled(invoiceNo);
-            LOGGER.log(Level.INFO, () -> "Marked invoice " + invoiceNo + " as cancelled by gateway");
-            return false;
-        }
-        if (gatewayStatus != InvoiceStatus.PAID) {
-            LOGGER.log(Level.INFO, () -> "Invoice " + invoiceNo + " not yet paid. Status: " + gatewayStatus);
-            return false;
-        }
-
         fulfillInvoice(invoice);
-        return true;
+        return invoice.getStatus() == InvoiceStatus.PAID;
     }
 
     public boolean processGatewayCallback(String invoiceNo) {
@@ -112,18 +105,6 @@ public class PaymentService implements Serializable {
             return false;
         }
         String normalized = invoiceNo.trim();
-        PaymentResponse response = govCheckout.checkInvoiceStatus(new InvoiceCheckRequest(normalized));
-        InvoiceStatus status = mapStatus(response);
-        LOGGER.log(Level.INFO, () -> String.format("Gateway callback for %s with status %s", normalized, status));
-
-        if (status == InvoiceStatus.CANCELLED) {
-            orderStore.markInvoiceCancelled(normalized);
-            return false;
-        }
-        if (status != InvoiceStatus.PAID) {
-            return false;
-        }
-
         Optional<OrderStore.Invoice> invoiceOpt = orderStore.findInvoice(normalized);
         if (invoiceOpt.isEmpty()) {
             LOGGER.log(Level.WARNING, () -> "Received callback for unknown invoice " + normalized);
@@ -141,7 +122,7 @@ public class PaymentService implements Serializable {
             Map<ProductKey, List<String>> deliveredCodes = new LinkedHashMap<>();
             List<OrderStore.OrderLine> orderLines = new ArrayList<>();
             for (OrderStore.InvoiceLine line : invoice.getLines()) {
-                List<String> codes = new ArrayList<>(pinVault.take(line.getKey(), line.getQuantity()));
+                List<String> codes = resolveCodes(invoice, line);
                 deliveredCodes.put(line.getKey(), codes);
                 orderLines.add(new OrderStore.OrderLine(
                         line.getKey(),
@@ -157,10 +138,18 @@ public class PaymentService implements Serializable {
         }
     }
 
+    private List<String> resolveCodes(OrderStore.Invoice invoice, OrderStore.InvoiceLine line) {
+        if (line.getKey().family() == ProductFamily.ENROLLMENT) {
+            return fetchEnrollmentPins(invoice, line);
+        }
+        return new ArrayList<>(pinVault.take(line.getKey(), line.getQuantity()));
+    }
+
     private CheckoutInitiation initiateInvoice(String label,
                                                List<Purchase> purchases,
                                                Contact contact,
-                                               DeliveryPrefs deliveryPrefs) {
+                                               DeliveryPrefs deliveryPrefs,
+                                               boolean autoFulfill) {
         Objects.requireNonNull(purchases, "purchases");
         Objects.requireNonNull(contact, "contact");
         Objects.requireNonNull(deliveryPrefs, "deliveryPrefs");
@@ -175,14 +164,6 @@ public class PaymentService implements Serializable {
             details.add(new PurchaseDetail(purchase.getKey(), purchase.getQuantity(), price));
         }
 
-        CreateInvoiceRequest request = buildInvoiceRequest(contact, details);
-        CreateInvoiceResponse response = govCheckout.initiateCheckout(request);
-        if (response == null || response.getInvoiceNumber() == null || response.getInvoiceNumber().isBlank()) {
-            throw new IllegalStateException("Unable to create invoice at payment gateway.");
-        }
-
-        String invoiceNo = response.getInvoiceNumber().trim();
-        String checkoutUrl = response.getCheckoutUrl();
         List<OrderStore.InvoiceLine> invoiceLines = new ArrayList<>();
         for (PurchaseDetail detail : details) {
             long totalMinor = multiply(detail.price().amountMinor(), detail.quantity());
@@ -193,88 +174,67 @@ public class PaymentService implements Serializable {
                     detail.price().currency(),
                     List.of()));
         }
-        String storedInvoice = orderStore.createInvoice(invoiceLines, contact, deliveryPrefs, invoiceNo, checkoutUrl);
+        String storedInvoice = orderStore.createInvoice(invoiceLines, contact, deliveryPrefs, null, null);
 
         LOGGER.log(Level.INFO, () -> String.format("Created %s invoice %s for %s", label, storedInvoice, contact.email()));
-        if (checkoutUrl != null && !checkoutUrl.isBlank()) {
-            LOGGER.log(Level.INFO, () -> "Checkout URL: " + checkoutUrl);
+        if (autoFulfill) {
+            orderStore.findInvoice(storedInvoice).ifPresent(this::fulfillInvoice);
         }
-        return new CheckoutInitiation(storedInvoice, checkoutUrl);
+        return new CheckoutInitiation(storedInvoice, null);
     }
 
-    private CreateInvoiceRequest buildInvoiceRequest(Contact contact, List<PurchaseDetail> details) {
-        CreateInvoiceRequest request = new CreateInvoiceRequest();
-        request.setFirstname(extractNamePart(contact.email(), true));
-        request.setLastname(extractNamePart(contact.email(), false));
-        request.setPhonenumber(contact.msisdn());
-        request.setEmail(contact.email());
-        request.setApplicationId(UUID.randomUUID().toString());
-        request.setDescription(buildDescription(details));
-        request.setExtraDetails(buildExtraDetails(details));
+    private List<String> fetchEnrollmentPins(OrderStore.Invoice invoice, OrderStore.InvoiceLine line) {
+        EnrollmentSku sku = EnrollmentSku.bySku(line.getKey().sku())
+            .orElseThrow(() -> new IllegalArgumentException("Unknown enrollment SKU: " + line.getKey().sku()));
 
-        for (PurchaseDetail detail : details) {
-            CreateInvoiceRequest.InvoiceItem item = new CreateInvoiceRequest.InvoiceItem();
-            item.setServiceCode(detail.key().sku());
-            item.setAmount(BigDecimal.valueOf(detail.price().amountMinor(), 2)
-                    .multiply(BigDecimal.valueOf(detail.quantity())));
-            item.setCurrency(mapCurrency(detail.price().currency()));
-            item.setMemo(String.format("%s x%d", detail.key().sku(), detail.quantity()));
-            request.addInvoice(item);
+        TransactionRequest request = buildTransactionRequest(invoice, line, sku);
+        TransactionRecord transaction = atlasService.createTransaction(request);
+        if (transaction == null || transaction.transactionId() == null || transaction.transactionId().isBlank()) {
+            throw new IllegalStateException("Atlas transaction could not be created for " + sku.name());
         }
 
+        List<PinRecord> pins = atlasService.confirmTransaction(transaction.transactionId());
+        if (pins == null || pins.isEmpty()) {
+            throw new IllegalStateException("Atlas returned no PINs for transaction " + transaction.transactionId());
+        }
+        if (pins.size() < line.getQuantity()) {
+            LOGGER.log(Level.WARNING, () -> String.format(
+                "Atlas returned %d PIN(s) but %d were requested for %s",
+                pins.size(),
+                line.getQuantity(),
+                sku.name()));
+        }
+
+        return pins.stream()
+            .map(this::formatPinRecord)
+            .collect(Collectors.toList());
+    }
+
+    private TransactionRequest buildTransactionRequest(OrderStore.Invoice invoice,
+                                                       OrderStore.InvoiceLine line,
+                                                       EnrollmentSku sku) {
+        TransactionRequest request = new TransactionRequest();
+        request.setServiceId(sku.name());
+        request.setQuantity(line.getQuantity());
+        BigDecimal totalMajor = BigDecimal.valueOf(line.getTotalMinor(), 2);
+        request.setAmountPaid(totalMajor.doubleValue());
+        request.setExchangeRate(1.0d);
+        request.setPaymentMode(DEFAULT_PAYMENT_MODE);
+        request.setTellerName(DEFAULT_TELLER);
+        request.setPaymentId(invoice.getInvoiceNo());
+        request.setDateOfPayment(currentPaymentTimestamp());
+        request.setSource(DEFAULT_SOURCE);
         return request;
     }
 
-    private String buildDescription(List<PurchaseDetail> details) {
-        if (details.isEmpty()) {
-            return "Veristore purchase";
-        }
-        if (details.size() == 1) {
-            PurchaseDetail detail = details.get(0);
-            return VariantDescriptions.describe(detail.key().family(), detail.key().sku());
-        }
-        return String.format("Veristore purchase (%d items)", details.size());
+    private String currentPaymentTimestamp() {
+        return LocalDateTime.now(ZoneId.systemDefault()).format(PAYMENT_TIMESTAMP_FORMAT);
     }
 
-    private String buildExtraDetails(List<PurchaseDetail> details) {
-        StringBuilder builder = new StringBuilder();
-        for (int i = 0; i < details.size(); i++) {
-            PurchaseDetail detail = details.get(i);
-            if (i > 0) {
-                builder.append('|');
-            }
-            builder.append("sku=")
-                    .append(detail.key().sku())
-                    .append(";quantity=")
-                    .append(detail.quantity());
-        }
-        return builder.toString();
-    }
-
-    private PaymentCurrency mapCurrency(Currency currency) {
-        return switch (currency) {
-            case GHS -> PaymentCurrency.GHS;
-            case USD -> PaymentCurrency.USD;
-        };
-    }
-
-    private InvoiceStatus mapStatus(PaymentResponse response) {
-        if (response == null) {
-            return InvoiceStatus.PENDING;
-        }
-        PaymentResponse.InvoiceDetails details = response.getOutput();
-        if (details == null) {
-            return InvoiceStatus.PENDING;
-        }
-        int code = details.getPaymentStatusCode();
-        String text = Optional.ofNullable(details.getPaymentStatusText()).orElse("");
-        if (code == 1 || text.equalsIgnoreCase("paid")) {
-            return InvoiceStatus.PAID;
-        }
-        if (code == 3 || text.equalsIgnoreCase("cancelled") || text.equalsIgnoreCase("canceled")) {
-            return InvoiceStatus.CANCELLED;
-        }
-        return InvoiceStatus.PENDING;
+    private String formatPinRecord(PinRecord pin) {
+        String serial = Optional.ofNullable(pin.serialNo()).orElse("N/A");
+        String value = Optional.ofNullable(pin.pin()).orElse("");
+        return serial + " - " + value;
     }
 
     private void deliver(String reference,
@@ -317,37 +277,6 @@ public class PaymentService implements Serializable {
         return Math.multiplyExact(amountMinor, quantity);
     }
 
-    private String extractNamePart(String email, boolean first) {
-        if (email == null || email.isBlank()) {
-            return first ? "Customer" : "";
-        }
-        String localPart = email.split("@")[0];
-        if (localPart.isBlank()) {
-            return first ? "Customer" : "";
-        }
-        String[] tokens = localPart.replace('.', ' ').replace('_', ' ').split(" ");
-        if (tokens.length == 0) {
-            return first ? capitalize(localPart) : "";
-        }
-        if (first) {
-            return capitalize(tokens[0]);
-        }
-        if (tokens.length > 1) {
-            return capitalize(tokens[tokens.length - 1]);
-        }
-        return "";
-    }
-
-    private String capitalize(String value) {
-        if (value == null || value.isBlank()) {
-            return "";
-        }
-        String trimmed = value.trim();
-        if (trimmed.length() == 1) {
-            return trimmed.toUpperCase();
-        }
-        return trimmed.substring(0, 1).toUpperCase() + trimmed.substring(1);
-    }
     public static final class CheckoutInitiation implements Serializable {
 
         @Serial

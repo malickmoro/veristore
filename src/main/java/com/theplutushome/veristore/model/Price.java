@@ -17,4 +17,5 @@ public record Price(Currency currency, long amountMinor) implements Serializable
         Objects.requireNonNull(currency, "currency");
         return new Price(currency, majorUnits * 100L);
     }
+
 }
