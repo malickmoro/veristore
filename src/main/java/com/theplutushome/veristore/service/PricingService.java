@@ -1,34 +1,23 @@
 package com.theplutushome.veristore.service;
 
-import com.theplutushome.veristore.model.SubServiceRecord;
 import com.theplutushome.veristore.model.catalog.EnrollmentSku;
 import com.theplutushome.veristore.model.catalog.ProductKey;
 import com.theplutushome.veristore.model.catalog.VerificationSku;
 import com.theplutushome.veristore.model.Currency;
 import com.theplutushome.veristore.model.Price;
-import com.theplutushome.veristore.service.atlas.AtlasService;
 
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
-
 import java.io.Serial;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.util.Locale;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 @ApplicationScoped
 public class PricingService implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 1L;
-
-    private static final Logger LOGGER = Logger.getLogger(PricingService.class.getName());
-
-    @Inject
-    private AtlasService atlasService;
 
     public Price get(ProductKey key) {
         if (key == null) {
@@ -45,20 +34,7 @@ public class PricingService implements Serializable {
     private Price fetchEnrollmentPrice(String sku) {
         EnrollmentSku enrollment = EnrollmentSku.bySku(sku)
             .orElseThrow(() -> new IllegalArgumentException("Unknown enrollment SKU: " + sku));
-
-        SubServiceRecord serviceInfo = atlasService.getServiceInfo(enrollment.name());
-        if (serviceInfo == null) {
-            LOGGER.log(Level.WARNING, "Falling back to static price for {0}; Atlas returned no data", enrollment.name());
-            return enrollment.price();
-        }
-
-        BigDecimal amount = BigDecimal.valueOf(serviceInfo.amount());
-        try {
-            return Price.of(serviceInfo.currency(), amount);
-        } catch (ArithmeticException ex) {
-            LOGGER.log(Level.WARNING, ex, () -> "Unable to parse Atlas price for " + enrollment.name() + ". Falling back to static pricing.");
-            return enrollment.price();
-        }
+        return enrollment.price();
     }
 
     public String format(Price price) {
