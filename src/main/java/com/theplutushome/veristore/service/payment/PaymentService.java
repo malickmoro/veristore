@@ -69,7 +69,7 @@ public class PaymentService implements Serializable {
     }
 
     public CheckoutInitiation payNow(List<Purchase> purchases, Contact contact, DeliveryPrefs deliveryPrefs) {
-        return initiateInvoice("pay-now", purchases, contact, deliveryPrefs, true);
+        return initiateInvoice("pay-now", purchases, contact, deliveryPrefs, false);
     }
 
     public CheckoutInitiation payLater(ProductKey key, int quantity, Contact contact, DeliveryPrefs deliveryPrefs) {
