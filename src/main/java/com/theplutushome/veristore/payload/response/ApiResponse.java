@@ -9,28 +9,29 @@ import java.io.Serializable;
 /**
  *
  * @author MalickMoro-Samah
+ * @param <T>
  */
-public class ApiResponse implements Serializable {
+public class ApiResponse<T> implements Serializable {
 
     private String status;
     private String msg;
     private String code;
-    private Object data;
+    private T data;           // ✅ Now strongly typed
     private boolean found;
     private boolean success;
 
     public ApiResponse() {
     }
 
-    public ApiResponse(String status, String msg, String code, Object data, boolean found) {
+    public ApiResponse(String status, String msg, String code, T data, boolean found) {
         this.status = status;
         this.msg = msg;
         this.code = code;
         this.data = data;
         this.found = found;
     }
-    
-    public ApiResponse(String status, String msg, String code, Object data, boolean found, boolean success) {
+
+    public ApiResponse(String status, String msg, String code, T data, boolean found, boolean success) {
         this.status = status;
         this.msg = msg;
         this.code = code;
@@ -51,7 +52,7 @@ public class ApiResponse implements Serializable {
         return this.code;
     }
 
-    public Object getData() {
+    public T getData() {
         return this.data;
     }
 
@@ -71,7 +72,7 @@ public class ApiResponse implements Serializable {
         this.code = code;
     }
 
-    public void setData(Object data) {
+    public void setData(T data) {
         this.data = data;
     }
 
@@ -82,11 +83,9 @@ public class ApiResponse implements Serializable {
     public boolean isSuccess() {
         return success;
     }
-    
 
     @Override
     public String toString() {
         return "ApiResponse(status=" + this.getStatus() + ", msg=" + this.getMsg() + ", code=" + this.getCode() + ", data=" + this.getData() + ", found=" + this.isFound() + ")";
     }
 }
-
