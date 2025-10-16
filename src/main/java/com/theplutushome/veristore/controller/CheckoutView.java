@@ -22,9 +22,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
-import static com.theplutushome.veristore.model.PaymentMode.PAY_LATER;
-import static com.theplutushome.veristore.model.PaymentMode.PAY_NOW;
-
 @Named
 @ViewScoped
 public class CheckoutView implements Serializable {

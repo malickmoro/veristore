@@ -24,7 +24,7 @@ public enum EnrollmentSku implements Serializable {
     REGULAR_NATIONALITY_UPDATE("CD", "Regular Nationality Update", Currency.GHS, 70, CitizenshipType.CITIZEN, CitizenTier.STANDARD, ApplicationType.UPDATE, UpdateType.NATIONALITY, 0, true),
     REGULAR_REPLACEMENT("CR", "Regular Replacement", Currency.GHS, 125, CitizenshipType.CITIZEN, CitizenTier.STANDARD, ApplicationType.REPLACEMENT, null, 0, true),
     REGULAR_RENEWAL("CN", "Regular Renewal", Currency.GHS, 60, CitizenshipType.CITIZEN, CitizenTier.STANDARD, ApplicationType.RENEWAL, null, 0, true),
-    REGULAR_FIRST_ISSUANCE("CA", "Citizen First Issuance — Regular", Currency.GHS, 60, CitizenshipType.CITIZEN, CitizenTier.STANDARD, ApplicationType.FIRST_ISSUANCE, null, 0, true),
+    REGULAR_FIRST_ISSUANCE("CA", "Citizen First Issuance — Regular", Currency.GHS, 0, CitizenshipType.CITIZEN, CitizenTier.STANDARD, ApplicationType.FIRST_ISSUANCE, null, 0, true),
     
     PREMIUM_SECONDARY_DATA_UPDATE("RU", "Premium Secondary Data Update", Currency.GHS, 310, CitizenshipType.CITIZEN, CitizenTier.PREMIUM, ApplicationType.UPDATE, UpdateType.SECONDARY_DATA, 0, true),
     PREMIUM_PERSONAL_INFORMATION_UPDATE("PU", "Premium Personal Information Update", Currency.GHS, 355, CitizenshipType.CITIZEN, CitizenTier.PREMIUM, ApplicationType.UPDATE, UpdateType.PERSONAL_INFORMATION, 0, true),
@@ -33,7 +33,7 @@ public enum EnrollmentSku implements Serializable {
     PREMIUM_NATIONALITY_UPDATE("PD", "Premium Nationality Update", Currency.GHS, 365, CitizenshipType.CITIZEN, CitizenTier.PREMIUM, ApplicationType.UPDATE, UpdateType.NATIONALITY, 0, true),
     PREMIUM_REPLACEMENT("PR", "Premium Replacement", Currency.GHS, 420, CitizenshipType.CITIZEN, CitizenTier.PREMIUM, ApplicationType.REPLACEMENT, null, 0, true),
     PREMIUM_RENEWAL("PN", "Premium Renewal", Currency.GHS, 355, CitizenshipType.CITIZEN, CitizenTier.PREMIUM, ApplicationType.RENEWAL, null, 0, true),
-    PREMIUM_FIRST_ISSUANCE("PA", "Citizen First Issuance — Premium", Currency.GHS, 355, CitizenshipType.CITIZEN, CitizenTier.PREMIUM, ApplicationType.FIRST_ISSUANCE, null, 0, true),    
+    PREMIUM_FIRST_ISSUANCE("PI", "Citizen First Issuance — Premium", Currency.GHS, 50, CitizenshipType.CITIZEN, CitizenTier.PREMIUM, ApplicationType.FIRST_ISSUANCE, null, 0, true),    
    
     NON_CITIZEN_PERSONAL_INFORMATION_UPDATE("FU", "Non-citizen Personal Information Update", Currency.USD, 60, CitizenshipType.NON_CITIZEN, null, ApplicationType.UPDATE, UpdateType.PERSONAL_INFORMATION, 0, true),
     NON_CITIZEN_DOB_UPDATE("FB", "Non-citizen DOB Update", Currency.USD, 60, CitizenshipType.NON_CITIZEN, null, ApplicationType.UPDATE, UpdateType.DOB, 0, true),

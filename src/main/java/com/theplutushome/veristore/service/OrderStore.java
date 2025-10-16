@@ -168,8 +168,8 @@ public class OrderStore implements Serializable {
     }
 
     private String nextInvoiceNo() {
-        int sequence = invoiceSequence.incrementAndGet();
-        return String.format("INV-%d-%05d", Year.now().getValue(), sequence);
+        long millis = System.currentTimeMillis();
+        return "INV-" + millis;
     }
 
     private Currency ensureCommonCurrency(List<Currency> currencies) {

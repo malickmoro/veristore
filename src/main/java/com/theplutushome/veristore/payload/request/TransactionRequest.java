@@ -29,4 +29,23 @@ public class TransactionRequest implements Serializable {
     private String dateOfPayment;
     private String source;
 
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("TransactionRequest{");
+        sb.append("serviceId=").append(serviceId);
+        sb.append(", quantity=").append(quantity);
+        sb.append(", paymentMode=").append(paymentMode);
+        sb.append(", amountPaid=").append(amountPaid);
+        sb.append(", exchangeRate=").append(exchangeRate);
+        sb.append(", tellerName=").append(tellerName);
+        sb.append(", paymentId=").append(paymentId);
+        sb.append(", dateOfPayment=").append(dateOfPayment);
+        sb.append(", source=").append(source);
+        sb.append('}');
+        return sb.toString();
+    }
+    
+    
+
 }

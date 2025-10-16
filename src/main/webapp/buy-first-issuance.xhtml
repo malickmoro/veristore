@@ -162,27 +162,28 @@
                                                                 <div class="d-flex justify-content-between align-items-center">
                                                                     <span class="fw-semibold fs-5 mb-0">#{purchaseView.atlasPriceFor(variant)}</span>
                                                                 </div>
-                                                                <div class="input-group input-group-sm" style="position: relative; z-index: 2;">
-                                                                    <span class="input-group-text">Qty</span>
-                                                                    <h:inputText id="quantity"
-                                                                                 value="#{purchaseView.variantQuantities[variant.sku]}"
-                                                                                 styleClass="form-control"
-                                                                                 pt:type="number"
-                                                                                 pt:min="1"
-                                                                                 pt:max="10">
-                                                                        <f:convertNumber integerOnly="true" />
-                                                                        <f:ajax event="change"
-                                                                                execute="@this"
-                                                                                render="purchaseForm:variantChoices" />
-                                                                    </h:inputText>
+                                                                <div class="d-flex gap-2 align-items-stretch" style="position: relative; z-index: 2;">
+                                                                    <div class="input-group input-group-sm" style="max-width: 160px;">
+                                                                        <span class="input-group-text">Qty</span>
+                                                                        <h:inputText id="quantity"
+                                                                                     value="#{purchaseView.variantQuantities[variant.sku]}"
+                                                                                     styleClass="form-control"
+                                                                                     pt:type="number"
+                                                                                     pt:min="1"
+                                                                                     pt:max="10">
+                                                                            <f:convertNumber integerOnly="true" />
+                                                                            <f:ajax event="change"
+                                                                                    execute="@this"
+                                                                                    render="purchaseForm:variantChoices" />
+                                                                        </h:inputText>
+                                                                    </div>
+                                                                    <h:commandButton value="Add to cart"
+                                                                                     action="#{purchaseView.addVariantToCart(variant.sku)}"
+                                                                                     styleClass="btn btn-primary flex-grow-1">
+                                                                        <f:ajax execute="@form"
+                                                                                render="purchaseForm:messages purchaseForm:variantChoices :cartToggle :cartDrawer" />
+                                                                    </h:commandButton>
                                                                 </div>
-                                                                <h:commandButton value="Add to cart"
-                                                                                 action="#{purchaseView.addVariantToCart(variant.sku)}"
-                                                                                 styleClass="btn btn-primary w-100"
-                                                                                 style="position: relative; z-index: 2;">
-                                                                    <f:ajax execute="@form"
-                                                                            render="purchaseForm:messages purchaseForm:variantChoices :cartToggle :cartDrawer" />
-                                                                </h:commandButton>
                                                             </div>
 
                                                         </div>

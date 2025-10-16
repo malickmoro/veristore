@@ -25,8 +25,8 @@ import kong.unirest.UnirestInstance;
 @Stateless
 public class AtlasService {
 
-    private static final String AUTH_TOKEN = "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxNzZkMGQyYzNmZjk0YjMzOTU3YWQwZTdjYjk0MmQwOCIsImlhdCI6MTc2MDA5NTg0NCwiZXhwIjoxNzYwMTE3NDQ0fQ.YR1KeexW7jjsrZDEdbQ27nqS34YKT-CXEhSAjfD2b1OsVD3weqqKqURAIk8qlinQyCx1bYWUFdMtlSvbjpBgzg";
-    private static final String BASE_URL = "http://localhost:1640/atlas/api/v1";
+    private static final String AUTH_TOKEN = "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxNzZkMGQyYzNmZjk0YjMzOTU3YWQwZTdjYjk0MmQwOCIsImlhdCI6MTc2MDM3NDQ1MSwiZXhwIjoxODYwMzc0MzE1fQ.gsddoCinuqbfSEKJGVCoAnhSatvp6t8Wt8_1PF_nmW8sESWi5MASF5_VprDkZefF9Wxc07Ukm7Eqaws0biPhgg";
+    private static final String BASE_URL = "http://172.16.10.129:1640/atlas/api/v1";
     private static final String GET_SERVICE_INFO_URL = BASE_URL + "/payment/usage/service_types/subcategory/subservice/";
     private static final String CREATE_TRANSACTION_URL = BASE_URL + "/transaction/create";
     private static final String CONFIRM_TRANSACTION_URL = BASE_URL + "/transaction/confirmed/";

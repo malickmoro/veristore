@@ -27,10 +27,9 @@ class EnrollmentSkuTest {
         var regular = EnrollmentSku.bySku("CA");
         assertTrue(regular.isPresent(), "CA SKU should exist");
         assertTrue(regular.orElseThrow().active, "Regular first issuance must be active");
-        assertTrue(regular.orElseThrow().price().amountMinor() > 0, "Regular first issuance must cost more than zero");
 
-        var premium = EnrollmentSku.bySku("PA");
-        assertTrue(premium.isPresent(), "PA SKU should exist");
+        var premium = EnrollmentSku.bySku("PI");
+        assertTrue(premium.isPresent(), "PI SKU should exist");
         assertTrue(premium.orElseThrow().active, "Premium first issuance must be active");
         assertTrue(premium.orElseThrow().price().amountMinor() >= regular.orElseThrow().price().amountMinor(),
             "Premium first issuance must be priced at least as high as regular");

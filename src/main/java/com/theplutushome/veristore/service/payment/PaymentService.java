@@ -24,6 +24,7 @@ import jakarta.inject.Inject;
 import java.io.Serial;
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -69,7 +70,8 @@ public class PaymentService implements Serializable {
     }
 
     public CheckoutInitiation payNow(List<Purchase> purchases, Contact contact, DeliveryPrefs deliveryPrefs) {
-        return initiateInvoice("pay-now", purchases, contact, deliveryPrefs, false);
+        // Auto-fulfill: simulate payment success, create Atlas transaction(s), confirm, create order, deliver
+        return initiateInvoice("pay-now", purchases, contact, deliveryPrefs, true);
     }
 
     public CheckoutInitiation payLater(ProductKey key, int quantity, Contact contact, DeliveryPrefs deliveryPrefs) {
@@ -96,8 +98,8 @@ public class PaymentService implements Serializable {
             return true;
         }
 
-        fulfillInvoice(invoice);
-        return invoice.getStatus() == InvoiceStatus.PAID;
+        String orderId = fulfillInvoice(invoice);
+        return orderId != null && invoice.getStatus() == InvoiceStatus.PAID;
     }
 
     public boolean processGatewayCallback(String invoiceNo) {
@@ -110,14 +112,14 @@ public class PaymentService implements Serializable {
             LOGGER.log(Level.WARNING, () -> "Received callback for unknown invoice " + normalized);
             return false;
         }
-        fulfillInvoice(invoiceOpt.get());
-        return true;
+        String orderId = fulfillInvoice(invoiceOpt.get());
+        return orderId != null;
     }
 
-    private void fulfillInvoice(OrderStore.Invoice invoice) {
+    private String fulfillInvoice(OrderStore.Invoice invoice) {
         synchronized (invoice) {
             if (invoice.getStatus() == InvoiceStatus.PAID) {
-                return;
+                return null;
             }
             Map<ProductKey, List<String>> deliveredCodes = new LinkedHashMap<>();
             List<OrderStore.OrderLine> orderLines = new ArrayList<>();
@@ -135,6 +137,7 @@ public class PaymentService implements Serializable {
             String orderId = orderStore.createOrder(orderLines, invoice.getContact(), invoice.getDeliveryPrefs());
             deliver(orderId, invoice.getContact(), invoice.getDeliveryPrefs(), orderLines);
             LOGGER.log(Level.INFO, () -> String.format("Redeemed invoice %s as order %s", invoice.getInvoiceNo(), orderId));
+            return orderId;
         }
     }
 
@@ -177,10 +180,13 @@ public class PaymentService implements Serializable {
         String storedInvoice = orderStore.createInvoice(invoiceLines, contact, deliveryPrefs, null, null);
 
         LOGGER.log(Level.INFO, () -> String.format("Created %s invoice %s for %s", label, storedInvoice, contact.email()));
+        String orderId = null;
         if (autoFulfill) {
-            orderStore.findInvoice(storedInvoice).ifPresent(this::fulfillInvoice);
+            orderId = orderStore.findInvoice(storedInvoice)
+                    .map(this::fulfillInvoice)
+                    .orElse(null);
         }
-        return new CheckoutInitiation(storedInvoice, null);
+        return new CheckoutInitiation(storedInvoice, null, orderId);
     }
 
     private List<String> fetchEnrollmentPins(OrderStore.Invoice invoice, OrderStore.InvoiceLine line) {
@@ -188,6 +194,7 @@ public class PaymentService implements Serializable {
             .orElseThrow(() -> new IllegalArgumentException("Unknown enrollment SKU: " + line.getKey().sku()));
 
         TransactionRequest request = buildTransactionRequest(invoice, line, sku);
+        System.out.println("THE REQUEST >>>>> " + request.toString());
         TransactionRecord transaction = atlasService.createTransaction(request);
         if (transaction == null || transaction.transactionId() == null || transaction.transactionId().isBlank()) {
             throw new IllegalStateException("Atlas transaction could not be created for " + sku.name());
@@ -221,14 +228,22 @@ public class PaymentService implements Serializable {
         request.setExchangeRate(1.0d);
         request.setPaymentMode(DEFAULT_PAYMENT_MODE);
         request.setTellerName(DEFAULT_TELLER);
-        request.setPaymentId(invoice.getInvoiceNo());
+        // Ensure a unique but short payment id per transaction request
+        // Format: INV-<t>-<r> where <t> is base36 time slice and <r> is base36 random
+        long millis = System.currentTimeMillis();
+        long timeSlice = millis % 2176782336L; // fits in 5 base36 chars (~36^5)
+        int randomPart = (int) (Math.random() * (36 * 36 * 36)); // up to 3 base36 chars
+        String t = Long.toString(timeSlice, 36).toUpperCase();
+        String r = Integer.toString(randomPart, 36).toUpperCase();
+        String shortId = "INV-" + padLeft(t, 5) + '-' + padLeft(r, 3);
+        request.setPaymentId(shortId);
         request.setDateOfPayment(currentPaymentTimestamp());
         request.setSource(DEFAULT_SOURCE);
         return request;
     }
 
     private String currentPaymentTimestamp() {
-        return LocalDateTime.now(ZoneId.systemDefault()).format(PAYMENT_TIMESTAMP_FORMAT);
+        return LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy hh:mm:ss a"));
     }
 
     private String formatPinRecord(PinRecord pin) {
@@ -277,6 +292,18 @@ public class PaymentService implements Serializable {
         return Math.multiplyExact(amountMinor, quantity);
     }
 
+    private static String padLeft(String s, int len) {
+        if (s.length() >= len) {
+            return s;
+        }
+        StringBuilder sb = new StringBuilder(len);
+        for (int i = s.length(); i < len; i++) {
+            sb.append('0');
+        }
+        sb.append(s);
+        return sb.toString();
+    }
+
     public static final class CheckoutInitiation implements Serializable {
 
         @Serial
@@ -284,10 +311,12 @@ public class PaymentService implements Serializable {
 
         private final String invoiceNo;
         private final String checkoutUrl;
+        private final String orderId; // present for auto-fulfilled pay-now
 
-        public CheckoutInitiation(String invoiceNo, String checkoutUrl) {
+        public CheckoutInitiation(String invoiceNo, String checkoutUrl, String orderId) {
             this.invoiceNo = Objects.requireNonNull(invoiceNo, "invoiceNo");
             this.checkoutUrl = checkoutUrl;
+            this.orderId = orderId;
         }
 
         public String getInvoiceNo() {
@@ -296,6 +325,10 @@ public class PaymentService implements Serializable {
 
         public String getCheckoutUrl() {
             return checkoutUrl;
+        }
+
+        public String getOrderId() {
+            return orderId;
         }
     }
 

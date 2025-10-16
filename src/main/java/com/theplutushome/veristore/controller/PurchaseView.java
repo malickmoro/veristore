@@ -940,6 +940,10 @@ public class PurchaseView implements Serializable {
             DeliveryPrefs deliveryPrefs = new DeliveryPrefs(deliverEmail, deliverSms);
             if (mode == PaymentMode.PAY_NOW) {
                 PaymentService.CheckoutInitiation initiation = paymentService.payNow(key, qty, contact, deliveryPrefs);
+                if (initiation.getOrderId() != null && !initiation.getOrderId().isBlank()) {
+                    queueMessage(FacesMessage.SEVERITY_INFO, "Order " + initiation.getOrderId() + " completed successfully.");
+                    return redirectTo("success", "orderId", initiation.getOrderId());
+                }
                 queueMessage(FacesMessage.SEVERITY_INFO, "Invoice " + initiation.getInvoiceNo() + " generated.");
                 if (initiation.getCheckoutUrl() != null && !initiation.getCheckoutUrl().isBlank()) {
                     return "redirect:" + initiation.getCheckoutUrl();

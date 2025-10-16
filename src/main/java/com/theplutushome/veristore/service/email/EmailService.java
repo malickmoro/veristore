@@ -193,9 +193,19 @@ public class EmailService implements Serializable {
                     .append("</p>");
             builder.append("<ul>");
             for (String pin : pins) {
-                builder.append("<li><strong>")
-                        .append(pin)
-                        .append("</strong></li>");
+                int sep = pin.indexOf(" - ");
+                if (sep > 0) {
+                    String serial = pin.substring(0, sep).trim();
+                    String value = pin.substring(sep + 3).trim();
+                    builder.append("<li>")
+                          .append("<div><strong>Serial:</strong> <code>").append(serial).append("</code></div>")
+                          .append("<div><strong>PIN:</strong> <code>").append(value).append("</code></div>")
+                          .append("</li>");
+                } else {
+                    builder.append("<li><strong>")
+                          .append(pin)
+                          .append("</strong></li>");
+                }
             }
             builder.append("</ul>");
         }
@@ -218,9 +228,15 @@ public class EmailService implements Serializable {
                     .append(description == null || description.isBlank() ? "Veristore product" : description)
                     .append("\n");
             for (String pin : pins) {
-                builder.append(" - ")
-                        .append(pin)
-                        .append('\n');
+                int sep = pin.indexOf(" - ");
+                if (sep > 0) {
+                    String serial = pin.substring(0, sep).trim();
+                    String value = pin.substring(sep + 3).trim();
+                    builder.append(" Serial: ").append(serial).append('\n');
+                    builder.append(" PIN:    ").append(value).append('\n');
+                } else {
+                    builder.append(" PIN: ").append(pin).append('\n');
+                }
             }
             builder.append('\n');
         }
